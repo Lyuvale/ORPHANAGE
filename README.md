@@ -119,18 +119,64 @@ await requirePermission(supabase, ctx, "children.view");
 const allowed = await can(supabase, ctx, "children.view");
 ```
 
+### Audit Trail
+
+Every meaningful business and security event is recorded in an append-only `audit_logs` table. This provides a tamper-evident record for accountability and compliance.
+
+**Principles:**
+- **Centre-scoped** — every record has `centre_id` for tenant isolation
+- **Actor-identified** — `actor_user_id` derived server-side from the authenticated session, never from client input
+- **Append-only** — normal users cannot update or delete audit records
+- **Sensitive data stripped** — passwords, tokens, keys are automatically redacted from `previous_values` / `new_values`
+
+**Action vocabulary:**
+| Category | Actions |
+|----------|---------|
+| Business | `CREATE`, `UPDATE`, `DELETE`, `VIEW`, `EXPORT`, `DOWNLOAD`, `APPROVE`, `REJECT` |
+| Security | `LOGIN`, `LOGOUT`, `LOGIN_FAILED`, `ACCOUNT_DEACTIVATED`, `ACCOUNT_ACTIVATED`, `ROLE_CHANGED` |
+
+**Usage in API routes:**
+```typescript
+// With authenticated context (centre_id derived automatically)
+const ctx = await requireAppAccess(supabase);
+await recordAuditEvent(adminSupabase, ctx, {
+  action: "CREATE",
+  entity_type: "child",
+  entity_id: child.id,
+  new_values: { first_name: "Amina" },
+});
+
+// Security event without full context (centre_id passed explicitly)
+await recordAuditEvent(adminSupabase, null, {
+  action: "LOGIN_FAILED",
+  entity_type: "session",
+  centre_id: centreId,
+  actor_user_id: userId,
+  metadata: { reason: "Invalid credentials" },
+});
+
+// Convenience helpers
+await auditCreate(adminSupabase, ctx, "child", child.id, childData);
+await auditUpdate(adminSupabase, ctx, "child", child.id, oldData, newData);
+await auditDelete(adminSupabase, ctx, "child", child.id, childData);
+await auditSecurityEvent(adminSupabase, null, "LOGIN_FAILED", "session", { centre_id, actor_user_id });
+```
+
 ### Key Files
 
 | Module | Purpose |
 |--------|---------|
 | `src/lib/auth/app-user-context.ts` | `getAppUserContext()` — derives user + centre from DB |
 | `src/lib/auth/authorization.service.ts` | `can()`, `requirePermission()` — server-side permission checks |
+| `src/lib/audit/audit.service.ts` | `recordAuditEvent()`, convenience helpers — append-only audit logging |
 | `src/lib/centres/tenant.ts` | `validateTenantAccess()` — guards cross-tenant access |
 | `src/lib/users/user-profile.service.ts` | User profile CRUD |
+| `src/types/audit.ts` | Audit action vocabulary, types, `sanitizeForAudit()` |
 | `src/types/role.ts` | Role, permission types + `ROLE_PERMISSIONS` defaults |
 | `supabase/migrations/20260825*.sql` | Centres table + RLS |
 | `supabase/migrations/20260826*.sql` | User profiles table + RLS |
-| `supabase/migrations/20260827*.sql` | Roles, permissions, user_roles, role_history + seeds |
+| `supabase/migrations/20260827000000*.sql` | Roles, permissions, user_roles, role_history + seeds |
+| `supabase/migrations/20260827000001*.sql` | Audit logs table + append-only RLS |
 
 ## Project Structure
 
@@ -153,6 +199,8 @@ src/
 │   ├── auth/
 │   │   ├── app-user-context.ts     # Server-side user + centre context
 │   │   └── authorization.service.ts # can(), requirePermission(), assignRole()
+│   ├── audit/
+│   │   └── audit.service.ts         # recordAuditEvent(), audit helpers
 │   ├── centres/
 │   │   ├── centre.service.ts   # Centre CRUD operations
 │   │   ├── centre.validation.ts # Zod validation schemas
@@ -166,6 +214,7 @@ src/
 │       ├── middleware.ts     # Session refresh helper
 │       └── server.ts         # Server-side client
 ├── types/
+│   ├── audit.ts                # Audit actions, types, sanitizeForAudit()
 │   ├── centre.ts             # Centre types and interfaces
 │   ├── database.ts           # Supabase database types
 │   ├── role.ts               # Roles, permissions, authorization types
@@ -175,8 +224,12 @@ supabase/
 └── migrations/
     ├── 20260825000000_create_centres_table.sql
     ├── 20260826000000_create_user_profiles_table.sql
-    └── 20260827000000_create_roles_permissions.sql
+    ├── 20260827000000_create_roles_permissions.sql
+    └── 20260827000001_create_audit_log.sql
 tests/
+├── audit/
+│   ├── audit.test.ts               # 28 tests: action vocabulary, sanitization, security
+│   └── audit-migration.test.ts     # 29 tests: migration SQL validation
 ├── auth/
 │   ├── authorization.test.ts          # 47 tests: roles, permissions, tenant isolation
 │   └── authorization-migration.test.ts # 31 tests: migration SQL validation

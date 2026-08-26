@@ -227,6 +227,53 @@ export interface Database {
           reason?: string | null;
         };
       };
+      audit_logs: {
+        Row: {
+          id: string;
+          centre_id: string;
+          actor_user_id: string | null;
+          actor_email: string | null;
+          action: string;
+          entity_type: string;
+          entity_id: string | null;
+          previous_values: Json | null;
+          new_values: Json | null;
+          metadata: Json | null;
+          ip_address: string | null;
+          user_agent: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          centre_id: string;
+          actor_user_id?: string | null;
+          actor_email?: string | null;
+          action: string;
+          entity_type: string;
+          entity_id?: string | null;
+          previous_values?: Json | null;
+          new_values?: Json | null;
+          metadata?: Json | null;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          centre_id?: string;
+          actor_user_id?: string | null;
+          actor_email?: string | null;
+          action?: string;
+          entity_type?: string;
+          entity_id?: string | null;
+          previous_values?: Json | null;
+          new_values?: Json | null;
+          metadata?: Json | null;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          created_at?: string;
+        };
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
