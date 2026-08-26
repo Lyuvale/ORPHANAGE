@@ -97,13 +97,13 @@ Every centre user has exactly one operational role. Access to data and actions i
 **Official Centre Roles:**
 | Role | Purpose |
 |------|---------|
-| `CENTRE_MANAGER` | Management access — children, staff, finance view/approve, reports, referrals, admissions, placements |
-| `SOCIAL_WORKER` | Case management, referrals, admissions, placements, safeguarding, child welfare |
-| `CAREGIVER` | Daily care, assigned children, check-in/check-out, activities, placement viewing |
-| `RECORDS_OFFICER` | Child records, documents, data quality, imports/exports, admissions, placements |
-| `ACCOUNTANT_BURSAR` | Finance, donations, budget, expenses, procurement, financial reports |
+| `CENTRE_MANAGER` | Management access — children, staff, finance view/approve, reports, referrals, admissions, placements, guardians |
+| `SOCIAL_WORKER` | Case management, referrals, admissions, placements, safeguarding, child welfare, family/guardian management |
+| `CAREGIVER` | Daily care, assigned children, check-in/check-out, activities, placement viewing, guardian viewing |
+| `RECORDS_OFFICER` | Child records, documents, data quality, imports/exports, admissions, placements, guardian records |
+| `ACCOUNTANT_BURSAR` | Finance, donations, budget, expenses, procurement, financial reports, minimal guardian viewing |
 
-**Permission model:** `module.action` (e.g. `children.view`, `finance.approve`, `referrals.review`, `placements.create`)
+**Permission model:** `module.action` (e.g. `children.view`, `finance.approve`, `referrals.review`, `placements.create`, `guardians.relationship.manage`)
 
 **Authorization rules:**
 - Deny by default — ungranted permissions are denied
@@ -177,12 +177,15 @@ await auditSecurityEvent(adminSupabase, null, "LOGIN_FAILED", "session", { centr
 | `src/lib/admissions/admission.validation.ts` | Zod schemas for admission operations |
 | `src/lib/placements/placement.service.ts` | Placement CRUD, search, status transitions |
 | `src/lib/placements/placement.validation.ts` | Zod schemas for placement operations |
+| `src/lib/guardians/guardian.service.ts` | Guardian CRUD, relationships, duplicate detection |
+| `src/lib/guardians/guardian.validation.ts` | Zod schemas for guardian/relationship operations |
 | `src/lib/centres/tenant.ts` | `validateTenantAccess()` — guards cross-tenant access |
 | `src/lib/users/user-profile.service.ts` | User profile CRUD |
 | `src/types/child.ts` | Child types, status model, display helpers |
 | `src/types/referral.ts` | Referral types, status/source/priority models, display helpers |
 | `src/types/admission.ts` | Admission types, status model, display helpers |
 | `src/types/placement.ts` | Placement types, status/type models, display helpers |
+| `src/types/guardian.ts` | Guardian, relationship, document types, display helpers |
 | `src/types/audit.ts` | Audit action vocabulary, types, `sanitizeForAudit()` |
 | `src/types/role.ts` | Role, permission types + `ROLE_PERMISSIONS` defaults |
 | `supabase/migrations/20260825*.sql` | Centres table + RLS |
@@ -264,6 +267,40 @@ The child lifecycle workflow module. Tracks a child's journey from external refe
 | Admissions | `view`, `create`, `review` |
 | Placements | `view`, `create`, `update` |
 
+### Family & Guardian Management
+
+Records and manages people and family relationships connected to a child, preserving privacy, history, and tenant isolation.
+
+**Guardian Status Model:**
+| Status | Description |
+|--------|-------------|
+| `active` | Currently a known guardian |
+| `inactive` | Relationship paused or ended |
+| `deceased` | Guardian has passed away |
+| `unknown` | Status not determined |
+
+**Relationship Types:** Mother, Father, Grandparent, Sibling, Aunt, Uncle, Legal Guardian, Foster/Responsible Caregiver, Other Relative, Other Authorised Person
+
+**Legal Authority Types:** Parent, Legal Guardian, Court-Authorised, Other Authorised, None
+
+**Key properties:**
+- **Guardian entity** — reusable record, not duplicated per child
+- **Many-to-many** — one guardian can be linked to multiple children, one child can have multiple guardians
+- **Primary guardian** — one active primary per child enforced via unique partial index
+- **Relationship history** — relationships are never overwritten; end_date + is_active track lifecycle
+- **Contact permissions** — per-relationship flags for contact, visits, meetings, updates, information
+- **Restrictions** — contact_restricted, visits_restricted with notes
+- **Legal authority** — parent, legal_guardian, court_authorised, other_authorised, none
+- **Duplicate detection** — name + phone/email fuzzy matching before create
+- **Centre-scoped** — every guardian and relationship belongs to exactly one centre
+- **RLS enforced** — database-level tenant isolation
+- **Audit logged** — all creates, updates, relationship changes recorded
+
+**Permissions:**
+| Module | Permissions |
+|--------|------------|
+| Guardians | `view`, `create`, `update`, `deactivate`, `relationship.manage`, `documents.view`, `documents.upload`, `documents.download` |
+
 ## Project Structure
 
 ```
@@ -282,6 +319,10 @@ src/
 │   │   │   ├── [id]/         # Child profile + edit
 │   │   │   ├── new/          # Create child page
 │   │   │   └── page.tsx      # Children list page
+│   │   ├── guardians/        # Guardian management pages
+│   │   │   ├── [id]/         # Guardian profile page
+│   │   │   ├── new/          # Create guardian page
+│   │   │   └── page.tsx      # Guardians list page
 │   │   ├── placements/       # Placement management pages
 │   │   │   ├── [id]/         # Placement detail page
 │   │   │   ├── new/          # Create placement page
@@ -300,6 +341,12 @@ src/
 │   ├── api/children/         # Children API routes
 │   │   ├── [id]/route.ts     # GET/PATCH/DELETE single child
 │   │   └── route.ts          # GET list / POST create
+│   ├── api/guardians/        # Guardian API routes
+│   │   ├── [id]/route.ts     # GET/PATCH single guardian
+│   │   ├── relationships/    # Relationship management
+│   │   │   ├── [id]/route.ts # GET/PATCH/END single relationship
+│   │   │   └── route.ts      # GET list / POST create relationship
+│   │   └── route.ts          # GET list / POST create guardian
 │   ├── api/placements/       # Placement API routes
 │   │   ├── [id]/route.ts     # GET/PATCH single placement
 │   │   └── route.ts          # GET list / POST create
@@ -318,6 +365,9 @@ src/
 │   ├── children/
 │   │   ├── child.service.ts        # Child CRUD, search, status history
 │   │   └── child.validation.ts     # Zod schemas for child operations
+│   ├── guardians/
+│   │   ├── guardian.service.ts      # Guardian CRUD, relationships, duplicate detection
+│   │   └── guardian.validation.ts   # Zod schemas for guardian/relationship operations
 │   ├── referrals/
 │   │   ├── referral.service.ts     # Referral CRUD, search, status transitions
 │   │   └── referral.validation.ts  # Zod schemas for referral operations
@@ -347,6 +397,7 @@ src/
 │   ├── referral.ts           # Referral types, status/source/priority models
 │   ├── admission.ts          # Admission types, status model
 │   ├── placement.ts          # Placement types, status/type models
+│   ├── guardian.ts           # Guardian, relationship, document types
 │   ├── role.ts               # Roles, permissions, authorization types
 │   └── user-profile.ts       # User profile types
 └── middleware.ts              # Next.js middleware
@@ -357,7 +408,8 @@ supabase/
     ├── 20260827000000_create_roles_permissions.sql
     ├── 20260827000001_create_audit_log.sql
     ├── 20260828000000_create_children_table.sql
-    └── 20260829000000_create_referrals_admissions_placements.sql
+    ├── 20260829000000_create_referrals_admissions_placements.sql
+    └── 20260830000000_create_guardians_family.sql
 tests/
 ├── audit/
 │   ├── audit.test.ts               # 28 tests: action vocabulary, sanitization, security
@@ -380,6 +432,11 @@ tests/
 │   ├── referral.service.test.ts      # 26 tests: CRUD, search, display helpers
 │   ├── referral.validation.test.ts   # 26 tests: Zod schema validation
 │   └── referral-security.test.ts     # 19 tests: permissions
+├── guardians/
+│   ├── guardian-migration.test.ts    # 61 tests: migration SQL validation
+│   ├── guardian.service.test.ts      # 34 tests: CRUD, relationships, display helpers
+│   ├── guardian.validation.test.ts   # 40 tests: Zod schema validation
+│   └── guardian-security.test.ts     # 18 tests: permissions
 ├── admissions/
 │   ├── admission.service.test.ts     # 14 tests: CRUD, search, display helpers
 │   └── admission.validation.test.ts  # 16 tests: Zod schema validation

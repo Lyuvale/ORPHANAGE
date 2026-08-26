@@ -117,6 +117,15 @@ export const PERMISSIONS = {
   DAILY_CARE_UPDATE: "daily_care.update" as const,
   DAILY_CARE_CHECK_IN: "daily_care.check_in" as const,
   DAILY_CARE_CHECK_OUT: "daily_care.check_out" as const,
+
+  GUARDIANS_VIEW: "guardians.view" as const,
+  GUARDIANS_CREATE: "guardians.create" as const,
+  GUARDIANS_UPDATE: "guardians.update" as const,
+  GUARDIANS_DEACTIVATE: "guardians.deactivate" as const,
+  GUARDIANS_RELATIONSHIP_MANAGE: "guardians.relationship.manage" as const,
+  GUARDIANS_DOCUMENTS_VIEW: "guardians.documents.view" as const,
+  GUARDIANS_DOCUMENTS_UPLOAD: "guardians.documents.upload" as const,
+  GUARDIANS_DOCUMENTS_DOWNLOAD: "guardians.documents.download" as const,
 } as const;
 
 export const ALL_PERMISSIONS: PermissionString[] = Object.values(PERMISSIONS);
@@ -138,6 +147,8 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "safeguarding.view", "safeguarding.create", "safeguarding.update",
     "staff.view", "staff.create", "staff.update", "staff.assign_roles",
     "daily_care.view",
+    "guardians.view", "guardians.create", "guardians.update", "guardians.deactivate",
+    "guardians.relationship.manage", "guardians.documents.view", "guardians.documents.upload", "guardians.documents.download",
   ],
   SOCIAL_WORKER: [
     "children.view", "children.create", "children.update", "children.status.update",
@@ -149,6 +160,8 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "documents.view", "documents.upload", "documents.download",
     "reports.view",
     "daily_care.view",
+    "guardians.view", "guardians.create", "guardians.update",
+    "guardians.relationship.manage", "guardians.documents.view", "guardians.documents.upload",
   ],
   CAREGIVER: [
     "children.view",
@@ -157,6 +170,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "placements.view",
     "daily_care.view", "daily_care.update",
     "daily_care.check_in", "daily_care.check_out",
+    "guardians.view",
   ],
   RECORDS_OFFICER: [
     "children.view", "children.create", "children.update", "children.status.update", "children.archive",
@@ -164,10 +178,13 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "reports.view", "reports.export",
     "admissions.view",
     "placements.view", "placements.create", "placements.update",
+    "guardians.view", "guardians.create", "guardians.update",
+    "guardians.documents.view", "guardians.documents.upload", "guardians.documents.download",
   ],
   ACCOUNTANT_BURSAR: [
     "finance.view", "finance.create", "finance.approve",
     "reports.view", "reports.export",
     "children.view",
+    "guardians.view",
   ],
 };
