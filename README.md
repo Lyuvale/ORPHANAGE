@@ -90,15 +90,47 @@ Every user belongs to exactly one centre. Tenant isolation is enforced at two la
 Auth Session → user_profiles table → centre_id → RLS policies enforce isolation
 ```
 
+### Roles & Permissions
+
+Every centre user has exactly one operational role. Access to data and actions is controlled by granular permissions assigned to roles.
+
+**Official Centre Roles:**
+| Role | Purpose |
+|------|---------|
+| `CENTRE_MANAGER` | Management access — children, staff, finance view/approve, reports |
+| `SOCIAL_WORKER` | Case management, referrals, safeguarding, child welfare |
+| `CAREGIVER` | Daily care, assigned children, check-in/check-out, activities |
+| `RECORDS_OFFICER` | Child records, documents, data quality, imports/exports |
+| `ACCOUNTANT_BURSAR` | Finance, donations, budget, expenses, procurement, financial reports |
+
+**Permission model:** `module.action` (e.g. `children.view`, `finance.approve`)
+
+**Authorization rules:**
+- Deny by default — ungranted permissions are denied
+- Server-side enforcement — no client-side-only checks
+- Permission + centre context — both must be satisfied
+- Roles cannot be self-assigned — admin-only operation
+
+**Usage in API routes:**
+```typescript
+const ctx = await requireAppAccess(supabase);
+await requirePermission(supabase, ctx, "children.view");
+// — or —
+const allowed = await can(supabase, ctx, "children.view");
+```
+
 ### Key Files
 
 | Module | Purpose |
 |--------|---------|
 | `src/lib/auth/app-user-context.ts` | `getAppUserContext()` — derives user + centre from DB |
+| `src/lib/auth/authorization.service.ts` | `can()`, `requirePermission()` — server-side permission checks |
 | `src/lib/centres/tenant.ts` | `validateTenantAccess()` — guards cross-tenant access |
 | `src/lib/users/user-profile.service.ts` | User profile CRUD |
+| `src/types/role.ts` | Role, permission types + `ROLE_PERMISSIONS` defaults |
 | `supabase/migrations/20260825*.sql` | Centres table + RLS |
 | `supabase/migrations/20260826*.sql` | User profiles table + RLS |
+| `supabase/migrations/20260827*.sql` | Roles, permissions, user_roles, role_history + seeds |
 
 ## Project Structure
 
@@ -119,7 +151,8 @@ src/
 │   └── env.ts                # Environment variable validation
 ├── lib/
 │   ├── auth/
-│   │   └── app-user-context.ts # Server-side user + centre context
+│   │   ├── app-user-context.ts     # Server-side user + centre context
+│   │   └── authorization.service.ts # can(), requirePermission(), assignRole()
 │   ├── centres/
 │   │   ├── centre.service.ts   # Centre CRUD operations
 │   │   ├── centre.validation.ts # Zod validation schemas
@@ -135,13 +168,18 @@ src/
 ├── types/
 │   ├── centre.ts             # Centre types and interfaces
 │   ├── database.ts           # Supabase database types
+│   ├── role.ts               # Roles, permissions, authorization types
 │   └── user-profile.ts       # User profile types
 └── middleware.ts              # Next.js middleware
 supabase/
 └── migrations/
     ├── 20260825000000_create_centres_table.sql
-    └── 20260826000000_create_user_profiles_table.sql
+    ├── 20260826000000_create_user_profiles_table.sql
+    └── 20260827000000_create_roles_permissions.sql
 tests/
+├── auth/
+│   ├── authorization.test.ts          # 47 tests: roles, permissions, tenant isolation
+│   └── authorization-migration.test.ts # 31 tests: migration SQL validation
 ├── centres/
 │   ├── centre.service.test.ts
 │   ├── centre.validation.test.ts
