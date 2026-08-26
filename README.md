@@ -179,6 +179,10 @@ await auditSecurityEvent(adminSupabase, null, "LOGIN_FAILED", "session", { centr
 | `src/lib/placements/placement.validation.ts` | Zod schemas for placement operations |
 | `src/lib/guardians/guardian.service.ts` | Guardian CRUD, relationships, duplicate detection |
 | `src/lib/guardians/guardian.validation.ts` | Zod schemas for guardian/relationship operations |
+| `src/lib/cases/case.service.ts` | Case CRUD, assessments, plans, notes, interventions |
+| `src/lib/cases/case.validation.ts` | Zod schemas for case/assessment/plan/note operations |
+| `src/lib/safeguarding/safeguarding.service.ts` | Safeguarding concerns, actions, escalations |
+| `src/lib/safeguarding/safeguarding.validation.ts` | Zod schemas for safeguarding operations |
 | `src/lib/centres/tenant.ts` | `validateTenantAccess()` — guards cross-tenant access |
 | `src/lib/users/user-profile.service.ts` | User profile CRUD |
 | `src/types/child.ts` | Child types, status model, display helpers |
@@ -186,6 +190,8 @@ await auditSecurityEvent(adminSupabase, null, "LOGIN_FAILED", "session", { centr
 | `src/types/admission.ts` | Admission types, status model, display helpers |
 | `src/types/placement.ts` | Placement types, status/type models, display helpers |
 | `src/types/guardian.ts` | Guardian, relationship, document types, display helpers |
+| `src/types/case.ts` | Case, assessment, plan, note, intervention types |
+| `src/types/safeguarding.ts` | Concern, action, escalation, document types |
 | `src/types/audit.ts` | Audit action vocabulary, types, `sanitizeForAudit()` |
 | `src/types/role.ts` | Role, permission types + `ROLE_PERMISSIONS` defaults |
 | `supabase/migrations/20260825*.sql` | Centres table + RLS |
@@ -301,6 +307,63 @@ Records and manages people and family relationships connected to a child, preser
 |--------|------------|
 | Guardians | `view`, `create`, `update`, `deactivate`, `relationship.manage`, `documents.view`, `documents.upload`, `documents.download` |
 
+### Case Management & Safeguarding
+
+Manages child welfare cases, assessments, care plans, and safeguarding concerns. This is the most sensitive module, requiring explicit case/safeguarding permissions — `children.view` does NOT automatically grant access.
+
+**Case Status Model:**
+| Status | Description |
+|--------|-------------|
+| `open` | Case created, not yet assessed |
+| `under_assessment` | Being evaluated |
+| `active_plan` | Care plan in progress |
+| `on_hold` | Temporarily paused |
+| `resolved` | Case resolved |
+| `closed` | Case permanently closed |
+
+**Case Types:** Protection, Family Reunification, Behavioural, Education, Health, Placement, Legal, Psychosocial, Other
+
+**Case Classifications:** Standard, Confidential, Highly Confidential
+
+**Key properties:**
+- **Case reference** — system-generated, format `{CENTRE_CODE}-CASE-{00001}`, never reused
+- **Status transitions** — validated, recorded in append-only `case_status_history`
+- **Data classification** — STANDARD / CONFIDENTIAL / HIGHLY_CONFIDENTIAL
+- **Case notes** — immutable after creation (append-only), versioned, threaded via `parent_note_id`
+- **Assessments** — initial, periodic, specialized with findings and recommendations
+- **Case plans** — objectives with responsible persons, target dates, status tracking
+- **Interventions** — linked to cases and optionally to plan items
+- **Centre-scoped** — every record belongs to exactly one centre
+- **RLS enforced** — database-level tenant isolation
+- **Audit logged** — all creates, updates, status changes recorded
+
+**Safeguarding Concern Status Model:**
+| Status | Description |
+|--------|-------------|
+| `reported` | Initial report received |
+| `initial_review` | Under initial review |
+| `action_required` | Requires immediate action |
+| `under_investigation` | Formal investigation underway |
+| `resolved` | Concern resolved |
+| `closed` | Permanently closed |
+
+**Safeguarding Concern Types:** Abuse, Neglect, Exploitation, Violence, Missing Child, Self-Harm, Unsafe Environment, Trafficking, Other
+
+**Safeguarding Severity Levels:** Low, Medium, High, Critical
+
+**Key properties:**
+- **Strict access** — requires `safeguarding.*` permissions, NOT just `children.view`
+- **External referrals** — track external agency involvement
+- **Escalation workflow** — escalate concerns with status tracking (pending → acknowledged → in_progress → completed)
+- **Actions** — track specific actions taken in response to concerns
+- **Status history** — append-only safeguarding status changes
+
+**Permissions:**
+| Module | Permissions |
+|--------|------------|
+| Cases | `view`, `create`, `update`, `status.update`, `close`, `assessments.view`, `assessments.create`, `assessments.update`, `plans.view`, `plans.create`, `plans.update`, `plans.approve`, `notes.view`, `notes.create`, `interventions.view`, `interventions.create`, `interventions.update`, `documents.view`, `documents.upload`, `documents.download`, `documents.delete` |
+| Safeguarding | `view`, `create`, `update`, `status.update`, `escalate`, `actions.view`, `actions.create`, `actions.update`, `documents.view`, `documents.upload`, `documents.download`, `documents.delete`, `escalations.view`, `escalations.acknowledge`, `escalations.resolve` |
+
 ## Project Structure
 
 ```
@@ -311,6 +374,8 @@ src/
 │   │   │   ├── [id]/         # Admission detail page
 │   │   │   ├── new/          # Create admission page
 │   │   │   └── page.tsx      # Admissions list page
+│   │   ├── cases/            # Case management pages
+│   │   │   └── page.tsx      # Cases list page
 │   │   ├── centres/          # Centre management pages
 │   │   │   ├── [id]/         # Centre detail page
 │   │   │   ├── new/          # Create centre page
@@ -331,9 +396,20 @@ src/
 │   │   │   ├── [id]/         # Referral detail page
 │   │   │   ├── new/          # Create referral page
 │   │   │   └── page.tsx      # Referrals list page
+│   │   ├── safeguarding/     # Safeguarding management pages
+│   │   │   └── page.tsx      # Safeguarding list page
 │   │   └── layout.tsx        # Dashboard layout
 │   ├── api/admissions/       # Admission API routes
 │   │   ├── [id]/route.ts     # GET/PATCH single admission
+│   │   └── route.ts          # GET list / POST create
+│   ├── api/cases/            # Case management API routes
+│   │   ├── [id]/
+│   │   │   ├── assessments/  # Case assessments
+│   │   │   ├── interventions/ # Case interventions
+│   │   │   ├── notes/        # Case notes
+│   │   │   ├── plans/        # Case plans
+│   │   │   ├── status/       # Case status updates
+│   │   │   └── route.ts      # GET/PATCH single case
 │   │   └── route.ts          # GET list / POST create
 │   ├── api/centres/          # Centre API routes
 │   │   ├── [id]/route.ts     # GET/PATCH/DELETE single centre
@@ -352,6 +428,13 @@ src/
 │   │   └── route.ts          # GET list / POST create
 │   ├── api/referrals/        # Referral API routes
 │   │   ├── [id]/route.ts     # GET/PATCH single referral
+│   │   └── route.ts          # GET list / POST create
+│   ├── api/safeguarding/     # Safeguarding API routes
+│   │   ├── [id]/
+│   │   │   ├── actions/      # Safeguarding actions
+│   │   │   ├── escalations/  # Safeguarding escalations
+│   │   │   ├── status/       # Safeguarding status updates
+│   │   │   └── route.ts      # GET/PATCH single concern
 │   │   └── route.ts          # GET list / POST create
 │   └── layout.tsx            # Root layout
 ├── config/
@@ -398,6 +481,8 @@ src/
 │   ├── admission.ts          # Admission types, status model
 │   ├── placement.ts          # Placement types, status/type models
 │   ├── guardian.ts           # Guardian, relationship, document types
+│   ├── case.ts               # Case, assessment, plan, note, intervention types
+│   ├── safeguarding.ts       # Concern, action, escalation, document types
 │   ├── role.ts               # Roles, permissions, authorization types
 │   └── user-profile.ts       # User profile types
 └── middleware.ts              # Next.js middleware
@@ -409,7 +494,8 @@ supabase/
     ├── 20260827000001_create_audit_log.sql
     ├── 20260828000000_create_children_table.sql
     ├── 20260829000000_create_referrals_admissions_placements.sql
-    └── 20260830000000_create_guardians_family.sql
+    ├── 20260830000000_create_guardians_family.sql
+    └── 20260831000000_create_cases_safeguarding.sql
 tests/
 ├── audit/
 │   ├── audit.test.ts               # 28 tests: action vocabulary, sanitization, security
@@ -443,6 +529,13 @@ tests/
 ├── placements/
 │   ├── placement.service.test.ts     # 23 tests: CRUD, search, display helpers
 │   └── placement.validation.test.ts  # 23 tests: Zod schema validation
+├── cases/
+│   ├── case-types.test.ts            # 42 tests: enums, transitions, display helpers
+│   ├── case-validation.test.ts       # 32 tests: Zod schema validation
+│   └── case-permissions.test.ts      # 32 tests: permission constants and role mappings
+├── safeguarding/
+│   ├── safeguarding-types.test.ts    # 30 tests: enums, transitions, display helpers
+│   └── safeguarding-validation.test.ts # 30 tests: Zod schema validation
 └── users/
     ├── app-user-context.test.ts
     ├── user-profile.migration.test.ts
