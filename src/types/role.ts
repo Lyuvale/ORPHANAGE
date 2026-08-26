@@ -70,6 +70,7 @@ export const PERMISSIONS = {
   CHILDREN_VIEW: "children.view" as const,
   CHILDREN_CREATE: "children.create" as const,
   CHILDREN_UPDATE: "children.update" as const,
+  CHILDREN_STATUS_UPDATE: "children.status.update" as const,
   CHILDREN_ARCHIVE: "children.archive" as const,
 
   CASES_VIEW: "cases.view" as const,
@@ -115,7 +116,7 @@ export const ALL_PERMISSIONS: PermissionString[] = Object.values(PERMISSIONS);
  */
 export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> = {
   CENTRE_MANAGER: [
-    "children.view", "children.create", "children.update", "children.archive",
+    "children.view", "children.create", "children.update", "children.status.update", "children.archive",
     "cases.view", "cases.create", "cases.update",
     "finance.view", "finance.approve",
     "reports.view", "reports.export",
@@ -126,7 +127,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "daily_care.view",
   ],
   SOCIAL_WORKER: [
-    "children.view", "children.create", "children.update",
+    "children.view", "children.create", "children.update", "children.status.update",
     "cases.view", "cases.create", "cases.update",
     "referrals.view", "referrals.create", "referrals.update",
     "safeguarding.view", "safeguarding.create", "safeguarding.update",
@@ -135,14 +136,14 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "daily_care.view",
   ],
   CAREGIVER: [
-    "children.view", "children.update",
+    "children.view",
     "cases.view",
     "safeguarding.view",
     "daily_care.view", "daily_care.update",
     "daily_care.check_in", "daily_care.check_out",
   ],
   RECORDS_OFFICER: [
-    "children.view", "children.create", "children.update", "children.archive",
+    "children.view", "children.create", "children.update", "children.status.update", "children.archive",
     "documents.view", "documents.upload", "documents.download", "documents.delete",
     "reports.view", "reports.export",
   ],

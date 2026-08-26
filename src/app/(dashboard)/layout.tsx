@@ -20,6 +20,12 @@ export default function DashboardLayout({
               >
                 Centres
               </Link>
+              <Link
+                href="/children"
+                className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+              >
+                Children
+              </Link>
             </nav>
           </div>
         </div>

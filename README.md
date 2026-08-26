@@ -169,14 +169,39 @@ await auditSecurityEvent(adminSupabase, null, "LOGIN_FAILED", "session", { centr
 | `src/lib/auth/app-user-context.ts` | `getAppUserContext()` — derives user + centre from DB |
 | `src/lib/auth/authorization.service.ts` | `can()`, `requirePermission()` — server-side permission checks |
 | `src/lib/audit/audit.service.ts` | `recordAuditEvent()`, convenience helpers — append-only audit logging |
+| `src/lib/children/child.service.ts` | Child CRUD, search, status history — centre-scoped |
+| `src/lib/children/child.validation.ts` | Zod schemas for child create/update/status/search |
 | `src/lib/centres/tenant.ts` | `validateTenantAccess()` — guards cross-tenant access |
 | `src/lib/users/user-profile.service.ts` | User profile CRUD |
+| `src/types/child.ts` | Child types, status model, display helpers |
 | `src/types/audit.ts` | Audit action vocabulary, types, `sanitizeForAudit()` |
 | `src/types/role.ts` | Role, permission types + `ROLE_PERMISSIONS` defaults |
 | `supabase/migrations/20260825*.sql` | Centres table + RLS |
 | `supabase/migrations/20260826*.sql` | User profiles table + RLS |
 | `supabase/migrations/20260827000000*.sql` | Roles, permissions, user_roles, role_history + seeds |
 | `supabase/migrations/20260827000001*.sql` | Audit logs table + append-only RLS |
+| `supabase/migrations/20260828000000*.sql` | Children table, status history, reference generation + RLS |
+
+### Child Management
+
+The central child record module. Every child belongs to exactly one centre and is identified by a unique, system-generated reference number.
+
+**Child Status Model:**
+| Status | Description |
+|--------|-------------|
+| `active` | Currently in care |
+| `transferred` | Moved to another centre or facility |
+| `graduated` | Completed the programme |
+| `alumni` | Former child, historical record |
+| `deactivated` | Soft-deactivated, no longer operationally active |
+
+**Key properties:**
+- **Centre-scoped** — every child belongs to exactly one centre via `centre_id`
+- **Unique reference** — system-generated, format `{CENTRE_CODE}-{000001}`, never reused
+- **Immutable reference** — does not change when child information is updated
+- **Append-only status history** — every status change is recorded with timestamp, actor, and reason
+- **Soft lifecycle** — children are never physically deleted
+- **RLS enforced** — database-level tenant isolation, no cross-centre access possible
 
 ## Project Structure
 
@@ -188,9 +213,16 @@ src/
 │   │   │   ├── [id]/         # Centre detail page
 │   │   │   ├── new/          # Create centre page
 │   │   │   └── page.tsx      # Centres list page
+│   │   ├── children/         # Child management pages
+│   │   │   ├── [id]/         # Child profile + edit
+│   │   │   ├── new/          # Create child page
+│   │   │   └── page.tsx      # Children list page
 │   │   └── layout.tsx        # Dashboard layout
 │   ├── api/centres/          # Centre API routes
 │   │   ├── [id]/route.ts     # GET/PATCH/DELETE single centre
+│   │   └── route.ts          # GET list / POST create
+│   ├── api/children/         # Children API routes
+│   │   ├── [id]/route.ts     # GET/PATCH/DELETE single child
 │   │   └── route.ts          # GET list / POST create
 │   └── layout.tsx            # Root layout
 ├── config/
@@ -201,6 +233,9 @@ src/
 │   │   └── authorization.service.ts # can(), requirePermission(), assignRole()
 │   ├── audit/
 │   │   └── audit.service.ts         # recordAuditEvent(), audit helpers
+│   ├── children/
+│   │   ├── child.service.ts        # Child CRUD, search, status history
+│   │   └── child.validation.ts     # Zod schemas for child operations
 │   ├── centres/
 │   │   ├── centre.service.ts   # Centre CRUD operations
 │   │   ├── centre.validation.ts # Zod validation schemas
@@ -214,8 +249,9 @@ src/
 │       ├── middleware.ts     # Session refresh helper
 │       └── server.ts         # Server-side client
 ├── types/
-│   ├── audit.ts                # Audit actions, types, sanitizeForAudit()
+│   ├── audit.ts              # Audit actions, types, sanitizeForAudit()
 │   ├── centre.ts             # Centre types and interfaces
+│   ├── child.ts              # Child types, status model, display helpers
 │   ├── database.ts           # Supabase database types
 │   ├── role.ts               # Roles, permissions, authorization types
 │   └── user-profile.ts       # User profile types
@@ -225,7 +261,8 @@ supabase/
     ├── 20260825000000_create_centres_table.sql
     ├── 20260826000000_create_user_profiles_table.sql
     ├── 20260827000000_create_roles_permissions.sql
-    └── 20260827000001_create_audit_log.sql
+    ├── 20260827000001_create_audit_log.sql
+    └── 20260828000000_create_children_table.sql
 tests/
 ├── audit/
 │   ├── audit.test.ts               # 28 tests: action vocabulary, sanitization, security
@@ -238,6 +275,11 @@ tests/
 │   ├── centre.validation.test.ts
 │   ├── migration.test.ts
 │   └── tenant.test.ts
+├── children/
+│   ├── child-migration.test.ts       # 52 tests: migration SQL validation
+│   ├── child.service.test.ts         # 29 tests: CRUD, search, status history
+│   ├── child.validation.test.ts      # 35 tests: Zod schema validation
+│   └── child-security.test.ts        # 38 tests: permissions, tenant isolation
 └── users/
     ├── app-user-context.test.ts
     ├── user-profile.migration.test.ts

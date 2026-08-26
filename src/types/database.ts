@@ -274,6 +274,94 @@ export interface Database {
           created_at?: string;
         };
       };
+      children: {
+        Row: {
+          id: string;
+          centre_id: string;
+          reference_number: string;
+          first_name: string;
+          middle_name: string | null;
+          last_name: string;
+          preferred_name: string | null;
+          date_of_birth: string;
+          gender: string;
+          nationality: string | null;
+          photo_url: string | null;
+          status: string;
+          admission_date: string;
+          metadata: Json | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          centre_id: string;
+          reference_number: string;
+          first_name: string;
+          middle_name?: string | null;
+          last_name: string;
+          preferred_name?: string | null;
+          date_of_birth: string;
+          gender: string;
+          nationality?: string | null;
+          photo_url?: string | null;
+          status?: string;
+          admission_date: string;
+          metadata?: Json | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          centre_id?: string;
+          reference_number?: string;
+          first_name?: string;
+          middle_name?: string | null;
+          last_name?: string;
+          preferred_name?: string | null;
+          date_of_birth?: string;
+          gender?: string;
+          nationality?: string | null;
+          photo_url?: string | null;
+          status?: string;
+          admission_date?: string;
+          metadata?: Json | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      child_status_history: {
+        Row: {
+          id: string;
+          child_id: string;
+          centre_id: string;
+          previous_status: string | null;
+          new_status: string;
+          changed_by: string | null;
+          changed_at: string;
+          reason: string | null;
+        };
+        Insert: {
+          id?: string;
+          child_id: string;
+          centre_id: string;
+          previous_status?: string | null;
+          new_status: string;
+          changed_by?: string | null;
+          changed_at?: string;
+          reason?: string | null;
+        };
+        Update: {
+          id?: string;
+          child_id?: string;
+          centre_id?: string;
+          previous_status?: string | null;
+          new_status?: string;
+          changed_by?: string | null;
+          changed_at?: string;
+          reason?: string | null;
+        };
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -281,6 +369,7 @@ export interface Database {
       centre_status: "active" | "suspended" | "deactivated";
       user_profile_status: "active" | "deactivated";
       user_role_status: "active" | "revoked";
+      child_status: "active" | "transferred" | "graduated" | "alumni" | "deactivated";
     };
     CompositeTypes: Record<string, never>;
   };

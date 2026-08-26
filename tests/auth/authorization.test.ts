@@ -197,7 +197,7 @@ describe("Role Definitions", () => {
 describe("Permission Definitions", () => {
   it("all permissions follow module.action format", () => {
     for (const perm of ALL_PERMISSIONS) {
-      expect(perm).toMatch(/^[a-z_]+\.[a-z_]+$/);
+      expect(perm).toMatch(/^[a-z_]+(\.[a-z_]+)+$/);
     }
   });
 
