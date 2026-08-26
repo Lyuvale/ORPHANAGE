@@ -97,13 +97,13 @@ Every centre user has exactly one operational role. Access to data and actions i
 **Official Centre Roles:**
 | Role | Purpose |
 |------|---------|
-| `CENTRE_MANAGER` | Management access — children, staff, finance view/approve, reports |
-| `SOCIAL_WORKER` | Case management, referrals, safeguarding, child welfare |
-| `CAREGIVER` | Daily care, assigned children, check-in/check-out, activities |
-| `RECORDS_OFFICER` | Child records, documents, data quality, imports/exports |
+| `CENTRE_MANAGER` | Management access — children, staff, finance view/approve, reports, referrals, admissions, placements |
+| `SOCIAL_WORKER` | Case management, referrals, admissions, placements, safeguarding, child welfare |
+| `CAREGIVER` | Daily care, assigned children, check-in/check-out, activities, placement viewing |
+| `RECORDS_OFFICER` | Child records, documents, data quality, imports/exports, admissions, placements |
 | `ACCOUNTANT_BURSAR` | Finance, donations, budget, expenses, procurement, financial reports |
 
-**Permission model:** `module.action` (e.g. `children.view`, `finance.approve`)
+**Permission model:** `module.action` (e.g. `children.view`, `finance.approve`, `referrals.review`, `placements.create`)
 
 **Authorization rules:**
 - Deny by default — ungranted permissions are denied
@@ -171,9 +171,18 @@ await auditSecurityEvent(adminSupabase, null, "LOGIN_FAILED", "session", { centr
 | `src/lib/audit/audit.service.ts` | `recordAuditEvent()`, convenience helpers — append-only audit logging |
 | `src/lib/children/child.service.ts` | Child CRUD, search, status history — centre-scoped |
 | `src/lib/children/child.validation.ts` | Zod schemas for child create/update/status/search |
+| `src/lib/referrals/referral.service.ts` | Referral CRUD, search, status transitions |
+| `src/lib/referrals/referral.validation.ts` | Zod schemas for referral operations |
+| `src/lib/admissions/admission.service.ts` | Admission CRUD, search, status history |
+| `src/lib/admissions/admission.validation.ts` | Zod schemas for admission operations |
+| `src/lib/placements/placement.service.ts` | Placement CRUD, search, status transitions |
+| `src/lib/placements/placement.validation.ts` | Zod schemas for placement operations |
 | `src/lib/centres/tenant.ts` | `validateTenantAccess()` — guards cross-tenant access |
 | `src/lib/users/user-profile.service.ts` | User profile CRUD |
 | `src/types/child.ts` | Child types, status model, display helpers |
+| `src/types/referral.ts` | Referral types, status/source/priority models, display helpers |
+| `src/types/admission.ts` | Admission types, status model, display helpers |
+| `src/types/placement.ts` | Placement types, status/type models, display helpers |
 | `src/types/audit.ts` | Audit action vocabulary, types, `sanitizeForAudit()` |
 | `src/types/role.ts` | Role, permission types + `ROLE_PERMISSIONS` defaults |
 | `supabase/migrations/20260825*.sql` | Centres table + RLS |
@@ -181,6 +190,7 @@ await auditSecurityEvent(adminSupabase, null, "LOGIN_FAILED", "session", { centr
 | `supabase/migrations/20260827000000*.sql` | Roles, permissions, user_roles, role_history + seeds |
 | `supabase/migrations/20260827000001*.sql` | Audit logs table + append-only RLS |
 | `supabase/migrations/20260828000000*.sql` | Children table, status history, reference generation + RLS |
+| `supabase/migrations/20260829000000*.sql` | Referrals, admissions, placements, admission history + RLS + permissions |
 
 ### Child Management
 
@@ -203,12 +213,67 @@ The central child record module. Every child belongs to exactly one centre and i
 - **Soft lifecycle** — children are never physically deleted
 - **RLS enforced** — database-level tenant isolation, no cross-centre access possible
 
+### Referral, Admission & Placement
+
+The child lifecycle workflow module. Tracks a child's journey from external referral through admission review to active placement.
+
+**Lifecycle:** Referral (submitted) → Admitted → Placement (assigned)
+
+**Referral Status Model:**
+| Status | Description |
+|--------|-------------|
+| `submitted` | Just received, awaiting review |
+| `under_review` | Being evaluated by staff |
+| `admitted` | Approved for admission |
+| `rejected` | Declined after review |
+| `withdrawn` | Withdrawn by referrer |
+
+**Referral Sources:** Police, Court, Hospital, School, Community, Government, Self Referral, Other
+
+**Admission Status Model:**
+| Status | Description |
+|--------|-------------|
+| `pending` | Awaiting review |
+| `approved` | Accepted, ready for placement |
+| `denied` | Declined |
+| `cancelled` | Withdrawn before decision |
+
+**Placement Status Model:**
+| Status | Description |
+|--------|-------------|
+| `active` | Currently placed |
+| `completed` | Placement ended normally |
+| `transferred` | Moved to another centre/facility |
+| `discharged` | Left care |
+
+**Placement Types:** Residential, Foster Care, Adoption, Transitional, Temporary
+
+**Key properties:**
+- **Centre-scoped** — every record has `centre_id` for tenant isolation
+- **Unique references** — system-generated for each module, never reused
+- **Append-only history** — admission status changes recorded
+- **No physical deletes** — soft-delete via status transitions
+- **RLS enforced** — database-level tenant isolation
+- **Audit logged** — all creates, updates, and status changes recorded in audit_logs
+- **Permission-controlled** — granular permissions per module (view, create, review, approve, reject)
+
+**Permissions:**
+| Module | Permissions |
+|--------|------------|
+| Referrals | `view`, `create`, `update`, `review`, `approve`, `reject` |
+| Admissions | `view`, `create`, `review` |
+| Placements | `view`, `create`, `update` |
+
 ## Project Structure
 
 ```
 src/
 ├── app/
 │   ├── (dashboard)/          # Dashboard layout and pages
+│   │   ├── admissions/       # Admission management pages
+│   │   │   ├── [id]/         # Admission detail page
+│   │   │   ├── new/          # Create admission page
+│   │   │   └── page.tsx      # Admissions list page
 │   │   ├── centres/          # Centre management pages
 │   │   │   ├── [id]/         # Centre detail page
 │   │   │   ├── new/          # Create centre page
@@ -217,12 +282,29 @@ src/
 │   │   │   ├── [id]/         # Child profile + edit
 │   │   │   ├── new/          # Create child page
 │   │   │   └── page.tsx      # Children list page
+│   │   ├── placements/       # Placement management pages
+│   │   │   ├── [id]/         # Placement detail page
+│   │   │   ├── new/          # Create placement page
+│   │   │   └── page.tsx      # Placements list page
+│   │   ├── referrals/        # Referral management pages
+│   │   │   ├── [id]/         # Referral detail page
+│   │   │   ├── new/          # Create referral page
+│   │   │   └── page.tsx      # Referrals list page
 │   │   └── layout.tsx        # Dashboard layout
+│   ├── api/admissions/       # Admission API routes
+│   │   ├── [id]/route.ts     # GET/PATCH single admission
+│   │   └── route.ts          # GET list / POST create
 │   ├── api/centres/          # Centre API routes
 │   │   ├── [id]/route.ts     # GET/PATCH/DELETE single centre
 │   │   └── route.ts          # GET list / POST create
 │   ├── api/children/         # Children API routes
 │   │   ├── [id]/route.ts     # GET/PATCH/DELETE single child
+│   │   └── route.ts          # GET list / POST create
+│   ├── api/placements/       # Placement API routes
+│   │   ├── [id]/route.ts     # GET/PATCH single placement
+│   │   └── route.ts          # GET list / POST create
+│   ├── api/referrals/        # Referral API routes
+│   │   ├── [id]/route.ts     # GET/PATCH single referral
 │   │   └── route.ts          # GET list / POST create
 │   └── layout.tsx            # Root layout
 ├── config/
@@ -236,6 +318,15 @@ src/
 │   ├── children/
 │   │   ├── child.service.ts        # Child CRUD, search, status history
 │   │   └── child.validation.ts     # Zod schemas for child operations
+│   ├── referrals/
+│   │   ├── referral.service.ts     # Referral CRUD, search, status transitions
+│   │   └── referral.validation.ts  # Zod schemas for referral operations
+│   ├── admissions/
+│   │   ├── admission.service.ts    # Admission CRUD, search, status history
+│   │   └── admission.validation.ts # Zod schemas for admission operations
+│   ├── placements/
+│   │   ├── placement.service.ts    # Placement CRUD, search, status transitions
+│   │   └── placement.validation.ts # Zod schemas for placement operations
 │   ├── centres/
 │   │   ├── centre.service.ts   # Centre CRUD operations
 │   │   ├── centre.validation.ts # Zod validation schemas
@@ -253,6 +344,9 @@ src/
 │   ├── centre.ts             # Centre types and interfaces
 │   ├── child.ts              # Child types, status model, display helpers
 │   ├── database.ts           # Supabase database types
+│   ├── referral.ts           # Referral types, status/source/priority models
+│   ├── admission.ts          # Admission types, status model
+│   ├── placement.ts          # Placement types, status/type models
 │   ├── role.ts               # Roles, permissions, authorization types
 │   └── user-profile.ts       # User profile types
 └── middleware.ts              # Next.js middleware
@@ -262,7 +356,8 @@ supabase/
     ├── 20260826000000_create_user_profiles_table.sql
     ├── 20260827000000_create_roles_permissions.sql
     ├── 20260827000001_create_audit_log.sql
-    └── 20260828000000_create_children_table.sql
+    ├── 20260828000000_create_children_table.sql
+    └── 20260829000000_create_referrals_admissions_placements.sql
 tests/
 ├── audit/
 │   ├── audit.test.ts               # 28 tests: action vocabulary, sanitization, security
@@ -280,6 +375,17 @@ tests/
 │   ├── child.service.test.ts         # 29 tests: CRUD, search, status history
 │   ├── child.validation.test.ts      # 35 tests: Zod schema validation
 │   └── child-security.test.ts        # 38 tests: permissions, tenant isolation
+├── referrals/
+│   ├── referral-migration.test.ts    # 51 tests: migration SQL validation
+│   ├── referral.service.test.ts      # 26 tests: CRUD, search, display helpers
+│   ├── referral.validation.test.ts   # 26 tests: Zod schema validation
+│   └── referral-security.test.ts     # 19 tests: permissions
+├── admissions/
+│   ├── admission.service.test.ts     # 14 tests: CRUD, search, display helpers
+│   └── admission.validation.test.ts  # 16 tests: Zod schema validation
+├── placements/
+│   ├── placement.service.test.ts     # 23 tests: CRUD, search, display helpers
+│   └── placement.validation.test.ts  # 23 tests: Zod schema validation
 └── users/
     ├── app-user-context.test.ts
     ├── user-profile.migration.test.ts
