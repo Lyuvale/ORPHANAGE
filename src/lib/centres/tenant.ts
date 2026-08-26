@@ -1,61 +1,58 @@
 /**
  * Tenant Context
  *
- * This module provides the architecture for deriving the active centre (tenant)
- * from the authenticated user's session context.
+ * This module provides helpers for tenant isolation.
  *
  * SECURITY MODEL:
- * - The centre_id MUST come from the server-side session/JWT, never from client requests.
- * - The application layer must ensure that the JWT contains the correct 'centre_id' claim.
+ * - The centre_id is derived from the user_profiles table, NOT from JWT claims.
+ * - The auth.current_centre_id() PostgreSQL function looks up the centre from
+ *   user_profiles based on auth.uid().
  * - Clients must NEVER be allowed to supply centre_id directly.
  *
- * CURRENT STATE:
- * - Auth system is not yet implemented.
- * - This module provides the interface and helpers.
- * - When auth is added, the JWT centre_id extraction will be wired up.
- *
- * FUTURE:
- * - user_centres junction table will map users to one or more centres.
- * - A user can switch active centre (multi-centre access).
- * - The active centre_id is stored in the JWT.
+ * The getAppUserContext() function in @/lib/auth/app-user-context.ts is the
+ * authoritative mechanism for obtaining the full user + centre context.
+ * This module provides supplementary helpers.
  */
 
-export interface TenantContext {
-  centreId: string;
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+/**
+ * Get the current user's centre_id from the database.
+ *
+ * Uses the auth.current_centre_id() PostgreSQL function which reads
+ * from user_profiles (NOT from JWT claims).
+ *
+ * @param supabase - A Supabase client with the user's session.
+ * @returns The centre_id string, or null if no active profile.
+ */
+export async function getCurrentCentreId(
+  supabase: SupabaseClient,
+): Promise<string | null> {
+  const { data, error } = await supabase.rpc("auth_current_centre_id" as never);
+
+  if (error) {
+    // Fallback: query user_profiles directly
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return null;
+
+    const { data: profile } = await supabase
+      .from("user_profiles")
+      .select("centre_id")
+      .eq("auth_user_id", user.id)
+      .eq("status", "active")
+      .single();
+
+    return (profile as { centre_id: string } | null)?.centre_id ?? null;
+  }
+
+  return data as string | null;
 }
 
 /**
- * Extract the tenant context from an authenticated user's session.
- *
- * SECURITY: This function must ONLY be called server-side after verifying
- * the user's authentication. The centreId is derived from the JWT, never
- * from client input.
- *
- * @throws {Error} If no valid tenant context is available.
- */
-export async function getTenantContext(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  session: any,
-): Promise<TenantContext> {
-  if (!session?.user) {
-    throw new Error("Authentication required: no active session.");
-  }
-
-  const claims = session.user.app_metadata ?? session.user.user_metadata ?? {};
-  const centreId = claims.centre_id as string | undefined;
-
-  if (!centreId) {
-    throw new Error(
-      "No tenant context: user has no centre association. " +
-        "Ensure the user's JWT contains a 'centre_id' claim.",
-    );
-  }
-
-  return { centreId };
-}
-
-/**
- * Validate that a given centre_id matches the current tenant context.
+ * Validate that a given centre_id matches the user's tenant context.
  *
  * Use this to guard any operation that receives a centre_id parameter,
  * ensuring it matches the authenticated user's tenant.
@@ -63,10 +60,10 @@ export async function getTenantContext(
  * @throws {Error} If the provided centreId does not match the tenant context.
  */
 export function validateTenantAccess(
-  tenantContext: TenantContext,
+  userCentreId: string,
   requestedCentreId: string,
 ): void {
-  if (tenantContext.centreId !== requestedCentreId) {
+  if (userCentreId !== requestedCentreId) {
     throw new Error(
       "Access denied: requested centre does not match your tenant context.",
     );

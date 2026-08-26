@@ -77,6 +77,29 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 > **Security:** Variables prefixed with `NEXT_PUBLIC_` are exposed to the browser. Never put secrets in `NEXT_PUBLIC_*` variables.
 
+## Architecture
+
+### Multi-Tenant Isolation
+
+Every user belongs to exactly one centre. Tenant isolation is enforced at two layers:
+
+1. **Database (RLS):** PostgreSQL Row-Level Security policies ensure queries can only access rows belonging to the authenticated user's centre.
+2. **Application:** `getAppUserContext()` derives the user's centre_id from the `user_profiles` table (never from client input). All API routes call this before any data access.
+
+```
+Auth Session → user_profiles table → centre_id → RLS policies enforce isolation
+```
+
+### Key Files
+
+| Module | Purpose |
+|--------|---------|
+| `src/lib/auth/app-user-context.ts` | `getAppUserContext()` — derives user + centre from DB |
+| `src/lib/centres/tenant.ts` | `validateTenantAccess()` — guards cross-tenant access |
+| `src/lib/users/user-profile.service.ts` | User profile CRUD |
+| `supabase/migrations/20260825*.sql` | Centres table + RLS |
+| `supabase/migrations/20260826*.sql` | User profiles table + RLS |
+
 ## Project Structure
 
 ```
@@ -95,10 +118,15 @@ src/
 ├── config/
 │   └── env.ts                # Environment variable validation
 ├── lib/
+│   ├── auth/
+│   │   └── app-user-context.ts # Server-side user + centre context
 │   ├── centres/
-│   │   ├── centre.service.ts # Centre CRUD operations
+│   │   ├── centre.service.ts   # Centre CRUD operations
 │   │   ├── centre.validation.ts # Zod validation schemas
-│   │   └── tenant.ts         # Tenant context helpers
+│   │   └── tenant.ts           # Tenant isolation helpers
+│   ├── users/
+│   │   ├── user-profile.service.ts # User profile CRUD
+│   │   └── user-profile.validation.ts # Zod schemas
 │   └── supabase/
 │       ├── admin.ts          # Service-role client (server only)
 │       ├── client.ts         # Browser client
@@ -106,17 +134,24 @@ src/
 │       └── server.ts         # Server-side client
 ├── types/
 │   ├── centre.ts             # Centre types and interfaces
-│   └── database.ts           # Supabase database types
+│   ├── database.ts           # Supabase database types
+│   └── user-profile.ts       # User profile types
 └── middleware.ts              # Next.js middleware
 supabase/
 └── migrations/
-    └── 20260825000000_create_centres_table.sql
+    ├── 20260825000000_create_centres_table.sql
+    └── 20260826000000_create_user_profiles_table.sql
 tests/
-└── centres/
-    ├── centre.service.test.ts
-    ├── centre.validation.test.ts
-    ├── migration.test.ts
-    └── tenant.test.ts
+├── centres/
+│   ├── centre.service.test.ts
+│   ├── centre.validation.test.ts
+│   ├── migration.test.ts
+│   └── tenant.test.ts
+└── users/
+    ├── app-user-context.test.ts
+    ├── user-profile.migration.test.ts
+    ├── user-profile.service.test.ts
+    └── user-profile.validation.test.ts
 ```
 
 ## Deployment
