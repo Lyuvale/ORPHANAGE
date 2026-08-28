@@ -217,7 +217,7 @@ describe("Child Tenant Isolation", () => {
     const userCentreId = "centre-a";
     const childCentreId = "centre-b";
 
-    // RLS policy: centre_id = auth.current_centre_id()
+    // RLS policy: centre_id = public.current_centre_id()
     expect(userCentreId).not.toBe(childCentreId);
   });
 });

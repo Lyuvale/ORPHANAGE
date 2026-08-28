@@ -61,7 +61,7 @@ CREATE TRIGGER set_centres_updated_at
 -- The application layer must ensure the JWT contains the correct 'centre_id'
 -- claim. This prevents client-supplied centre_id from being trusted directly.
 
-CREATE OR REPLACE FUNCTION auth.current_centre_id()
+CREATE OR REPLACE FUNCTION public.current_centre_id()
 RETURNS UUID AS $$
   SELECT (current_setting('request.jwt.claims', true)::jsonb ->> 'centre_id')::uuid;
 $$ LANGUAGE sql STABLE SECURITY DEFINER;
@@ -78,7 +78,7 @@ CREATE POLICY "centres_select_own"
   ON centres
   FOR SELECT
   TO authenticated
-  USING (id = auth.current_centre_id());
+  USING (id = public.current_centre_id());
 
 -- Policy: Authenticated users cannot insert centres directly.
 -- Centre creation must go through the service-role admin client.

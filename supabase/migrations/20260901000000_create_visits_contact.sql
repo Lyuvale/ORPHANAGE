@@ -147,7 +147,7 @@ CREATE INDEX idx_visits_upcoming ON visits(centre_id, scheduled_date, status)
 ALTER TABLE visits ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY visits_select_centre ON visits
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY visits_insert_admin ON visits
   FOR INSERT WITH CHECK (false);
 CREATE POLICY visits_update_admin ON visits
@@ -184,7 +184,7 @@ CREATE INDEX idx_visit_status_history_centre ON visit_status_history(centre_id);
 ALTER TABLE visit_status_history ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY visit_status_history_select_centre ON visit_status_history
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY visit_status_history_insert_admin ON visit_status_history
   FOR INSERT WITH CHECK (false);
 CREATE POLICY visit_status_history_deny_authenticated_insert ON visit_status_history
@@ -218,7 +218,7 @@ CREATE INDEX idx_visit_restrictions_active ON visit_restrictions(centre_id, chil
 ALTER TABLE visit_restrictions ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY visit_restrictions_select_centre ON visit_restrictions
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY visit_restrictions_insert_admin ON visit_restrictions
   FOR INSERT WITH CHECK (false);
 CREATE POLICY visit_restrictions_update_admin ON visit_restrictions
@@ -261,7 +261,7 @@ CREATE INDEX idx_contact_attempts_date ON contact_attempts(centre_id, attempted_
 ALTER TABLE contact_attempts ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY contact_attempts_select_centre ON contact_attempts
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY contact_attempts_insert_admin ON contact_attempts
   FOR INSERT WITH CHECK (false);
 CREATE POLICY contact_attempts_update_admin ON contact_attempts

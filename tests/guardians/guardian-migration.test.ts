@@ -202,7 +202,7 @@ describe("Family & Guardian Migration", () => {
 
     it("allows centre-scoped SELECT for guardians", () => {
       expect(migrationLower).toContain("guardians_select_centre");
-      expect(migrationLower).toContain("auth.current_centre_id()");
+      expect(migrationLower).toContain("public.current_centre_id()");
     });
 
     it("allows centre-scoped SELECT for child_guardians", () => {

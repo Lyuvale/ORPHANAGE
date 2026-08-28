@@ -95,7 +95,7 @@ CREATE INDEX idx_child_presence_child_date ON child_presence(child_id, presence_
 ALTER TABLE child_presence ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY child_presence_select_centre ON child_presence
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY child_presence_insert_admin ON child_presence
   FOR INSERT WITH CHECK (false);
 CREATE POLICY child_presence_update_admin ON child_presence
@@ -139,7 +139,7 @@ CREATE INDEX idx_daily_care_child_date ON daily_care_records(child_id, care_date
 ALTER TABLE daily_care_records ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY daily_care_records_select_centre ON daily_care_records
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY daily_care_records_insert_admin ON daily_care_records
   FOR INSERT WITH CHECK (false);
 CREATE POLICY daily_care_records_update_admin ON daily_care_records
@@ -181,7 +181,7 @@ CREATE INDEX idx_meal_records_child_date ON meal_records(child_id, meal_date);
 ALTER TABLE meal_records ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY meal_records_select_centre ON meal_records
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY meal_records_insert_admin ON meal_records
   FOR INSERT WITH CHECK (false);
 CREATE POLICY meal_records_update_admin ON meal_records
@@ -227,7 +227,7 @@ CREATE INDEX idx_daily_notes_parent ON daily_notes(parent_note_id) WHERE parent_
 ALTER TABLE daily_notes ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY daily_notes_select_centre ON daily_notes
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY daily_notes_insert_admin ON daily_notes
   FOR INSERT WITH CHECK (false);
 CREATE POLICY daily_notes_update_admin ON daily_notes
@@ -274,7 +274,7 @@ CREATE INDEX idx_care_followups_due ON care_followups(centre_id, due_date) WHERE
 ALTER TABLE care_followups ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY care_followups_select_centre ON care_followups
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY care_followups_insert_admin ON care_followups
   FOR INSERT WITH CHECK (false);
 CREATE POLICY care_followups_update_admin ON care_followups

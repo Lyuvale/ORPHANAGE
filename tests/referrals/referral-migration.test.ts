@@ -226,7 +226,7 @@ describe("Referrals, Admissions & Placements Migration", () => {
 
     it("allows centre-scoped SELECT for referrals", () => {
       expect(migrationLower).toContain("referrals_select_centre");
-      expect(migrationLower).toContain("auth.current_centre_id()");
+      expect(migrationLower).toContain("public.current_centre_id()");
     });
 
     it("allows centre-scoped SELECT for admissions", () => {

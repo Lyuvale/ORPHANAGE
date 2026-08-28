@@ -111,7 +111,7 @@ describe("Migration SQL Validity", () => {
     );
     const sql = fs.readFileSync(migrationPath, "utf-8");
 
-    expect(sql).toContain("CREATE OR REPLACE FUNCTION auth.current_centre_id()");
+    expect(sql).toContain("CREATE OR REPLACE FUNCTION public.current_centre_id()");
     expect(sql).toContain("request.jwt.claims");
   });
 });

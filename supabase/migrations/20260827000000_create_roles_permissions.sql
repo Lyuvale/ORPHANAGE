@@ -156,7 +156,7 @@ CREATE POLICY "user_roles_select_own"
 CREATE POLICY "user_roles_select_centre"
   ON user_roles FOR SELECT
   TO authenticated
-  USING (centre_id = auth.current_centre_id());
+  USING (centre_id = public.current_centre_id());
 
 -- user_roles: writes are admin-only
 CREATE POLICY "user_roles_insert_admin"

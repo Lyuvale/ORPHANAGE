@@ -113,7 +113,7 @@ ALTER TABLE referrals ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "referrals_select_centre"
   ON referrals FOR SELECT
   TO authenticated
-  USING (centre_id = auth.current_centre_id());
+  USING (centre_id = public.current_centre_id());
 
 CREATE POLICY "referrals_insert_admin"
   ON referrals FOR INSERT
@@ -172,7 +172,7 @@ ALTER TABLE referral_documents ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "referral_documents_select_centre"
   ON referral_documents FOR SELECT
   TO authenticated
-  USING (centre_id = auth.current_centre_id());
+  USING (centre_id = public.current_centre_id());
 
 CREATE POLICY "referral_documents_insert_admin"
   ON referral_documents FOR INSERT
@@ -251,7 +251,7 @@ ALTER TABLE admissions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "admissions_select_centre"
   ON admissions FOR SELECT
   TO authenticated
-  USING (centre_id = auth.current_centre_id());
+  USING (centre_id = public.current_centre_id());
 
 CREATE POLICY "admissions_insert_admin"
   ON admissions FOR INSERT
@@ -308,7 +308,7 @@ ALTER TABLE admission_history ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "admission_history_select_centre"
   ON admission_history FOR SELECT
   TO authenticated
-  USING (centre_id = auth.current_centre_id());
+  USING (centre_id = public.current_centre_id());
 
 CREATE POLICY "admission_history_insert_admin"
   ON admission_history FOR INSERT
@@ -393,7 +393,7 @@ ALTER TABLE placements ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "placements_select_centre"
   ON placements FOR SELECT
   TO authenticated
-  USING (centre_id = auth.current_centre_id());
+  USING (centre_id = public.current_centre_id());
 
 CREATE POLICY "placements_insert_admin"
   ON placements FOR INSERT

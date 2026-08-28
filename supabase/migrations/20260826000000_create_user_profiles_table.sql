@@ -45,7 +45,7 @@ CREATE TRIGGER set_user_profiles_updated_at
 -- NOT from JWT claims. This ensures the authoritative source is the DB,
 -- and clients cannot fabricate or modify their centre assignment.
 
-CREATE OR REPLACE FUNCTION auth.current_centre_id()
+CREATE OR REPLACE FUNCTION public.current_centre_id()
 RETURNS UUID AS $$
   SELECT centre_id FROM user_profiles
   WHERE auth_user_id = auth.uid()
@@ -54,7 +54,7 @@ RETURNS UUID AS $$
 $$ LANGUAGE sql STABLE SECURITY DEFINER;
 
 -- Helper: check if the current user has an active profile
-CREATE OR REPLACE FUNCTION auth.has_active_profile()
+CREATE OR REPLACE FUNCTION public.has_active_profile()
 RETURNS BOOLEAN AS $$
   SELECT EXISTS (
     SELECT 1 FROM user_profiles
@@ -81,7 +81,7 @@ CREATE POLICY "user_profiles_select_centre"
   ON user_profiles
   FOR SELECT
   TO authenticated
-  USING (centre_id = auth.current_centre_id());
+  USING (centre_id = public.current_centre_id());
 
 -- Policy: All inserts are admin-only (service_role)
 CREATE POLICY "user_profiles_insert_admin"

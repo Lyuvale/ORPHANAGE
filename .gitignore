@@ -31,6 +31,9 @@ next-env.d.ts
 # vercel
 .vercel
 
+# supabase
+supabase/.temp/
+
 # IDE
 .vscode/
 .idea/

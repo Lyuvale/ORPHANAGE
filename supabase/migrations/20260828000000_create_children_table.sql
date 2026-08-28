@@ -133,7 +133,7 @@ ALTER TABLE children ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "children_select_centre"
   ON children FOR SELECT
   TO authenticated
-  USING (centre_id = auth.current_centre_id());
+  USING (centre_id = public.current_centre_id());
 
 -- All writes are admin-only (service_role)
 CREATE POLICY "children_insert_admin"
@@ -195,7 +195,7 @@ ALTER TABLE child_status_history ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "child_status_history_select_centre"
   ON child_status_history FOR SELECT
   TO authenticated
-  USING (centre_id = auth.current_centre_id());
+  USING (centre_id = public.current_centre_id());
 
 CREATE POLICY "child_status_history_insert_admin"
   ON child_status_history FOR INSERT

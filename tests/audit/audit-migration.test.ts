@@ -91,8 +91,8 @@ describe("Audit Log Migration", () => {
       expect(migration).toContain("TO authenticated");
     });
 
-    it("uses auth.current_centre_id() for SELECT policy", () => {
-      expect(migration).toMatch(/centre_id = auth\.current_centre_id\(\)/);
+    it("uses public.current_centre_id() for SELECT policy", () => {
+      expect(migration).toMatch(/centre_id = public\.current_centre_id\(\)/);
     });
 
     it("allows inserts only via service_role", () => {

@@ -80,7 +80,7 @@ ALTER TABLE guardians ENABLE ROW LEVEL SECURITY;
 
 -- RLS: select_centre
 CREATE POLICY guardians_select_centre ON guardians
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 
 -- RLS: insert_admin (service role only — deny authenticated)
 CREATE POLICY guardians_insert_admin ON guardians
@@ -152,7 +152,7 @@ ALTER TABLE child_guardians ENABLE ROW LEVEL SECURITY;
 
 -- RLS: select_centre
 CREATE POLICY child_guardians_select_centre ON child_guardians
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 
 -- RLS: insert_admin
 CREATE POLICY child_guardians_insert_admin ON child_guardians
@@ -205,7 +205,7 @@ CREATE INDEX idx_guardian_documents_relationship ON guardian_documents(relations
 ALTER TABLE guardian_documents ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY guardian_documents_select_centre ON guardian_documents
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY guardian_documents_insert_admin ON guardian_documents
   FOR INSERT WITH CHECK (false);
 CREATE POLICY guardian_documents_delete_admin ON guardian_documents

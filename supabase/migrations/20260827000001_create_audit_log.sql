@@ -58,7 +58,7 @@ ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "audit_logs_select_centre"
   ON audit_logs FOR SELECT
   TO authenticated
-  USING (centre_id = auth.current_centre_id());
+  USING (centre_id = public.current_centre_id());
 
 -- ALL writes are admin-only (service_role).
 -- Normal users must never be able to insert, update, or delete audit records.

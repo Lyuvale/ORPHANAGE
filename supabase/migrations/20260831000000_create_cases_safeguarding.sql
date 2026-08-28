@@ -167,7 +167,7 @@ CREATE INDEX idx_cases_assigned ON cases(centre_id, assigned_to) WHERE assigned_
 ALTER TABLE cases ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY cases_select_centre ON cases
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY cases_insert_admin ON cases
   FOR INSERT WITH CHECK (false);
 CREATE POLICY cases_update_admin ON cases
@@ -204,7 +204,7 @@ CREATE INDEX idx_case_status_history_centre ON case_status_history(centre_id);
 ALTER TABLE case_status_history ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY case_status_history_select_centre ON case_status_history
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY case_status_history_insert_admin ON case_status_history
   FOR INSERT WITH CHECK (false);
 CREATE POLICY case_status_history_deny_authenticated_insert ON case_status_history
@@ -235,7 +235,7 @@ CREATE INDEX idx_case_assessments_centre ON case_assessments(centre_id);
 ALTER TABLE case_assessments ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY case_assessments_select_centre ON case_assessments
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY case_assessments_insert_admin ON case_assessments
   FOR INSERT WITH CHECK (false);
 CREATE POLICY case_assessments_update_admin ON case_assessments
@@ -281,7 +281,7 @@ CREATE INDEX idx_case_plans_status ON case_plans(centre_id, status);
 ALTER TABLE case_plans ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY case_plans_select_centre ON case_plans
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY case_plans_insert_admin ON case_plans
   FOR INSERT WITH CHECK (false);
 CREATE POLICY case_plans_update_admin ON case_plans
@@ -324,7 +324,7 @@ CREATE INDEX idx_case_plan_items_centre ON case_plan_items(centre_id);
 ALTER TABLE case_plan_items ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY case_plan_items_select_centre ON case_plan_items
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY case_plan_items_insert_admin ON case_plan_items
   FOR INSERT WITH CHECK (false);
 CREATE POLICY case_plan_items_update_admin ON case_plan_items
@@ -369,7 +369,7 @@ CREATE INDEX idx_interventions_plan_item ON interventions(case_plan_item_id) WHE
 ALTER TABLE interventions ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY interventions_select_centre ON interventions
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY interventions_insert_admin ON interventions
   FOR INSERT WITH CHECK (false);
 CREATE POLICY interventions_update_admin ON interventions
@@ -413,7 +413,7 @@ CREATE INDEX idx_case_notes_parent ON case_notes(parent_note_id) WHERE parent_no
 ALTER TABLE case_notes ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY case_notes_select_centre ON case_notes
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY case_notes_insert_admin ON case_notes
   FOR INSERT WITH CHECK (false);
 CREATE POLICY case_notes_update_admin ON case_notes
@@ -453,7 +453,7 @@ CREATE INDEX idx_case_documents_centre ON case_documents(centre_id);
 ALTER TABLE case_documents ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY case_documents_select_centre ON case_documents
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY case_documents_insert_admin ON case_documents
   FOR INSERT WITH CHECK (false);
 CREATE POLICY case_documents_delete_admin ON case_documents
@@ -502,7 +502,7 @@ CREATE INDEX idx_safeguarding_concerns_assigned ON safeguarding_concerns(centre_
 ALTER TABLE safeguarding_concerns ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY safeguarding_concerns_select_centre ON safeguarding_concerns
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY safeguarding_concerns_insert_admin ON safeguarding_concerns
   FOR INSERT WITH CHECK (false);
 CREATE POLICY safeguarding_concerns_update_admin ON safeguarding_concerns
@@ -539,7 +539,7 @@ CREATE INDEX idx_safeguarding_status_history_centre ON safeguarding_status_histo
 ALTER TABLE safeguarding_status_history ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY safeguarding_status_history_select_centre ON safeguarding_status_history
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY safeguarding_status_history_insert_admin ON safeguarding_status_history
   FOR INSERT WITH CHECK (false);
 CREATE POLICY safeguarding_status_history_deny_authenticated_insert ON safeguarding_status_history
@@ -573,7 +573,7 @@ CREATE INDEX idx_safeguarding_actions_assigned ON safeguarding_actions(centre_id
 ALTER TABLE safeguarding_actions ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY safeguarding_actions_select_centre ON safeguarding_actions
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY safeguarding_actions_insert_admin ON safeguarding_actions
   FOR INSERT WITH CHECK (false);
 CREATE POLICY safeguarding_actions_update_admin ON safeguarding_actions
@@ -619,7 +619,7 @@ CREATE INDEX idx_safeguarding_escalations_status ON safeguarding_escalations(cen
 ALTER TABLE safeguarding_escalations ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY safeguarding_escalations_select_centre ON safeguarding_escalations
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY safeguarding_escalations_insert_admin ON safeguarding_escalations
   FOR INSERT WITH CHECK (false);
 CREATE POLICY safeguarding_escalations_update_admin ON safeguarding_escalations
@@ -658,7 +658,7 @@ CREATE INDEX idx_safeguarding_documents_centre ON safeguarding_documents(centre_
 ALTER TABLE safeguarding_documents ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY safeguarding_documents_select_centre ON safeguarding_documents
-  FOR SELECT USING (centre_id = auth.current_centre_id());
+  FOR SELECT USING (centre_id = public.current_centre_id());
 CREATE POLICY safeguarding_documents_insert_admin ON safeguarding_documents
   FOR INSERT WITH CHECK (false);
 CREATE POLICY safeguarding_documents_delete_admin ON safeguarding_documents

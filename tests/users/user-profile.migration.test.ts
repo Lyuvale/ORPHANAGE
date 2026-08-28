@@ -68,19 +68,19 @@ describe("Migration: user_profiles table", () => {
     expect(sql).toContain('CREATE POLICY "user_profiles_delete_admin"');
   });
 
-  it("rewrites auth.current_centre_id() to use user_profiles", async () => {
+  it("rewrites public.current_centre_id() to use user_profiles", async () => {
     const sql = await readMigration();
 
-    expect(sql).toContain("CREATE OR REPLACE FUNCTION auth.current_centre_id()");
+    expect(sql).toContain("CREATE OR REPLACE FUNCTION public.current_centre_id()");
     expect(sql).toContain("SELECT centre_id FROM user_profiles");
     expect(sql).toContain("WHERE auth_user_id = auth.uid()");
     expect(sql).toContain("AND status = 'active'");
   });
 
-  it("creates auth.has_active_profile() function", async () => {
+  it("creates public.has_active_profile() function", async () => {
     const sql = await readMigration();
 
-    expect(sql).toContain("CREATE OR REPLACE FUNCTION auth.has_active_profile()");
+    expect(sql).toContain("CREATE OR REPLACE FUNCTION public.has_active_profile()");
     expect(sql).toContain("auth_user_id = auth.uid()");
     expect(sql).toContain("status = 'active'");
   });

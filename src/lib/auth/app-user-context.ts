@@ -34,7 +34,7 @@ export class AuthError extends Error {
     message: string,
     public readonly code: string,
   ) {
-    super(message);
+    super(`[${code}] ${message}`);
     this.name = "AuthError";
   }
 }

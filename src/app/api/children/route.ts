@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { requireAppAccess } from "@/lib/auth/app-user-context";
+import { AuthError, requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
 import { auditCreate } from "@/lib/audit/audit.service";
 import {
@@ -50,14 +50,15 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data, count });
   } catch (error) {
+    const code = error instanceof AuthError ? error.code : undefined;
     const message =
       error instanceof Error ? error.message : "Internal server error";
-    const status = message.includes("NOT_AUTHENTICATED")
-      ? 401
-      : message.includes("PERMISSION_DENIED")
-        ? 403
-        : message.includes("USER_DEACTIVATED") ||
-            message.includes("CENTRE_NOT_ACTIVE")
+    const status =
+      code === "NOT_AUTHENTICATED"
+        ? 401
+        : code === "PERMISSION_DENIED" ||
+            code === "USER_DEACTIVATED" ||
+            code === "CENTRE_NOT_ACTIVE"
           ? 403
           : 500;
     return NextResponse.json({ error: message }, { status });
@@ -114,14 +115,15 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ data: child }, { status: 201 });
   } catch (error) {
+    const code = error instanceof AuthError ? error.code : undefined;
     const message =
       error instanceof Error ? error.message : "Internal server error";
-    const status = message.includes("NOT_AUTHENTICATED")
-      ? 401
-      : message.includes("PERMISSION_DENIED")
-        ? 403
-        : message.includes("USER_DEACTIVATED") ||
-            message.includes("CENTRE_NOT_ACTIVE")
+    const status =
+      code === "NOT_AUTHENTICATED"
+        ? 401
+        : code === "PERMISSION_DENIED" ||
+            code === "USER_DEACTIVATED" ||
+            code === "CENTRE_NOT_ACTIVE"
           ? 403
           : 500;
     return NextResponse.json({ error: message }, { status });

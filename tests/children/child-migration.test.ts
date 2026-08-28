@@ -170,7 +170,7 @@ describe("Children Migration", () => {
 
     it("allows centre-scoped SELECT for authenticated", () => {
       expect(migrationLower).toContain("children_select_centre");
-      expect(migrationLower).toContain("auth.current_centre_id()");
+      expect(migrationLower).toContain("public.current_centre_id()");
     });
 
     it("allows inserts only via service_role", () => {
