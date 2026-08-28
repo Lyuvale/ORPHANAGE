@@ -185,6 +185,9 @@ await auditSecurityEvent(adminSupabase, null, "LOGIN_FAILED", "session", { centr
 | `src/lib/safeguarding/safeguarding.validation.ts` | Zod schemas for safeguarding operations |
 | `src/lib/visits/visit.service.ts` | Visit CRUD, status, check-in/out, restrictions, contact attempts |
 | `src/lib/visits/visit.validation.ts` | Zod schemas for visit operations |
+| `src/lib/daily-care/presence.service.ts` | Presence CRUD, check-in/out, off-site, daily summary |
+| `src/lib/daily-care/daily-care.service.ts` | Care records, meals, append-only notes, follow-ups |
+| `src/lib/daily-care/daily-care.validation.ts` | Zod schemas for presence + daily care operations |
 | `src/lib/centres/tenant.ts` | `validateTenantAccess()` — guards cross-tenant access |
 | `src/lib/users/user-profile.service.ts` | User profile CRUD |
 | `src/types/child.ts` | Child types, status model, display helpers |
@@ -195,6 +198,8 @@ await auditSecurityEvent(adminSupabase, null, "LOGIN_FAILED", "session", { centr
 | `src/types/case.ts` | Case, assessment, plan, note, intervention types |
 | `src/types/safeguarding.ts` | Concern, action, escalation, document types |
 | `src/types/visit.ts` | Visit, restriction, contact attempt types, transitions, display helpers |
+| `src/types/presence.ts` | Presence types, status/reason models, display helpers |
+| `src/types/daily-care.ts` | Daily care, meal, note, follow-up types, display helpers |
 | `src/types/audit.ts` | Audit action vocabulary, types, `sanitizeForAudit()` |
 | `src/types/role.ts` | Role, permission types + `ROLE_PERMISSIONS` defaults |
 | `supabase/migrations/20260825*.sql` | Centres table + RLS |
@@ -203,6 +208,7 @@ await auditSecurityEvent(adminSupabase, null, "LOGIN_FAILED", "session", { centr
 | `supabase/migrations/20260827000001*.sql` | Audit logs table + append-only RLS |
 | `supabase/migrations/20260828000000*.sql` | Children table, status history, reference generation + RLS |
 | `supabase/migrations/20260829000000*.sql` | Referrals, admissions, placements, admission history + RLS + permissions |
+| `supabase/migrations/20260902000000*.sql` | Daily care, meals, notes, follow-ups, presence + RLS + permissions |
 
 ### Child Management
 
@@ -359,6 +365,58 @@ Manages authorised contact between children and their parents, guardians, relati
 | SOCIAL_WORKER | Full access |
 | CAREGIVER | View, check-in, check-out only |
 | RECORDS_OFFICER | View, restrictions.view, contact_attempts.view |
+| ACCOUNTANT_BURSAR | No access |
+
+### Daily Care Management
+
+Tracks daily care activities, meals, notes, and follow-ups for each child. Notes are append-only — amendments create new versions while preserving the original.
+
+**Care Activity Types:** meal, hygiene, clothing, sleep, recreation, special_support, general_wellbeing, other
+
+**Meal Types:** breakfast, lunch, dinner, snack
+
+**Daily Note Types:** general, observation, incident, concern, follow_up, other
+
+**Follow-Up Statuses:** open, in_progress, completed, cancelled
+
+**Key properties:**
+- **Centre-scoped** — every record belongs to exactly one centre
+- **Append-only notes** — amendments create new note versions with version number and reason
+- **Care follow-ups** — can be linked to source notes or care records
+- **Staff attribution** — all records tracked to the staff member who created them
+
+**Permissions:**
+| Module | Permissions |
+|--------|------------|
+| daily_care | view, create, update, check_in, check_out, notes.create, notes.amend, meals.create, followups.create, followups.update |
+
+### Child Presence Management
+
+Manages child attendance and on-site/off-site tracking. Provides daily presence summaries showing which children are present, absent, off-site, on leave, or not yet recorded.
+
+**Presence Statuses:** present, absent, on_leave, off_site, transferred, other_approved
+
+**Absence Reasons:** illness, family_leave, unknown, external_programme, approved_absence, other
+
+**Key properties:**
+- **Centre-scoped** — every record belongs to exactly one centre
+- **Daily uniqueness** — one presence record per child per date
+- **Server-controlled timestamps** — check-in/check-out times are server-set
+- **Off-site tracking** — records destination, expected return, and authorisation
+- **Daily summary** — compares presence records against all active children to find unrecorded
+
+**Permissions:**
+| Module | Permissions |
+|--------|------------|
+| presence | view, create, update, check_in, check_out, off_site, daily_summary |
+
+**Role Access:**
+| Role | Access |
+|------|--------|
+| CENTRE_MANAGER | Full access |
+| SOCIAL_WORKER | Full access |
+| CAREGIVER | View, create, check-in, check-out, meals.create, notes.create |
+| RECORDS_OFFICER | View only |
 | ACCOUNTANT_BURSAR | No access |
 
 ### Case Management & Safeguarding
@@ -607,6 +665,11 @@ tests/
 │   ├── visit-types.test.ts           # 42 tests: enums, transitions, display helpers
 │   ├── visit-validation.test.ts      # 32 tests: Zod schema validation
 │   └── visit-permissions.test.ts     # 32 tests: permission constants and role mappings
+├── daily-care/
+│   ├── presence-types.test.ts        # 18 tests: enums, display helpers, type compliance
+│   ├── daily-care-types.test.ts      # 22 tests: enums, display helpers, type compliance
+│   ├── daily-care-validation.test.ts # 38 tests: Zod schema validation
+│   └── daily-care-permissions.test.ts # 21 tests: permission constants and role mappings
 └── users/
     ├── app-user-context.test.ts
     ├── user-profile.migration.test.ts
