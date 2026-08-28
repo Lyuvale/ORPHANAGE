@@ -156,6 +156,21 @@ export const PERMISSIONS = {
   GUARDIANS_DOCUMENTS_VIEW: "guardians.documents.view" as const,
   GUARDIANS_DOCUMENTS_UPLOAD: "guardians.documents.upload" as const,
   GUARDIANS_DOCUMENTS_DOWNLOAD: "guardians.documents.download" as const,
+
+  VISITS_VIEW: "visits.view" as const,
+  VISITS_CREATE: "visits.create" as const,
+  VISITS_UPDATE: "visits.update" as const,
+  VISITS_REQUEST: "visits.request" as const,
+  VISITS_APPROVE: "visits.approve" as const,
+  VISITS_REJECT: "visits.reject" as const,
+  VISITS_CHECKIN: "visits.checkin" as const,
+  VISITS_CHECKOUT: "visits.checkout" as const,
+  VISITS_COMPLETE: "visits.complete" as const,
+  VISITS_CANCEL: "visits.cancel" as const,
+  VISITS_RESTRICTIONS_VIEW: "visits.restrictions.view" as const,
+  VISITS_RESTRICTIONS_MANAGE: "visits.restrictions.manage" as const,
+  VISITS_CONTACT_ATTEMPTS_VIEW: "visits.contact_attempts.view" as const,
+  VISITS_CONTACT_ATTEMPTS_CREATE: "visits.contact_attempts.create" as const,
 } as const;
 
 export const ALL_PERMISSIONS: PermissionString[] = Object.values(PERMISSIONS);
@@ -187,6 +202,10 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "daily_care.view",
     "guardians.view", "guardians.create", "guardians.update", "guardians.deactivate",
     "guardians.relationship.manage", "guardians.documents.view", "guardians.documents.upload", "guardians.documents.download",
+    "visits.view", "visits.create", "visits.update", "visits.request", "visits.approve", "visits.reject",
+    "visits.checkin", "visits.checkout", "visits.complete", "visits.cancel",
+    "visits.restrictions.view", "visits.restrictions.manage",
+    "visits.contact_attempts.view", "visits.contact_attempts.create",
   ],
   SOCIAL_WORKER: [
     "children.view", "children.create", "children.update", "children.status.update",
@@ -208,6 +227,10 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "daily_care.view",
     "guardians.view", "guardians.create", "guardians.update",
     "guardians.relationship.manage", "guardians.documents.view", "guardians.documents.upload",
+    "visits.view", "visits.create", "visits.update", "visits.request", "visits.approve", "visits.reject",
+    "visits.checkin", "visits.checkout", "visits.complete", "visits.cancel",
+    "visits.restrictions.view", "visits.restrictions.manage",
+    "visits.contact_attempts.view", "visits.contact_attempts.create",
   ],
   CAREGIVER: [
     "children.view",
@@ -217,6 +240,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "daily_care.view", "daily_care.update",
     "daily_care.check_in", "daily_care.check_out",
     "guardians.view",
+    "visits.view", "visits.checkin", "visits.checkout",
   ],
   RECORDS_OFFICER: [
     "children.view", "children.create", "children.update", "children.status.update", "children.archive",
@@ -228,6 +252,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "safeguarding.view", "safeguarding.documents.view", "safeguarding.documents.upload", "safeguarding.documents.download",
     "guardians.view", "guardians.create", "guardians.update",
     "guardians.documents.view", "guardians.documents.upload", "guardians.documents.download",
+    "visits.view", "visits.restrictions.view", "visits.contact_attempts.view",
   ],
   ACCOUNTANT_BURSAR: [
     "finance.view", "finance.create", "finance.approve",

@@ -183,6 +183,8 @@ await auditSecurityEvent(adminSupabase, null, "LOGIN_FAILED", "session", { centr
 | `src/lib/cases/case.validation.ts` | Zod schemas for case/assessment/plan/note operations |
 | `src/lib/safeguarding/safeguarding.service.ts` | Safeguarding concerns, actions, escalations |
 | `src/lib/safeguarding/safeguarding.validation.ts` | Zod schemas for safeguarding operations |
+| `src/lib/visits/visit.service.ts` | Visit CRUD, status, check-in/out, restrictions, contact attempts |
+| `src/lib/visits/visit.validation.ts` | Zod schemas for visit operations |
 | `src/lib/centres/tenant.ts` | `validateTenantAccess()` — guards cross-tenant access |
 | `src/lib/users/user-profile.service.ts` | User profile CRUD |
 | `src/types/child.ts` | Child types, status model, display helpers |
@@ -192,6 +194,7 @@ await auditSecurityEvent(adminSupabase, null, "LOGIN_FAILED", "session", { centr
 | `src/types/guardian.ts` | Guardian, relationship, document types, display helpers |
 | `src/types/case.ts` | Case, assessment, plan, note, intervention types |
 | `src/types/safeguarding.ts` | Concern, action, escalation, document types |
+| `src/types/visit.ts` | Visit, restriction, contact attempt types, transitions, display helpers |
 | `src/types/audit.ts` | Audit action vocabulary, types, `sanitizeForAudit()` |
 | `src/types/role.ts` | Role, permission types + `ROLE_PERMISSIONS` defaults |
 | `supabase/migrations/20260825*.sql` | Centres table + RLS |
@@ -307,6 +310,57 @@ Records and manages people and family relationships connected to a child, preser
 |--------|------------|
 | Guardians | `view`, `create`, `update`, `deactivate`, `relationship.manage`, `documents.view`, `documents.upload`, `documents.download` |
 
+### Visits & Family Contact Management
+
+Manages authorised contact between children and their parents, guardians, relatives or other approved persons. Respects safeguarding restrictions — a guardian being linked to a child does NOT automatically give unrestricted visitation rights.
+
+**Visit Status Model:**
+| Status | Description |
+|--------|-------------|
+| `requested` | Visit request submitted |
+| `pending_approval` | Awaiting approval decision |
+| `approved` | Approved, ready to schedule/check-in |
+| `scheduled` | Confirmed for a specific time |
+| `checked_in` | Visitor has arrived and checked in |
+| `completed` | Visit finished |
+| `cancelled` | Cancelled by authorised user |
+| `rejected` | Visit request rejected |
+| `no_show` | Approved visitor did not attend |
+
+**Visit Types:** In Person, Phone, Video, Off Site, Other Approved (extensible for future types)
+
+**Visit Outcomes:** Positive, Neutral, Negative, Concern Noted, Incident Reported, Pending Review, None
+
+**Restriction Types:** No Visits, Supervised Only, Limited Frequency, Limited Duration, Phone Only, Temporary Ban, Other
+
+**Key properties:**
+- **Visit reference** — system-generated, format `{CENTRE_CODE}-VISIT-{00001}`, never reused
+- **Status transitions** — validated, recorded in append-only `visit_status_history`
+- **Approval workflow** — request → approve/reject with recorded decision
+- **Safeguarding check** — active restrictions prevent normal approval
+- **Check-in/check-out** — server-controlled timestamps, staff-recorded
+- **Supervised visits** — supervisor assignment with supervision notes
+- **Visit outcome** — child/family response, follow-up tracking
+- **Contact attempts** — separate structure for unsuccessful contact tracking
+- **Visit restrictions** — per child/guardian, type-based with start/end dates
+- **Centre-scoped** — every record belongs to exactly one centre
+- **RLS enforced** — database-level tenant isolation
+- **Audit logged** — all creates, status changes, check-in/out recorded
+
+**Permissions:**
+| Module | Permissions |
+|--------|------------|
+| Visits | `view`, `create`, `update`, `request`, `approve`, `reject`, `checkin`, `checkout`, `complete`, `cancel`, `restrictions.view`, `restrictions.manage`, `contact_attempts.view`, `contact_attempts.create` |
+
+**Role Access:**
+| Role | Access |
+|------|--------|
+| CENTRE_MANAGER | Full access |
+| SOCIAL_WORKER | Full access |
+| CAREGIVER | View, check-in, check-out only |
+| RECORDS_OFFICER | View, restrictions.view, contact_attempts.view |
+| ACCOUNTANT_BURSAR | No access |
+
 ### Case Management & Safeguarding
 
 Manages child welfare cases, assessments, care plans, and safeguarding concerns. This is the most sensitive module, requiring explicit case/safeguarding permissions — `children.view` does NOT automatically grant access.
@@ -398,6 +452,8 @@ src/
 │   │   │   └── page.tsx      # Referrals list page
 │   │   ├── safeguarding/     # Safeguarding management pages
 │   │   │   └── page.tsx      # Safeguarding list page
+│   │   ├── visits/           # Visit management pages
+│   │   │   └── page.tsx      # Visits list page
 │   │   └── layout.tsx        # Dashboard layout
 │   ├── api/admissions/       # Admission API routes
 │   │   ├── [id]/route.ts     # GET/PATCH single admission
@@ -435,6 +491,16 @@ src/
 │   │   │   ├── escalations/  # Safeguarding escalations
 │   │   │   ├── status/       # Safeguarding status updates
 │   │   │   └── route.ts      # GET/PATCH single concern
+│   │   └── route.ts          # GET list / POST create
+│   ├── api/visits/           # Visits & Family Contact API routes
+│   │   ├── [id]/
+│   │   │   ├── check/        # Check-in / Check-out / Complete
+│   │   │   ├── status/       # Visit status updates
+│   │   │   └── route.ts      # GET/PATCH single visit
+│   │   ├── contact-attempts/ # Contact attempt records
+│   │   │   └── route.ts      # GET list / POST create
+│   │   ├── restrictions/     # Visit restriction management
+│   │   │   └── route.ts      # GET list / POST create
 │   │   └── route.ts          # GET list / POST create
 │   └── layout.tsx            # Root layout
 ├── config/
@@ -495,7 +561,8 @@ supabase/
     ├── 20260828000000_create_children_table.sql
     ├── 20260829000000_create_referrals_admissions_placements.sql
     ├── 20260830000000_create_guardians_family.sql
-    └── 20260831000000_create_cases_safeguarding.sql
+    ├── 20260831000000_create_cases_safeguarding.sql
+    └── 20260901000000_create_visits_contact.sql
 tests/
 ├── audit/
 │   ├── audit.test.ts               # 28 tests: action vocabulary, sanitization, security
@@ -536,6 +603,10 @@ tests/
 ├── safeguarding/
 │   ├── safeguarding-types.test.ts    # 30 tests: enums, transitions, display helpers
 │   └── safeguarding-validation.test.ts # 30 tests: Zod schema validation
+├── visits/
+│   ├── visit-types.test.ts           # 42 tests: enums, transitions, display helpers
+│   ├── visit-validation.test.ts      # 32 tests: Zod schema validation
+│   └── visit-permissions.test.ts     # 32 tests: permission constants and role mappings
 └── users/
     ├── app-user-context.test.ts
     ├── user-profile.migration.test.ts
