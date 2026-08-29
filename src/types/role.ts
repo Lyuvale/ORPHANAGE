@@ -205,6 +205,13 @@ export const PERMISSIONS = {
   HEALTH_DOCUMENTS_UPLOAD: "health.documents.upload" as const,
   HEALTH_DOCUMENTS_DOWNLOAD: "health.documents.download" as const,
   HEALTH_EMERGENCY_VIEW: "health.emergency.view" as const,
+
+  EDUCATION_VIEW: "education_development.view" as const,
+  EDUCATION_EDUCATION_MANAGE: "education_development.education.manage" as const,
+  EDUCATION_SUPPORT_NEEDS_MANAGE: "education_development.support_needs.manage" as const,
+  EDUCATION_GOALS_MANAGE: "education_development.goals.manage" as const,
+  EDUCATION_PROGRESS_MANAGE: "education_development.progress.manage" as const,
+  EDUCATION_ACHIEVEMENTS_MANAGE: "education_development.achievements.manage" as const,
 } as const;
 
 export const ALL_PERMISSIONS: PermissionString[] = Object.values(PERMISSIONS);
@@ -254,6 +261,12 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "health.immunizations.view", "health.immunizations.manage",
     "health.documents.view", "health.documents.upload", "health.documents.download",
     "health.emergency.view",
+    "education_development.view",
+    "education_development.education.manage",
+    "education_development.support_needs.manage",
+    "education_development.goals.manage",
+    "education_development.progress.manage",
+    "education_development.achievements.manage",
   ],
   SOCIAL_WORKER: [
     "children.view", "children.create", "children.update", "children.status.update",
@@ -293,6 +306,12 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "health.immunizations.view", "health.immunizations.manage",
     "health.documents.view", "health.documents.upload", "health.documents.download",
     "health.emergency.view",
+    "education_development.view",
+    "education_development.education.manage",
+    "education_development.support_needs.manage",
+    "education_development.goals.manage",
+    "education_development.progress.manage",
+    "education_development.achievements.manage",
   ],
   CAREGIVER: [
     "children.view",
@@ -309,6 +328,8 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "health.emergency.view",
     "health.medications.view",
     "health.medications.administer",
+    "education_development.view",
+    "education_development.progress.manage",
   ],
   RECORDS_OFFICER: [
     "children.view", "children.create", "children.update", "children.status.update", "children.archive",
@@ -331,6 +352,12 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "health.immunizations.view", "health.immunizations.manage",
     "health.documents.view", "health.documents.upload", "health.documents.download",
     "health.emergency.view",
+    "education_development.view",
+    "education_development.education.manage",
+    "education_development.support_needs.manage",
+    "education_development.goals.manage",
+    "education_development.progress.manage",
+    "education_development.achievements.manage",
   ],
   ACCOUNTANT_BURSAR: [
     "finance.view", "finance.create", "finance.approve",

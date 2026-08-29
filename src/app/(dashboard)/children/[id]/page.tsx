@@ -191,6 +191,69 @@ export default async function ChildProfilePage({
         </div>
       )}
 
+      {/* Education & Development */}
+      <div className="bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-6">
+        <div className="px-4 py-5 sm:px-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-medium text-gray-900">
+              Education & Development
+            </h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Profile, support needs, goals, progress and achievements
+            </p>
+          </div>
+        </div>
+        <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <Link
+              href={`/education/profile?child_id=${child.id}`}
+              className="rounded-lg border p-4 text-center hover:border-indigo-300 hover:bg-indigo-50"
+            >
+              <div className="text-2xl">🎓</div>
+              <div className="mt-1 text-sm font-medium text-gray-900">
+                Education Profile
+              </div>
+            </Link>
+            <Link
+              href={`/education/support-needs?child_id=${child.id}`}
+              className="rounded-lg border p-4 text-center hover:border-indigo-300 hover:bg-indigo-50"
+            >
+              <div className="text-2xl">📚</div>
+              <div className="mt-1 text-sm font-medium text-gray-900">
+                Support Needs
+              </div>
+            </Link>
+            <Link
+              href={`/education/goals?child_id=${child.id}`}
+              className="rounded-lg border p-4 text-center hover:border-indigo-300 hover:bg-indigo-50"
+            >
+              <div className="text-2xl">🎯</div>
+              <div className="mt-1 text-sm font-medium text-gray-900">
+                Development Goals
+              </div>
+            </Link>
+            <Link
+              href={`/education/progress?child_id=${child.id}`}
+              className="rounded-lg border p-4 text-center hover:border-indigo-300 hover:bg-indigo-50"
+            >
+              <div className="text-2xl">📈</div>
+              <div className="mt-1 text-sm font-medium text-gray-900">
+                Progress
+              </div>
+            </Link>
+            <Link
+              href={`/education/achievements?child_id=${child.id}`}
+              className="rounded-lg border p-4 text-center hover:border-indigo-300 hover:bg-indigo-50"
+            >
+              <div className="text-2xl">🏆</div>
+              <div className="mt-1 text-sm font-medium text-gray-900">
+                Achievements
+              </div>
+            </Link>
+          </div>
+        </div>
+      </div>
+
       {/* Future Modules Placeholder */}
       <div className="bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
         <div className="px-4 py-5 sm:px-6">
@@ -208,7 +271,6 @@ export default async function ChildProfilePage({
               "Visits",
               "Daily Care",
               "Health",
-              "Education",
               "Documents",
             ].map((module) => (
               <div
