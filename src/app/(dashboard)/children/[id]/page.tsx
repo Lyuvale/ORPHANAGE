@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { formatTsh, getBenefitTypeDisplay } from "@/types/resources";
 
 async function getChild(id: string) {
   const res = await fetch(
@@ -9,6 +10,16 @@ async function getChild(id: string) {
 
   if (!res.ok) return null;
   return res.json();
+}
+
+async function getChildBenefits(childId: string) {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/resources/children/${childId}/benefits`,
+    { cache: "no-store" },
+  );
+  if (!res.ok) return null;
+  const json = await res.json();
+  return json.data;
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -43,6 +54,7 @@ export default async function ChildProfilePage({
 
   const child = result.data;
   const history = child.status_history ?? [];
+  const benefits = await getChildBenefits(id);
 
   return (
     <div>
@@ -251,6 +263,79 @@ export default async function ChildProfilePage({
               </div>
             </Link>
           </div>
+        </div>
+      </div>
+
+      {/* Resources & Support */}
+      <div className="bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-6">
+        <div className="px-4 py-5 sm:px-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-medium text-gray-900">
+              Resources & Support
+            </h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Source → Fund → Expense → Benefit received by this child
+            </p>
+          </div>
+        </div>
+        <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
+          {benefits === null ? (
+            <p className="text-sm text-gray-500">
+              You do not have permission to view resource support, or this
+              module is unavailable.
+            </p>
+          ) : benefits.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              No support/benefits recorded for this child yet.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {(
+                benefits as {
+                  id: string;
+                  benefit_type: string;
+                  description: string | null;
+                  benefit_date: string | null;
+                  expense?: {
+                    id: string;
+                    description: string | null;
+                    amount: number;
+                    fund?: {
+                      id: string;
+                      fund_name: string;
+                      source?: { id: string; source_name: string } | null;
+                    } | null;
+                  } | null;
+                }[]
+              ).map((b) => (
+                <Link
+                  key={b.id}
+                  href={`/resources/benefits/${b.id}`}
+                  className="block rounded-lg border border-gray-200 p-4 hover:bg-gray-50"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-gray-900">
+                      {getBenefitTypeDisplay(b.benefit_type as never)}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {b.benefit_date
+                        ? new Date(b.benefit_date).toLocaleDateString()
+                        : "No date"}
+                    </span>
+                  </div>
+                  {b.description && (
+                    <p className="mt-1 text-sm text-gray-500">{b.description}</p>
+                  )}
+                  <p className="mt-2 text-xs text-gray-400">
+                    {b.expense?.fund?.source?.source_name ?? "No source"} →{" "}
+                    {b.expense?.fund?.fund_name ?? "No fund"} →{" "}
+                    {b.expense?.description ?? "No expense"}{" "}
+                    {b.expense?.amount != null && `(${formatTsh(b.expense.amount)})`}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

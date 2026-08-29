@@ -46,6 +46,12 @@ export default function DashboardLayout({
               >
                 Staff
               </Link>
+              <Link
+                href="/resources"
+                className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+              >
+                Resources
+              </Link>
             </nav>
           </div>
         </div>

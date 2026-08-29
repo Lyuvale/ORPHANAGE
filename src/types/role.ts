@@ -221,6 +221,14 @@ export const PERMISSIONS = {
   EDUCATION_GOALS_MANAGE: "education_development.goals.manage" as const,
   EDUCATION_PROGRESS_MANAGE: "education_development.progress.manage" as const,
   EDUCATION_ACHIEVEMENTS_MANAGE: "education_development.achievements.manage" as const,
+
+  RESOURCES_VIEW: "resources.view" as const,
+  RESOURCES_MANAGE: "resources.manage" as const,
+  RESOURCES_APPROVE: "resources.approve" as const,
+  RESOURCES_REPORTS: "resources.reports" as const,
+  RESOURCES_DOCUMENTS_VIEW: "resources.documents.view" as const,
+  RESOURCES_DOCUMENTS_UPLOAD: "resources.documents.upload" as const,
+  RESOURCES_DOCUMENTS_DOWNLOAD: "resources.documents.download" as const,
 } as const;
 
 export const ALL_PERMISSIONS: PermissionString[] = Object.values(PERMISSIONS);
@@ -280,6 +288,13 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "education_development.goals.manage",
     "education_development.progress.manage",
     "education_development.achievements.manage",
+    "resources.view",
+    "resources.manage",
+    "resources.approve",
+    "resources.reports",
+    "resources.documents.view",
+    "resources.documents.upload",
+    "resources.documents.download",
   ],
   SOCIAL_WORKER: [
     "children.view", "children.create", "children.update", "children.status.update",
@@ -326,6 +341,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "education_development.progress.manage",
     "education_development.achievements.manage",
     "staff.view",
+    "resources.view",
   ],
   CAREGIVER: [
     "children.view",
@@ -382,6 +398,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "staff.qualifications.manage",
     "staff.documents.view",
     "staff.documents.manage",
+    "resources.view",
   ],
   ACCOUNTANT_BURSAR: [
     "finance.view", "finance.create", "finance.approve",
@@ -389,5 +406,12 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "children.view",
     "guardians.view",
     "staff.view",
+    "resources.view",
+    "resources.manage",
+    "resources.approve",
+    "resources.reports",
+    "resources.documents.view",
+    "resources.documents.upload",
+    "resources.documents.download",
   ],
 };
