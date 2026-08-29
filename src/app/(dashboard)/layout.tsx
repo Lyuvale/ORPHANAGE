@@ -40,6 +40,12 @@ export default function DashboardLayout({
               >
                 Education
               </Link>
+              <Link
+                href="/staff"
+                className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+              >
+                Staff
+              </Link>
             </nav>
           </div>
         </div>
