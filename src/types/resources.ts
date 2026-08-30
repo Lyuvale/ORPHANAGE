@@ -49,10 +49,68 @@ export const SUPPORT_DOCUMENT_ENTITIES = [
   "SOURCE",
   "EXPENSE",
   "BENEFIT",
+  "ASSET",
 ] as const;
 export type SupportDocumentEntity = (typeof SUPPORT_DOCUMENT_ENTITIES)[number];
 
 export const SUPPORT_DOCUMENTS_BUCKET = "support-documents";
+
+// ─── Asset enumerations ──────────────────────────────────────
+
+export const ASSET_CATEGORIES = [
+  "FURNITURE",
+  "EQUIPMENT",
+  "VEHICLE",
+  "ELECTRONICS",
+  "APPLIANCE",
+  "BEDDING",
+  "OTHER",
+] as const;
+export type AssetCategory = (typeof ASSET_CATEGORIES)[number];
+
+export const ASSET_STATUSES = [
+  "ACTIVE",
+  "IN_USE",
+  "MAINTENANCE",
+  "DAMAGED",
+  "LOST",
+  "DISPOSED",
+] as const;
+export type AssetStatus = (typeof ASSET_STATUSES)[number];
+
+export const ASSET_CONDITIONS = [
+  "GOOD",
+  "FAIR",
+  "NEEDS_REPAIR",
+  "DAMAGED",
+] as const;
+export type AssetCondition = (typeof ASSET_CONDITIONS)[number];
+
+export const ASSET_COST_TYPES = ["REPAIR", "MAINTENANCE"] as const;
+export type AssetCostType = (typeof ASSET_COST_TYPES)[number];
+
+export const ASSET_HISTORY_EVENTS = [
+  "CREATED",
+  "UPDATED",
+  "COST_RECORDED",
+  "STATUS_CHANGED",
+  "LOCATION_CHANGED",
+  "CONDITION_CHANGED",
+  "DISPOSED",
+] as const;
+export type AssetHistoryEvent = (typeof ASSET_HISTORY_EVENTS)[number];
+
+export const ASSET_LOCATIONS = [
+  "DINING_ROOM",
+  "KITCHEN",
+  "OFFICE",
+  "DORMITORY",
+  "STORE",
+  "CLASSROOM",
+  "OUTSIDE",
+  "OTHER",
+] as const;
+export type AssetLocation = (typeof ASSET_LOCATIONS)[number];
 
 // ─── Source ──────────────────────────────────────────────────
 
@@ -200,6 +258,121 @@ export interface SupportChildRef {
   last_name: string;
 }
 
+// ─── Asset ───────────────────────────────────────────────────
+
+export interface SupportAsset {
+  id: string;
+  centre_id: string;
+  asset_id: string | null;
+  asset_name: string;
+  asset_category: AssetCategory;
+  quantity: number;
+  date_acquired: string | null;
+  location: string | null;
+  asset_status: AssetStatus;
+  asset_condition: AssetCondition;
+  source_id: string | null;
+  fund_id: string | null;
+  expense_id: string | null;
+  benefit_id: string | null;
+  source_unknown: boolean;
+  purchase_cost: number | null;
+  notes: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateSupportAssetInput {
+  centre_id: string;
+  asset_id?: string | null;
+  asset_name: string;
+  asset_category: AssetCategory;
+  quantity?: number;
+  date_acquired?: string | null;
+  location?: string | null;
+  asset_status?: AssetStatus;
+  asset_condition?: AssetCondition;
+  source_id?: string | null;
+  fund_id?: string | null;
+  expense_id?: string | null;
+  benefit_id?: string | null;
+  source_unknown?: boolean;
+  purchase_cost?: number | null;
+  notes?: string | null;
+}
+
+export interface UpdateSupportAssetInput {
+  asset_id?: string | null;
+  asset_name?: string | null;
+  asset_category?: AssetCategory;
+  quantity?: number;
+  date_acquired?: string | null;
+  location?: string | null;
+  asset_status?: AssetStatus;
+  asset_condition?: AssetCondition;
+  source_id?: string | null;
+  fund_id?: string | null;
+  expense_id?: string | null;
+  benefit_id?: string | null;
+  source_unknown?: boolean;
+  purchase_cost?: number | null;
+  notes?: string | null;
+}
+
+export interface SupportAssetCost {
+  id: string;
+  centre_id: string;
+  asset_id: string;
+  cost_type: AssetCostType;
+  amount: number | null;
+  cost_date: string | null;
+  expense_id: string | null;
+  notes: string | null;
+  created_by: string;
+  created_at: string;
+}
+
+export interface CreateSupportAssetCostInput {
+  centre_id: string;
+  asset_id: string;
+  cost_type: AssetCostType;
+  amount?: number | null;
+  cost_date?: string | null;
+  expense_id?: string | null;
+  notes?: string | null;
+}
+
+export interface SupportAssetHistory {
+  id: string;
+  centre_id: string;
+  asset_id: string;
+  event_type: AssetHistoryEvent;
+  description: string | null;
+  previous_value: string | null;
+  new_value: string | null;
+  changed_by: string;
+  changed_at: string;
+}
+
+/** Asset with relationships + computed cost breakdown (never stored). */
+export interface SupportAssetDetail extends SupportAsset {
+  source: SupportSource | null;
+  fund: SupportFund | null;
+  expense: SupportExpenseDetail | null;
+  benefit: SupportBenefitDetail | null;
+  /** Sum of REPAIR cost rows (amount ?? 0). */
+  repair_cost: number;
+  /** Sum of MAINTENANCE cost rows (amount ?? 0). */
+  maintenance_cost: number;
+  /** purchase_cost + repair_cost + maintenance_cost (auto-computed). */
+  total_cost: number;
+  /** number of cost rows whose amount is unknown. */
+  unknown_cost_count: number;
+  costs: SupportAssetCost[];
+  history: SupportAssetHistory[];
+}
+
 // ─── Documents ───────────────────────────────────────────────
 
 export interface SupportDocument {
@@ -271,6 +444,8 @@ export interface SupportOverview {
   total_allocated: number;
   total_used: number;
   total_children_benefited: number;
+  total_assets: number;
+  total_assets_value: number;
   by_source_type: { source_type: SupportSourceType; count: number; amount: number }[];
   by_benefit_type: { benefit_type: SupportBenefitType; count: number }[];
   recent_funds: SupportFundDetail[];
@@ -324,4 +499,56 @@ export function formatTsh(amount: number | null | undefined): string {
 /** Human-readable label for a child, e.g. "Juma — CH-0001". */
 export function childLabel(child: { reference_number: string; first_name: string; last_name: string }): string {
   return `${child.first_name} ${child.last_name} — ${child.reference_number}`;
+}
+
+export function getAssetCategoryDisplay(c: AssetCategory): string {
+  const map: Record<AssetCategory, string> = {
+    FURNITURE: "Furniture",
+    EQUIPMENT: "Equipment",
+    VEHICLE: "Vehicle",
+    ELECTRONICS: "Electronics",
+    APPLIANCE: "Appliance",
+    BEDDING: "Bedding",
+    OTHER: "Other",
+  };
+  return map[c];
+}
+
+export function getAssetStatusDisplay(s: AssetStatus): string {
+  const map: Record<AssetStatus, string> = {
+    ACTIVE: "Active",
+    IN_USE: "In Use",
+    MAINTENANCE: "Maintenance",
+    DAMAGED: "Damaged",
+    LOST: "Lost",
+    DISPOSED: "Disposed",
+  };
+  return map[s];
+}
+
+export function getAssetConditionDisplay(c: AssetCondition): string {
+  const map: Record<AssetCondition, string> = {
+    GOOD: "Good",
+    FAIR: "Fair",
+    NEEDS_REPAIR: "Needs Repair",
+    DAMAGED: "Damaged",
+  };
+  return map[c];
+}
+
+export function getAssetCostTypeDisplay(c: AssetCostType): string {
+  const map: Record<AssetCostType, string> = {
+    REPAIR: "Repair",
+    MAINTENANCE: "Maintenance",
+  };
+  return map[c];
+}
+
+/** Title-case a stored location value (e.g. "DINING_ROOM" -> "Dining Room"). */
+export function getAssetLocationDisplay(location: string | null | undefined): string {
+  if (!location) return "-";
+  return location
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(" ");
 }

@@ -3,6 +3,10 @@ import {
   SUPPORT_SOURCE_TYPES,
   SUPPORT_BENEFIT_TYPES,
   SUPPORT_EXPENSE_STATUSES,
+  ASSET_CATEGORIES,
+  ASSET_STATUSES,
+  ASSET_CONDITIONS,
+  ASSET_COST_TYPES,
 } from "@/types/resources";
 
 const optionalDateString = () =>
@@ -150,6 +154,124 @@ export const benefitChildrenSchema = z.object({
   child_ids: z.array(z.string().uuid("Invalid child ID")),
 });
 
+// ─── Assets ──────────────────────────────────────────────────
+
+const optionalUuid = (label: string) =>
+  z
+    .string()
+    .uuid(`Invalid ${label} ID`)
+    .nullable()
+    .optional();
+
+const optionalAmount = (label: string) =>
+  z
+    .union([z.number().finite(), z.string()])
+    .transform((v, ctx) => {
+      const n = typeof v === "string" ? parseFloat(v) : v;
+      if (typeof n !== "number" || isNaN(n)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: `${label} must be a number` });
+        return z.NEVER;
+      }
+      if (n < 0) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: `${label} cannot be negative` });
+        return z.NEVER;
+      }
+      return n;
+    })
+    .nullable()
+    .optional();
+
+export const createAssetSchema = z.object({
+  centre_id: z.string().uuid("Invalid centre ID"),
+  asset_id: optionalText(50, "Asset ID"),
+  asset_name: requiredText(200, "Asset name"),
+  asset_category: z.enum(ASSET_CATEGORIES, {
+    errorMap: () => ({ message: "Invalid asset category" }),
+  }),
+  quantity: z.union([z.number().int().min(1), z.string()]).transform((v, ctx) => {
+    const n = typeof v === "string" ? parseInt(v, 10) : v;
+    if (typeof n !== "number" || isNaN(n) || n < 1) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Quantity must be at least 1" });
+      return z.NEVER;
+    }
+    return n;
+  }).optional(),
+  date_acquired: optionalDateString(),
+  location: optionalText(100, "Location"),
+  asset_status: z.enum(ASSET_STATUSES, {
+    errorMap: () => ({ message: "Invalid asset status" }),
+  }).optional(),
+  asset_condition: z.enum(ASSET_CONDITIONS, {
+    errorMap: () => ({ message: "Invalid asset condition" }),
+  }).optional(),
+  source_id: optionalUuid("source"),
+  fund_id: optionalUuid("fund"),
+  expense_id: optionalUuid("expense"),
+  benefit_id: optionalUuid("benefit"),
+  source_unknown: z.boolean().optional(),
+  purchase_cost: optionalAmount("Purchase cost"),
+  notes: optionalText(2000, "Notes"),
+});
+
+export const updateAssetSchema = z
+  .object({
+    asset_id: optionalText(50, "Asset ID"),
+    asset_name: optionalText(200, "Asset name"),
+    asset_category: z.enum(ASSET_CATEGORIES, {
+      errorMap: () => ({ message: "Invalid asset category" }),
+    }).optional(),
+    quantity: z.union([z.number().int().min(1), z.string()]).transform((v, ctx) => {
+      const n = typeof v === "string" ? parseInt(v, 10) : v;
+      if (typeof n !== "number" || isNaN(n) || n < 1) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Quantity must be at least 1" });
+        return z.NEVER;
+      }
+      return n;
+    }).optional(),
+    date_acquired: optionalDateString(),
+    location: optionalText(100, "Location"),
+    asset_status: z.enum(ASSET_STATUSES, {
+      errorMap: () => ({ message: "Invalid asset status" }),
+    }).optional(),
+    asset_condition: z.enum(ASSET_CONDITIONS, {
+      errorMap: () => ({ message: "Invalid asset condition" }),
+    }).optional(),
+    source_id: optionalUuid("source"),
+    fund_id: optionalUuid("fund"),
+    expense_id: optionalUuid("expense"),
+    benefit_id: optionalUuid("benefit"),
+    source_unknown: z.boolean().optional(),
+    purchase_cost: optionalAmount("Purchase cost"),
+    notes: optionalText(2000, "Notes"),
+    status_change_reason: optionalText(1000, "Reason"),
+  })
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "At least one field must be provided",
+  });
+
+export const createAssetCostSchema = z.object({
+  centre_id: z.string().uuid("Invalid centre ID"),
+  asset_id: z.string().uuid("Invalid asset ID"),
+  cost_type: z.enum(ASSET_COST_TYPES, {
+    errorMap: () => ({ message: "Invalid cost type" }),
+  }),
+  amount: optionalAmount("Cost"),
+  cost_date: optionalDateString(),
+  expense_id: optionalUuid("expense"),
+  notes: optionalText(2000, "Notes"),
+});
+
+export const assetStatusSchema = z.object({
+  asset_status: z.enum(ASSET_STATUSES, {
+    errorMap: () => ({ message: "Invalid asset status" }),
+  }),
+  asset_condition: z.enum(ASSET_CONDITIONS, {
+    errorMap: () => ({ message: "Invalid asset condition" }),
+  }).optional(),
+  location: optionalText(100, "Location"),
+  reason: optionalText(1000, "Reason"),
+});
+
 // ─── Misc ────────────────────────────────────────────────────
 
 export const searchSchema = z.object({
@@ -164,10 +286,12 @@ export function coerceCreate(body: Record<string, unknown>): Record<string, unkn
   const out: Record<string, unknown> = { ...body };
   if (typeof out.amount === "string" && out.amount === "") delete out.amount;
   if (typeof out.amount_allocated === "string" && out.amount_allocated === "") delete out.amount_allocated;
-  for (const k of ["source_date", "expense_date", "benefit_date"]) {
+  if (typeof out.purchase_cost === "string" && out.purchase_cost === "") out.purchase_cost = null;
+  if (typeof out.quantity === "string" && out.quantity === "") delete out.quantity;
+  for (const k of ["source_date", "expense_date", "benefit_date", "cost_date", "date_acquired"]) {
     if (out[k] === "") out[k] = null;
   }
-  for (const k of ["purpose", "notes", "description", "source_name", "fund_name"]) {
+  for (const k of ["purpose", "notes", "description", "source_name", "fund_name", "location", "asset_id", "reason", "status_change_reason"]) {
     if (out[k] === "") out[k] = null;
   }
   if (Array.isArray(out.child_ids)) {

@@ -21,6 +21,7 @@ const REPORT_TYPES = [
   { key: "expense", label: "Expense" },
   { key: "benefit", label: "Benefit" },
   { key: "child", label: "Child Support" },
+  { key: "asset", label: "Asset" },
 ];
 
 const FORMATS = [
@@ -37,9 +38,11 @@ export default async function ResourcesOverviewPage() {
     { label: "Funds", value: overview?.total_funds ?? "-", color: "text-blue-600" },
     { label: "Expenses", value: overview?.total_expenses ?? "-", color: "text-green-600" },
     { label: "Benefits", value: overview?.total_benefits ?? "-", color: "text-amber-600" },
+    { label: "Assets", value: overview?.total_assets ?? "-", color: "text-teal-600" },
     { label: "Received", value: formatTsh(overview?.total_received), color: "text-emerald-600" },
     { label: "Allocated", value: formatTsh(overview?.total_allocated), color: "text-sky-600" },
     { label: "Used", value: formatTsh(overview?.total_used), color: "text-rose-600" },
+    { label: "Asset Value", value: formatTsh(overview?.total_assets_value), color: "text-teal-700" },
     { label: "Children Benefited", value: overview?.total_children_benefited ?? "-", color: "text-purple-600" },
   ];
 
@@ -116,7 +119,8 @@ export default async function ResourcesOverviewPage() {
       <div className="rounded-lg border bg-white p-4">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Reports</h2>
         <p className="mt-1 text-sm text-gray-500">
-          Export reports based on the Source → Fund → Expense → Benefit → Child relationship.
+          Export reports based on the Source → Fund → Expense → Benefit → Child relationship, plus
+          the Asset register.
         </p>
         <div className="mt-3 space-y-2">
           {REPORT_TYPES.map((rt) => (

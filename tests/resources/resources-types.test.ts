@@ -44,7 +44,7 @@ describe("Resources & Support Types", () => {
     });
 
     it("defines document entities and the private bucket", () => {
-      expect(SUPPORT_DOCUMENT_ENTITIES).toEqual(["SOURCE", "EXPENSE", "BENEFIT"]);
+      expect(SUPPORT_DOCUMENT_ENTITIES).toEqual(["SOURCE", "EXPENSE", "BENEFIT", "ASSET"]);
       expect(SUPPORT_DOCUMENTS_BUCKET).toBe("support-documents");
     });
 

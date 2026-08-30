@@ -14,6 +14,7 @@ import {
   getExpenseDetail,
   getBenefitDetail,
   getSourceDetail,
+  listAssetsForReport,
 } from "@/lib/resources/resources.service";
 import {
   toCsv,
@@ -24,11 +25,12 @@ import {
   expenseReportRows,
   benefitReportRows,
   childReportRows,
+  assetReportRows,
   type ReportRows,
 } from "@/lib/resources/reports";
 import { statusFromError } from "@/lib/resources/route-helpers";
 
-const TYPES = ["source", "fund", "expense", "benefit", "child"] as const;
+const TYPES = ["source", "fund", "expense", "benefit", "child", "asset"] as const;
 const FORMATS = ["csv", "excel", "pdf"] as const;
 
 async function buildReport(title: string, rows: ReportRows, format: string, filename: string) {
@@ -137,6 +139,25 @@ export async function GET(request: NextRequest) {
         if (d) details.push(d);
       }
       result = benefitReportRows(details);
+    } else if (typeParam === "asset") {
+      title = "Asset Report";
+      filename = "asset-report";
+      const details = await listAssetsForReport(adminSupabase, centreId);
+      result = assetReportRows(
+        details.map((d) => ({
+          asset_name: d.asset_name,
+          asset_id: d.asset_id,
+          asset_category: d.asset_category,
+          quantity: d.quantity,
+          location: d.location,
+          asset_status: d.asset_status,
+          asset_condition: d.asset_condition,
+          source: d.source,
+          source_unknown: d.source_unknown,
+          purchase_cost: d.purchase_cost,
+          total_cost: d.total_cost,
+        })),
+      );
     } else {
       title = "Child Support Report";
       filename = "child-support-report";

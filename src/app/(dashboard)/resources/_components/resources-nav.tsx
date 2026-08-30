@@ -9,6 +9,7 @@ const TABS = [
   { href: "/resources/funds", label: "Funds" },
   { href: "/resources/expenses", label: "Expenses" },
   { href: "/resources/benefits", label: "Benefits" },
+  { href: "/resources/assets", label: "Assets" },
 ];
 
 export default function ResourcesNav() {

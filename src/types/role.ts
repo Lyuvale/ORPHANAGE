@@ -229,6 +229,11 @@ export const PERMISSIONS = {
   RESOURCES_DOCUMENTS_VIEW: "resources.documents.view" as const,
   RESOURCES_DOCUMENTS_UPLOAD: "resources.documents.upload" as const,
   RESOURCES_DOCUMENTS_DOWNLOAD: "resources.documents.download" as const,
+  RESOURCES_ASSETS_VIEW: "resources.assets.view" as const,
+  RESOURCES_ASSETS_MANAGE: "resources.assets.manage" as const,
+  RESOURCES_ASSETS_COSTS: "resources.assets.costs" as const,
+  RESOURCES_ASSETS_STATUS: "resources.assets.status" as const,
+  RESOURCES_ASSETS_DISPOSE: "resources.assets.dispose" as const,
 } as const;
 
 export const ALL_PERMISSIONS: PermissionString[] = Object.values(PERMISSIONS);
@@ -295,6 +300,11 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "resources.documents.view",
     "resources.documents.upload",
     "resources.documents.download",
+    "resources.assets.view",
+    "resources.assets.manage",
+    "resources.assets.costs",
+    "resources.assets.status",
+    "resources.assets.dispose",
   ],
   SOCIAL_WORKER: [
     "children.view", "children.create", "children.update", "children.status.update",
@@ -342,6 +352,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "education_development.achievements.manage",
     "staff.view",
     "resources.view",
+    "resources.assets.view",
   ],
   CAREGIVER: [
     "children.view",
@@ -399,6 +410,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "staff.documents.view",
     "staff.documents.manage",
     "resources.view",
+    "resources.assets.view",
   ],
   ACCOUNTANT_BURSAR: [
     "finance.view", "finance.create", "finance.approve",
@@ -413,5 +425,10 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "resources.documents.view",
     "resources.documents.upload",
     "resources.documents.download",
+    "resources.assets.view",
+    "resources.assets.manage",
+    "resources.assets.costs",
+    "resources.assets.status",
+    "resources.assets.dispose",
   ],
 };

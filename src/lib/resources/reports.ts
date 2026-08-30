@@ -3,7 +3,7 @@
  * Support module. Produces CSV, Excel-compatible HTML (.xls) and a
  * minimal PDF — all driven by simple row/column data.
  */
-import { formatTsh, getSourceTypeDisplay, getExpenseStatusDisplay, getBenefitTypeDisplay } from "@/types/resources";
+import { formatTsh, getSourceTypeDisplay, getExpenseStatusDisplay, getBenefitTypeDisplay, getAssetCategoryDisplay, getAssetStatusDisplay, getAssetConditionDisplay, getAssetLocationDisplay } from "@/types/resources";
 
 export interface ReportColumn {
   key: string;
@@ -283,5 +283,36 @@ export function childReportRows(
           .filter((x): x is string => !!x),
       ),
     ).join("; "),
+  }));
+}
+
+export function assetReportRows(
+  assets: {
+    asset_name: string;
+    asset_id?: string | null;
+    asset_category: string;
+    quantity: number;
+    location?: string | null;
+    asset_status: string;
+    asset_condition: string;
+    source?:
+      | { source_name?: string | null }
+      | null;
+    source_unknown: boolean;
+    purchase_cost: number | null;
+    total_cost: number;
+  }[],
+): ReportRows {
+  return assets.map((a) => ({
+    asset: a.asset_name,
+    asset_id: a.asset_id ?? "-",
+    category: getAssetCategoryDisplay(a.asset_category as never),
+    quantity: a.quantity,
+    location: getAssetLocationDisplay(a.location),
+    status: getAssetStatusDisplay(a.asset_status as never),
+    condition: getAssetConditionDisplay(a.asset_condition as never),
+    source: a.source?.source_name ?? (a.source_unknown ? "Existing Centre Asset / Unknown" : "-"),
+    purchase_cost: a.purchase_cost === null ? "Unknown" : formatTsh(a.purchase_cost),
+    total_cost: formatTsh(a.total_cost),
   }));
 }

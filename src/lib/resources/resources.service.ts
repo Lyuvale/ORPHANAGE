@@ -20,6 +20,13 @@ import type {
   SupportExpenseDetail,
   SupportBenefitDetail,
   SupportOverview,
+  SupportAsset,
+  CreateSupportAssetInput,
+  UpdateSupportAssetInput,
+  SupportAssetCost,
+  CreateSupportAssetCostInput,
+  SupportAssetHistory,
+  SupportAssetDetail,
 } from "@/types/resources";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -626,6 +633,10 @@ export async function getOverview(admin: AdminClient, centreId: string): Promise
   const funds = await listFunds(admin, centreId);
   const expenses = await listExpenses(admin, centreId);
   const benefits = await listBenefits(admin, centreId);
+  const assets = await listAssets(admin, centreId);
+
+  let total_assets_value = 0;
+  for (const a of assets.data) total_assets_value += Number(a.purchase_cost) || 0;
 
   let total_received = 0;
   const by_source_type: SupportOverview["by_source_type"] = [];
@@ -684,6 +695,8 @@ export async function getOverview(admin: AdminClient, centreId: string): Promise
     total_allocated,
     total_used,
     total_children_benefited,
+    total_assets: assets.count,
+    total_assets_value,
     by_source_type,
     by_benefit_type,
     recent_funds,
@@ -761,6 +774,248 @@ export async function listEntitiesForReport(
   const out: SupportSourceDetail[] = [];
   for (const s of sources.data) {
     const detail = await getSourceDetail(admin, s.id, centreId);
+    if (detail) out.push(detail);
+  }
+  return out;
+}
+
+// ─── Assets ──────────────────────────────────────────────────
+// Assets live inside Resources & Support. Relationship chains:
+//   SOURCE -> FUND -> EXPENSE -> ASSET
+//   ASSET -> BENEFIT -> CHILD
+// Total Cost is always computed (purchase + repair + maintenance), never
+// typed. Repair/maintenance costs are rows that may reference an existing
+// Expense (no duplication). Money continues to flow via the expense system.
+
+export async function listAssets(
+  admin: AdminClient,
+  centreId: string,
+  category?: string,
+  status?: string,
+): Promise<{ data: SupportAsset[]; count: number }> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let q: any = admin
+    .from("support_assets")
+    .select("*", { count: "exact" })
+    .eq("centre_id", centreId)
+    .order("created_at", { ascending: false });
+  if (category && category !== "ALL") q = q.eq("asset_category", category);
+  if (status && status !== "ALL") q = q.eq("asset_status", status);
+
+  const { data, error, count } = await q;
+  if (error) throw new Error(`Failed to list assets: ${error.message}`);
+  return { data: (data ?? []) as SupportAsset[], count: count ?? 0 };
+}
+
+export async function getAssetById(admin: AdminClient, id: string): Promise<SupportAsset | null> {
+  const { data, error } = await admin
+    .from("support_assets")
+    .select("*")
+    .eq("id", id)
+    .single();
+  if (error) {
+    if (error.code === "PGRST116") return null;
+    throw new Error(`Failed to get asset: ${error.message}`);
+  }
+  return data as SupportAsset;
+}
+
+export async function createAsset(
+  admin: AdminClient,
+  input: CreateSupportAssetInput,
+  userId: string,
+): Promise<SupportAsset> {
+  const { data, error } = await admin
+    .from("support_assets")
+    .insert({
+      centre_id: input.centre_id,
+      asset_id: input.asset_id ?? null,
+      asset_name: input.asset_name,
+      asset_category: input.asset_category,
+      quantity: input.quantity ?? 1,
+      date_acquired: input.date_acquired ?? null,
+      location: input.location ?? null,
+      asset_status: input.asset_status ?? "ACTIVE",
+      asset_condition: input.asset_condition ?? "GOOD",
+      source_id: input.source_id ?? null,
+      fund_id: input.fund_id ?? null,
+      expense_id: input.expense_id ?? null,
+      benefit_id: input.benefit_id ?? null,
+      source_unknown: input.source_unknown ?? false,
+      purchase_cost: input.purchase_cost ?? null,
+      notes: input.notes ?? null,
+      created_by: userId,
+    })
+    .select()
+    .single();
+  if (error) {
+    if (error.code === "23503") throw new Error("V_INVALID: A referenced record does not exist.");
+    throw new Error(`Failed to create asset: ${error.message}`);
+  }
+  return data as SupportAsset;
+}
+
+export async function updateAsset(
+  admin: AdminClient,
+  id: string,
+  input: UpdateSupportAssetInput,
+): Promise<SupportAsset> {
+  const payload: Record<string, unknown> = {};
+  if (input.asset_id !== undefined) payload.asset_id = input.asset_id;
+  if (input.asset_name !== undefined) payload.asset_name = input.asset_name;
+  if (input.asset_category !== undefined) payload.asset_category = input.asset_category;
+  if (input.quantity !== undefined) payload.quantity = input.quantity;
+  if (input.date_acquired !== undefined) payload.date_acquired = input.date_acquired;
+  if (input.location !== undefined) payload.location = input.location;
+  if (input.asset_status !== undefined) payload.asset_status = input.asset_status;
+  if (input.asset_condition !== undefined) payload.asset_condition = input.asset_condition;
+  if (input.source_id !== undefined) payload.source_id = input.source_id;
+  if (input.fund_id !== undefined) payload.fund_id = input.fund_id;
+  if (input.expense_id !== undefined) payload.expense_id = input.expense_id;
+  if (input.benefit_id !== undefined) payload.benefit_id = input.benefit_id;
+  if (input.source_unknown !== undefined) payload.source_unknown = input.source_unknown;
+  if (input.purchase_cost !== undefined) payload.purchase_cost = input.purchase_cost;
+  if (input.notes !== undefined) payload.notes = input.notes;
+
+  const { data, error } = await admin
+    .from("support_assets")
+    .update(payload)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) {
+    if (error.message.includes("V_")) throw new Error(error.message);
+    throw new Error(`Failed to update asset: ${error.message}`);
+  }
+  return data as SupportAsset;
+}
+
+// ─── Asset costs (Repair / Maintenance) ──────────────────────
+
+export async function listAssetCosts(
+  admin: AdminClient,
+  assetId: string,
+): Promise<SupportAssetCost[]> {
+  const { data, error } = await admin
+    .from("support_asset_costs")
+    .select("*")
+    .eq("asset_id", assetId)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(`Failed to list asset costs: ${error.message}`);
+  return (data ?? []) as SupportAssetCost[];
+}
+
+export async function createAssetCost(
+  admin: AdminClient,
+  input: CreateSupportAssetCostInput,
+  userId: string,
+): Promise<SupportAssetCost> {
+  const { data, error } = await admin
+    .from("support_asset_costs")
+    .insert({
+      centre_id: input.centre_id,
+      asset_id: input.asset_id,
+      cost_type: input.cost_type,
+      amount: input.amount ?? null,
+      cost_date: input.cost_date ?? null,
+      expense_id: input.expense_id ?? null,
+      notes: input.notes ?? null,
+      created_by: userId,
+    })
+    .select()
+    .single();
+  if (error) {
+    if (error.code === "23503") throw new Error("V_INVALID: A referenced record does not exist.");
+    throw new Error(`Failed to record asset cost: ${error.message}`);
+  }
+  return data as SupportAssetCost;
+}
+
+// ─── Asset history ───────────────────────────────────────────
+
+export async function recordAssetHistory(
+  admin: AdminClient,
+  assetId: string,
+  centreId: string,
+  eventType: string,
+  userId: string,
+  opts: { description?: string | null; previousValue?: string | null; newValue?: string | null } = {},
+): Promise<void> {
+  await admin.from("support_asset_history").insert({
+    asset_id: assetId,
+    centre_id: centreId,
+    event_type: eventType,
+    description: opts.description ?? null,
+    previous_value: opts.previousValue ?? null,
+    new_value: opts.newValue ?? null,
+    changed_by: userId,
+  });
+}
+
+// ─── Asset detail / computed costs ───────────────────────────
+
+export async function getAssetDetail(
+  admin: AdminClient,
+  id: string,
+  centreId: string,
+): Promise<SupportAssetDetail | null> {
+  const asset = await getAssetById(admin, id);
+  if (!asset || asset.centre_id !== centreId) return null;
+
+  const source = asset.source_id ? await getSourceById(admin, asset.source_id) : null;
+  const fund = asset.fund_id ? await getFundById(admin, asset.fund_id) : null;
+  const expense = asset.expense_id ? await getExpenseDetail(admin, asset.expense_id, centreId) : null;
+  const benefit = asset.benefit_id ? await getBenefitDetail(admin, asset.benefit_id, centreId) : null;
+
+  const costs = await listAssetCosts(admin, id);
+  let repair_cost = 0;
+  let maintenance_cost = 0;
+  let unknown_cost_count = 0;
+  for (const c of costs) {
+    if (c.amount === null) {
+      unknown_cost_count += 1;
+      continue;
+    }
+    const n = Number(c.amount) || 0;
+    if (c.cost_type === "REPAIR") repair_cost += n;
+    else maintenance_cost += n;
+  }
+
+  const { data: history, error: hErr } = await admin
+    .from("support_asset_history")
+    .select("*")
+    .eq("asset_id", id)
+    .eq("centre_id", centreId)
+    .order("changed_at", { ascending: false });
+  if (hErr) throw new Error(`Failed to load asset history: ${hErr.message}`);
+
+  const purchase_cost = asset.purchase_cost === null ? 0 : Number(asset.purchase_cost) || 0;
+  const total_cost = purchase_cost + repair_cost + maintenance_cost;
+
+  return {
+    ...asset,
+    purchase_cost: asset.purchase_cost === null ? null : Number(asset.purchase_cost) || 0,
+    source,
+    fund,
+    expense,
+    benefit,
+    repair_cost,
+    maintenance_cost,
+    total_cost,
+    unknown_cost_count,
+    costs,
+    history: (history ?? []) as SupportAssetHistory[],
+  };
+}
+
+export async function listAssetsForReport(
+  admin: AdminClient,
+  centreId: string,
+): Promise<SupportAssetDetail[]> {
+  const { data } = await listAssets(admin, centreId);
+  const out: SupportAssetDetail[] = [];
+  for (const a of data) {
+    const detail = await getAssetDetail(admin, a.id, centreId);
     if (detail) out.push(detail);
   }
   return out;
