@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
 import { auditCreate } from "@/lib/audit/audit.service";
+import { notifyRole } from "@/lib/notifications/notifications.service";
 import {
   listSafeguardingConcerns,
   createSafeguardingConcern,
@@ -113,6 +114,16 @@ export async function POST(request: NextRequest) {
       severity: concern.severity,
       child_id: concern.child_id,
     });
+
+    await notifyRole(adminSupabase, ctx.centre.id, ["CENTRE_MANAGER", "SOCIAL_WORKER"], {
+      title: "Safeguarding concern recorded",
+      message: "A new safeguarding concern has been recorded and requires review.",
+      type: "URGENT",
+      event_type: "SAFEGUARDING_CONCERN",
+      entity_type: "SAFEGUARDING",
+      entity_id: concern.id,
+      route: `/children/${concern.child_id}`,
+    }, ctx.authUserId);
 
     return NextResponse.json({ data: concern }, { status: 201 });
   } catch (error) {

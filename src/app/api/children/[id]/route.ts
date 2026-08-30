@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
 import { auditUpdate, auditDelete } from "@/lib/audit/audit.service";
+import { notifyRole } from "@/lib/notifications/notifications.service";
 import {
   getChildById,
   updateChild,
@@ -116,6 +117,16 @@ export async function PATCH(
         status: updated.status,
         reason: parsed.data.reason ?? null,
       });
+
+      await notifyRole(adminSupabase, ctx.centre.id, ["CENTRE_MANAGER", "RECORDS_OFFICER"], {
+        title: "Child status changed",
+        message: `The status of ${child.first_name} ${child.last_name} was updated to ${updated.status}.`,
+        type: "INFORMATION",
+        event_type: "CHILD_STATUS_CHANGED",
+        entity_type: "CHILD",
+        entity_id: child.id,
+        route: `/children/${child.id}`,
+      }, ctx.authUserId);
 
       return NextResponse.json({ data: updated });
     }

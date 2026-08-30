@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
 import { auditUpdate } from "@/lib/audit/audit.service";
+import { notifyRole, notifyUsers } from "@/lib/notifications/notifications.service";
 import { getExpenseById, setExpenseApproval } from "@/lib/resources/resources.service";
 import { expenseApprovalSchema } from "@/lib/resources/resources.validation";
 import { statusFromError, ensureOwnCentre } from "@/lib/resources/route-helpers";
@@ -49,6 +50,46 @@ export async function POST(
       { approval_status: existing.approval_status },
       { approval_status: updated.approval_status, amount: updated.amount, fund_id: updated.fund_id },
     );
+
+    if (updated.approval_status === "APPROVED") {
+      await notifyUsers(adminSupabase, ctx.centre.id, [existing.created_by], {
+        title: "Expense approved",
+        message: `Your expense of ${updated.amount} has been approved.`,
+        type: "INFORMATION",
+        event_type: "EXPENSE_APPROVED",
+        entity_type: "EXPENSE",
+        entity_id: id,
+        route: `/resources/expenses/${id}`,
+      }, ctx.authUserId);
+      await notifyRole(adminSupabase, ctx.centre.id, ["ACCOUNTANT_BURSAR", "CENTRE_MANAGER"], {
+        title: "Expense approved",
+        message: `An expense of ${updated.amount} was approved.`,
+        type: "INFORMATION",
+        event_type: "EXPENSE_APPROVED",
+        entity_type: "EXPENSE",
+        entity_id: id,
+        route: `/resources/expenses/${id}`,
+      }, ctx.authUserId);
+    } else if (updated.approval_status === "REJECTED") {
+      await notifyUsers(adminSupabase, ctx.centre.id, [existing.created_by], {
+        title: "Expense rejected",
+        message: `Your expense of ${updated.amount} was rejected.`,
+        type: "WARNING",
+        event_type: "EXPENSE_REJECTED",
+        entity_type: "EXPENSE",
+        entity_id: id,
+        route: `/resources/expenses/${id}`,
+      }, ctx.authUserId);
+      await notifyRole(adminSupabase, ctx.centre.id, ["ACCOUNTANT_BURSAR", "CENTRE_MANAGER"], {
+        title: "Expense rejected",
+        message: `An expense of ${updated.amount} was rejected.`,
+        type: "WARNING",
+        event_type: "EXPENSE_REJECTED",
+        entity_type: "EXPENSE",
+        entity_id: id,
+        route: `/resources/expenses/${id}`,
+      }, ctx.authUserId);
+    }
 
     return NextResponse.json({ data: updated });
   } catch (error) {

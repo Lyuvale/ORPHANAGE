@@ -1,4 +1,5 @@
 import Link from "next/link";
+import NotificationBell from "./_components/notification-bell";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +53,13 @@ export default function DashboardLayout({
               >
                 Resources
               </Link>
+              <Link
+                href="/notifications"
+                className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+              >
+                Notifications
+              </Link>
+              <NotificationBell />
             </nav>
           </div>
         </div>

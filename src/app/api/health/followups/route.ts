@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
 import { auditCreate } from "@/lib/audit/audit.service";
+import { notifyRole, notifyUsers } from "@/lib/notifications/notifications.service";
 import { listHealthFollowups, createHealthFollowup } from "@/lib/health/health.service";
 import { createHealthFollowupSchema, followupSearchSchema, cleanHealthInput } from "@/lib/health/health.validation";
 import type { CreateHealthFollowupInput } from "@/types/health";
@@ -87,6 +88,27 @@ export async function POST(request: NextRequest) {
       due_date: followup.due_date,
       title: followup.title,
     });
+
+    if (followup.responsible_user_id) {
+      await notifyUsers(adminSupabase, ctx.centre.id, [followup.responsible_user_id], {
+        title: "Health follow-up due",
+        message: "You have a health follow-up scheduled.",
+        type: "INFORMATION",
+        event_type: "HEALTH_FOLLOWUP",
+        entity_type: "HEALTH",
+        entity_id: followup.id,
+        route: `/children/${followup.child_id}`,
+      }, ctx.authUserId);
+    }
+    await notifyRole(adminSupabase, ctx.centre.id, ["CENTRE_MANAGER", "RECORDS_OFFICER"], {
+      title: "Health follow-up created",
+      message: "A new health follow-up has been scheduled.",
+      type: "INFORMATION",
+      event_type: "HEALTH_FOLLOWUP",
+      entity_type: "HEALTH",
+      entity_id: followup.id,
+      route: `/children/${followup.child_id}`,
+    }, ctx.authUserId);
 
     return NextResponse.json({ data: followup }, { status: 201 });
   } catch (error) {

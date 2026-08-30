@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
 import { auditCreate } from "@/lib/audit/audit.service";
+import { notifyRole } from "@/lib/notifications/notifications.service";
 import { listVisits, createVisit } from "@/lib/visits/visit.service";
 import { createVisitSchema, visitSearchSchema, cleanVisitInput } from "@/lib/visits/visit.validation";
 import type { CreateVisitInput } from "@/types/visit";
@@ -106,6 +107,16 @@ export async function POST(request: NextRequest) {
       scheduled_date: visit.scheduled_date,
       purpose: visit.purpose,
     });
+
+    await notifyRole(adminSupabase, ctx.centre.id, ["CENTRE_MANAGER", "RECORDS_OFFICER"], {
+      title: "Visit scheduled",
+      message: `A ${visit.visit_type} visit has been scheduled.`,
+      type: "INFORMATION",
+      event_type: "VISIT_SCHEDULED",
+      entity_type: "VISIT",
+      entity_id: visit.id,
+      route: "/visits",
+    }, ctx.authUserId);
 
     return NextResponse.json({ data: visit }, { status: 201 });
   } catch (error) {

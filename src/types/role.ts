@@ -234,6 +234,9 @@ export const PERMISSIONS = {
   RESOURCES_ASSETS_COSTS: "resources.assets.costs" as const,
   RESOURCES_ASSETS_STATUS: "resources.assets.status" as const,
   RESOURCES_ASSETS_DISPOSE: "resources.assets.dispose" as const,
+
+  NOTIFICATIONS_VIEW: "notifications.view" as const,
+  NOTIFICATIONS_MANAGE: "notifications.manage" as const,
 } as const;
 
 export const ALL_PERMISSIONS: PermissionString[] = Object.values(PERMISSIONS);
@@ -305,6 +308,8 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "resources.assets.costs",
     "resources.assets.status",
     "resources.assets.dispose",
+    "notifications.view",
+    "notifications.manage",
   ],
   SOCIAL_WORKER: [
     "children.view", "children.create", "children.update", "children.status.update",
@@ -353,6 +358,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "staff.view",
     "resources.view",
     "resources.assets.view",
+    "notifications.view",
   ],
   CAREGIVER: [
     "children.view",
@@ -372,6 +378,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "education_development.view",
     "education_development.progress.manage",
     "staff.view",
+    "notifications.view",
   ],
   RECORDS_OFFICER: [
     "children.view", "children.create", "children.update", "children.status.update", "children.archive",
@@ -411,6 +418,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "staff.documents.manage",
     "resources.view",
     "resources.assets.view",
+    "notifications.view",
   ],
   ACCOUNTANT_BURSAR: [
     "finance.view", "finance.create", "finance.approve",
@@ -430,5 +438,6 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "resources.assets.costs",
     "resources.assets.status",
     "resources.assets.dispose",
+    "notifications.view",
   ],
 };

@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
 import { auditCreate } from "@/lib/audit/audit.service";
+import { notifyRole } from "@/lib/notifications/notifications.service";
 import { listExpenses, createExpense, getFundById } from "@/lib/resources/resources.service";
 import { createExpenseSchema, coerceCreate } from "@/lib/resources/resources.validation";
 import type { CreateSupportExpenseInput } from "@/types/resources";
@@ -72,6 +73,18 @@ export async function POST(request: NextRequest) {
       amount: expense.amount,
       approval_status: expense.approval_status,
     });
+
+    if (expense.approval_status === "PENDING") {
+      await notifyRole(adminSupabase, ctx.centre.id, ["ACCOUNTANT_BURSAR", "CENTRE_MANAGER"], {
+        title: "Expense awaiting approval",
+        message: `A new expense of ${expense.amount} is awaiting your approval.`,
+        type: "ACTION_REQUIRED",
+        event_type: "EXPENSE_AWAITING_APPROVAL",
+        entity_type: "EXPENSE",
+        entity_id: expense.id,
+        route: `/resources/expenses/${expense.id}`,
+      }, ctx.authUserId);
+    }
 
     return NextResponse.json({ data: expense }, { status: 201 });
   } catch (error) {

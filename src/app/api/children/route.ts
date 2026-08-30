@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { AuthError, requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
 import { auditCreate } from "@/lib/audit/audit.service";
+import { notifyRole } from "@/lib/notifications/notifications.service";
 import {
   listChildren,
   createChild,
@@ -112,6 +113,16 @@ export async function POST(request: NextRequest) {
       gender: child.gender,
       status: child.status,
     });
+
+    await notifyRole(adminSupabase, ctx.centre.id, ["CENTRE_MANAGER", "RECORDS_OFFICER"], {
+      title: "New child admitted",
+      message: `${child.first_name} ${child.last_name} was admitted to the centre.`,
+      type: "INFORMATION",
+      event_type: "CHILD_ADMITTED",
+      entity_type: "CHILD",
+      entity_id: child.id,
+      route: `/children/${child.id}`,
+    }, ctx.authUserId);
 
     return NextResponse.json({ data: child }, { status: 201 });
   } catch (error) {

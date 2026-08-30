@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
 import { auditUpdate } from "@/lib/audit/audit.service";
+import { notifyRole } from "@/lib/notifications/notifications.service";
 import {
   getAssetById,
   getAssetDetail,
@@ -103,6 +104,29 @@ export async function PATCH(
         location: detail?.location ?? existing.location,
       },
     );
+
+    const newStatus = detail?.asset_status ?? existing.asset_status;
+    if (newStatus === "MAINTENANCE") {
+      await notifyRole(adminSupabase, ctx.centre.id, ["CENTRE_MANAGER", "RECORDS_OFFICER"], {
+        title: "Asset needs maintenance",
+        message: `${existing.asset_name} has been flagged for maintenance.`,
+        type: "INFORMATION",
+        event_type: "ASSET_MAINTENANCE",
+        entity_type: "ASSET",
+        entity_id: id,
+        route: `/resources/assets/${id}`,
+      }, ctx.authUserId);
+    } else if (newStatus === "DAMAGED") {
+      await notifyRole(adminSupabase, ctx.centre.id, ["CENTRE_MANAGER", "RECORDS_OFFICER"], {
+        title: "Asset damaged",
+        message: `${existing.asset_name} has been reported as damaged.`,
+        type: "WARNING",
+        event_type: "ASSET_DAMAGED",
+        entity_type: "ASSET",
+        entity_id: id,
+        route: `/resources/assets/${id}`,
+      }, ctx.authUserId);
+    }
 
     return NextResponse.json({ data: detail });
   } catch (error) {

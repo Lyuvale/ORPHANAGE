@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
 import { auditCreate } from "@/lib/audit/audit.service";
+import { notifyRole } from "@/lib/notifications/notifications.service";
 import { listSources, createSource } from "@/lib/resources/resources.service";
 import { createSourceSchema, coerceCreate } from "@/lib/resources/resources.validation";
 import type { CreateSupportSourceInput } from "@/types/resources";
@@ -64,6 +65,16 @@ export async function POST(request: NextRequest) {
       source_type: source.source_type,
       amount: source.amount,
     });
+
+    await notifyRole(adminSupabase, ctx.centre.id, ["CENTRE_MANAGER", "ACCOUNTANT_BURSAR"], {
+      title: "New funding source recorded",
+      message: `${source.source_name} was recorded as a new funding source.`,
+      type: "INFORMATION",
+      event_type: "SOURCE_RECORDED",
+      entity_type: "SOURCE",
+      entity_id: source.id,
+      route: "/resources/sources",
+    }, ctx.authUserId);
 
     return NextResponse.json({ data: source }, { status: 201 });
   } catch (error) {
