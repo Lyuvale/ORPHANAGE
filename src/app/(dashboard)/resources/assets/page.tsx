@@ -15,7 +15,7 @@ async function getAssets(searchParams: Record<string, string | undefined>) {
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/resources/assets?${params.toString()}`,
     { cache: "no-store" },
   );
-  if (!res.ok) return { data: [] };
+  if (!res.ok) return [];
   const json = await res.json();
   return json.data ?? [];
 }
