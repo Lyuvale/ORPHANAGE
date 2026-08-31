@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatTsh, getExpenseStatusDisplay, getBenefitTypeDisplay } from "@/types/resources";
 import ApprovalActions from "./_components/approval-actions";
+import AuditHistory from "../../../_components/audit-history";
 
 async function getExpense(id: string) {
   const res = await fetch(
@@ -123,6 +124,16 @@ export default async function ExpenseDetailPage({
       <p className="mt-4 text-xs text-gray-400">
         Only approved expenses count toward fund/source balances.
       </p>
+
+      <div className="mt-6 rounded-lg border bg-white">
+        <div className="px-4 py-4">
+          <h3 className="text-base font-semibold text-gray-900">Activity History</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Audit trail of changes made to this expense record.
+          </p>
+        </div>
+        <AuditHistory entityType="support_expense" entityId={expense.id} />
+      </div>
     </div>
   );
 }

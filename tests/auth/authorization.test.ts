@@ -307,6 +307,19 @@ describe("Role → Permission Assignments", () => {
     expect(ROLE_PERMISSIONS.ACCOUNTANT_BURSAR).toContain("reports.view");
     expect(ROLE_PERMISSIONS.ACCOUNTANT_BURSAR).toContain("reports.export");
   });
+
+  it("CENTRE_MANAGER and RECORDS_OFFICER have audit access", () => {
+    expect(ROLE_PERMISSIONS.CENTRE_MANAGER).toContain("audit.view");
+    expect(ROLE_PERMISSIONS.CENTRE_MANAGER).toContain("audit.export");
+    expect(ROLE_PERMISSIONS.RECORDS_OFFICER).toContain("audit.view");
+    expect(ROLE_PERMISSIONS.RECORDS_OFFICER).toContain("audit.export");
+  });
+
+  it("SOCIAL_WORKER / CAREGIVER / ACCOUNTANT_BURSAR do NOT have audit access by default", () => {
+    expect(ROLE_PERMISSIONS.SOCIAL_WORKER).not.toContain("audit.view");
+    expect(ROLE_PERMISSIONS.CAREGIVER).not.toContain("audit.view");
+    expect(ROLE_PERMISSIONS.ACCOUNTANT_BURSAR).not.toContain("audit.view");
+  });
 });
 
 describe("Database-backed Authorization (simulated)", () => {

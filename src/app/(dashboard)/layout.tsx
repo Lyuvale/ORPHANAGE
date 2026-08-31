@@ -54,6 +54,12 @@ export default function DashboardLayout({
                 Resources
               </Link>
               <Link
+                href="/audit"
+                className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+              >
+                Audit Trail
+              </Link>
+              <Link
                 href="/notifications"
                 className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
               >

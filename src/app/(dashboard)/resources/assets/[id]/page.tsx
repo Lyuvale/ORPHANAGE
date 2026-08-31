@@ -12,6 +12,7 @@ import {
 import AddCost from "./_components/add-cost";
 import UpdateStatus from "./_components/update-status";
 import DisposeAsset from "./_components/dispose-asset";
+import AuditHistory from "../../../_components/audit-history";
 
 async function getAsset(id: string) {
   const res = await fetch(
@@ -263,6 +264,19 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
             )}
           </ul>
         )}
+      </div>
+
+      {/* Audit trail (who), complementing the asset's own change history */}
+      <div className="mt-6 rounded-lg border bg-white">
+        <div className="px-4 py-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+            Audit Trail
+          </h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Who changed this asset, and when.
+          </p>
+        </div>
+        <AuditHistory entityType="support_asset" entityId={id} />
       </div>
     </div>
   );

@@ -102,6 +102,9 @@ export const PERMISSIONS = {
   REPORTS_VIEW: "reports.view" as const,
   REPORTS_EXPORT: "reports.export" as const,
 
+  AUDIT_VIEW: "audit.view" as const,
+  AUDIT_EXPORT: "audit.export" as const,
+
   DOCUMENTS_VIEW: "documents.view" as const,
   DOCUMENTS_UPLOAD: "documents.upload" as const,
   DOCUMENTS_DOWNLOAD: "documents.download" as const,
@@ -256,6 +259,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "cases.documents.view", "cases.documents.upload", "cases.documents.download", "cases.documents.delete",
     "finance.view", "finance.approve",
     "reports.view", "reports.export",
+    "audit.view", "audit.export",
     "documents.view", "documents.upload", "documents.download",
     "referrals.view", "referrals.create", "referrals.update", "referrals.review", "referrals.approve", "referrals.reject",
     "admissions.view", "admissions.create", "admissions.review",
@@ -385,6 +389,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "cases.view", "cases.documents.view", "cases.documents.upload", "cases.documents.download",
     "documents.view", "documents.upload", "documents.download", "documents.delete",
     "reports.view", "reports.export",
+    "audit.view", "audit.export",
     "admissions.view",
     "placements.view", "placements.create", "placements.update",
     "safeguarding.view", "safeguarding.documents.view", "safeguarding.documents.upload", "safeguarding.documents.download",

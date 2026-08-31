@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatTsh, getBenefitTypeDisplay } from "@/types/resources";
+import AuditHistory from "../../_components/audit-history";
 
 async function getChild(id: string) {
   const res = await fetch(
@@ -202,6 +203,17 @@ export default async function ChildProfilePage({
           </div>
         </div>
       )}
+
+      {/* Activity / Audit History */}
+      <div className="bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-6">
+        <div className="px-4 py-5 sm:px-6">
+          <h2 className="text-lg font-medium text-gray-900">Activity History</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Audit trail of changes made to this child&apos;s record.
+          </p>
+        </div>
+        <AuditHistory entityType="child" entityId={child.id} />
+      </div>
 
       {/* Education & Development */}
       <div className="bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-6">
