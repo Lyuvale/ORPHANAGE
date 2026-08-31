@@ -696,6 +696,17 @@ Vercel auto-detects Next.js projects. No additional configuration is needed.
 | Preview       | Supabase cloud preview project URL   | Per-PR preview env   |
 | Production    | Supabase cloud production project URL| Live environment     |
 
+## Backup & Recovery
+
+The platform is protected and recoverable at the platform level (not a user-facing module) using the managed services it runs on:
+
+- **Database** — Supabase Cloud scheduled daily backups (verified `walg_enabled: true`; PITR `false`), plus manual exports.
+- **Code & schema — GitHub repository including the full `supabase/migrations/` history.
+- **Documents** — private Supabase Storage buckets (recovered separately from the DB).
+- **Deployment** — Vercel deployment history for instant rollback.
+
+See **[`docs/backup-recovery/README.md`](docs/backup-recovery/README.md)** for the full strategy, and **[`docs/backup-recovery/runbook.md`](docs/backup-recovery/runbook.md)** for the quick-reference runbook.
+
 ## License
 
 Proprietary — All rights reserved.
