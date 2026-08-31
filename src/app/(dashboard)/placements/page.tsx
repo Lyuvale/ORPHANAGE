@@ -1,4 +1,10 @@
 import Link from "next/link";
+import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
+
+const REPORT_OPTIONS = [
+  { value: "placements", label: "Placements List" },
+  { value: "by-status", label: "Placements by Status" },
+];
 
 async function getPlacements(searchParams: Record<string, string | undefined>) {
   const params = new URLSearchParams();
@@ -49,12 +55,20 @@ export default async function PlacementsListPage({
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Placements</h1>
-        <Link
-          href="/placements/new"
-          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-        >
-          New Placement
-        </Link>
+        <div className="flex items-center gap-3">
+          <ReportExportDialog
+            apiPath="/api/reports/placements"
+            title="Report / Export"
+            options={REPORT_OPTIONS}
+            fileName="placements"
+          />
+          <Link
+            href="/placements/new"
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          >
+            New Placement
+          </Link>
+        </div>
       </div>
 
       <form className="mb-6 flex gap-3">

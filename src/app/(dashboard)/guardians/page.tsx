@@ -1,4 +1,11 @@
 import Link from "next/link";
+import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
+
+const REPORT_OPTIONS = [
+  { value: "summary", label: "Summary" },
+  { value: "guardians", label: "Guardians" },
+  { value: "relationships", label: "Relationships" },
+];
 
 async function getGuardians(searchParams: Record<string, string | undefined>) {
   const params = new URLSearchParams();
@@ -48,12 +55,20 @@ export default async function GuardiansListPage({
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Guardians</h1>
-        <Link
-          href="/guardians/new"
-          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-        >
-          Add Guardian
-        </Link>
+        <div className="flex items-center gap-3">
+          <ReportExportDialog
+            apiPath="/api/reports/guardians"
+            title="Report / Export"
+            options={REPORT_OPTIONS}
+            fileName="guardians"
+          />
+          <Link
+            href="/guardians/new"
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          >
+            Add Guardian
+          </Link>
+        </div>
       </div>
 
       <form className="mb-6 flex gap-3">

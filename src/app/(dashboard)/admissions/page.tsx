@@ -1,4 +1,11 @@
 import Link from "next/link";
+import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
+
+const REPORT_OPTIONS = [
+  { value: "admissions", label: "Admissions List" },
+  { value: "by-status", label: "Admissions by Status" },
+  { value: "summary", label: "Admissions Summary" },
+];
 
 async function getAdmissions(searchParams: Record<string, string | undefined>) {
   const params = new URLSearchParams();
@@ -48,12 +55,20 @@ export default async function AdmissionsListPage({
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Admissions</h1>
-        <Link
-          href="/admissions/new"
-          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-        >
-          New Admission
-        </Link>
+        <div className="flex items-center gap-3">
+          <ReportExportDialog
+            apiPath="/api/reports/admissions"
+            title="Report / Export"
+            options={REPORT_OPTIONS}
+            fileName="admissions"
+          />
+          <Link
+            href="/admissions/new"
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          >
+            New Admission
+          </Link>
+        </div>
       </div>
 
       <form className="mb-6 flex gap-3">

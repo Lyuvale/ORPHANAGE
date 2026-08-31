@@ -3,6 +3,16 @@
 import { useState, useEffect, useCallback } from "react";
 import type { EducationStatus } from "@/types/education";
 import { getEducationStatusDisplay } from "@/types/education";
+import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
+
+const REPORT_OPTIONS = [
+  { value: "profiles", label: "Enrolment / Profiles" },
+  { value: "goals", label: "Development Goals" },
+  { value: "progress", label: "Progress" },
+  { value: "support-needs", label: "Support Needs" },
+  { value: "achievements", label: "Achievements" },
+  { value: "summary", label: "Summary" },
+];
 
 interface ChildOption {
   id: string;
@@ -80,11 +90,20 @@ export default function EducationOverviewPage() {
 
   return (
     <div className="p-4 sm:p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Education &amp; Development</h1>
-        <p className="text-muted-foreground mt-1">
-          Track each child&apos;s education and personal development in one place
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Education &amp; Development</h1>
+          <p className="text-muted-foreground mt-1">
+            Track each child&apos;s education and personal development in one place
+          </p>
+        </div>
+        <ReportExportDialog
+          apiPath="/api/reports/education"
+          title="Report / Export"
+          description="Export education & development records for this centre."
+          options={REPORT_OPTIONS}
+          fileName="education"
+        />
       </div>
 
       {error && (

@@ -1,4 +1,13 @@
 import Link from "next/link";
+import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
+
+const REPORT_OPTIONS = [
+  { value: "by-status", label: "Children by Status" },
+  { value: "detail", label: "Children Details" },
+  { value: "by-age", label: "Children by Age Group" },
+  { value: "admissions", label: "Admission History" },
+  { value: "status-history", label: "Status History" },
+];
 
 async function getChildren(searchParams: Record<string, string | undefined>) {
   const params = new URLSearchParams();
@@ -49,12 +58,20 @@ export default async function ChildrenListPage({
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Children</h1>
-        <Link
-          href="/children/new"
-          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-        >
-          Add Child
-        </Link>
+        <div className="flex items-center gap-3">
+          <ReportExportDialog
+            apiPath="/api/reports/children"
+            title="Report / Export"
+            options={REPORT_OPTIONS}
+            fileName="children"
+          />
+          <Link
+            href="/children/new"
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          >
+            Add Child
+          </Link>
+        </div>
       </div>
 
       {/* Search and filter */}

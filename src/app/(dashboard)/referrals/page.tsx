@@ -1,4 +1,10 @@
 import Link from "next/link";
+import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
+
+const REPORT_OPTIONS = [
+  { value: "referrals", label: "Referrals List" },
+  { value: "by-status", label: "Referrals by Status" },
+];
 
 async function getReferrals(searchParams: Record<string, string | undefined>) {
   const params = new URLSearchParams();
@@ -67,12 +73,20 @@ export default async function ReferralsListPage({
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Referrals</h1>
-        <Link
-          href="/referrals/new"
-          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-        >
-          New Referral
-        </Link>
+        <div className="flex items-center gap-3">
+          <ReportExportDialog
+            apiPath="/api/reports/referrals"
+            title="Report / Export"
+            options={REPORT_OPTIONS}
+            fileName="referrals"
+          />
+          <Link
+            href="/referrals/new"
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          >
+            New Referral
+          </Link>
+        </div>
       </div>
 
       <form className="mb-6 flex gap-3">

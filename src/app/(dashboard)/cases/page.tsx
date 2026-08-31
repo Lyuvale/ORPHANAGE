@@ -3,6 +3,13 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Case, CaseStatus, CaseType, CasePriority } from "@/types/case";
 import { getCaseStatusDisplay, getCaseTypeDisplay, getCasePriorityDisplay } from "@/types/case";
+import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
+
+const REPORT_OPTIONS = [
+  { value: "summary", label: "Summary by Status" },
+  { value: "open-cases", label: "Open Cases" },
+  { value: "by-status", label: "By Status" },
+];
 
 export default function CasesPage() {
   const [cases, setCases] = useState<Case[]>([]);
@@ -53,11 +60,19 @@ export default function CasesPage() {
 
   return (
     <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Cases</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage child protection and welfare cases
-        </p>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Cases</h1>
+          <p className="text-muted-foreground mt-1">
+            Manage child protection and welfare cases
+          </p>
+        </div>
+        <ReportExportDialog
+          apiPath="/api/reports/cases"
+          title="Report / Export"
+          options={REPORT_OPTIONS}
+          fileName="cases"
+        />
       </div>
 
       {error && (

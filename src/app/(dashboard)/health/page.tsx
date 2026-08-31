@@ -1,6 +1,16 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
+
+const REPORT_OPTIONS = [
+  { value: "medical-records", label: "Medical Records" },
+  { value: "appointments", label: "Appointments" },
+  { value: "followups", label: "Follow-Ups" },
+  { value: "screenings", label: "Screenings" },
+  { value: "immunizations", label: "Immunizations" },
+  { value: "summary", label: "Summary" },
+];
 
 interface ChildOption {
   id: string;
@@ -78,11 +88,20 @@ export default function HealthOverviewPage() {
 
   return (
     <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Health & Medical Overview</h1>
-        <p className="text-muted-foreground mt-1">
-          Select a child to view their health, medication and follow-up snapshot
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Health & Medical Overview</h1>
+          <p className="text-muted-foreground mt-1">
+            Select a child to view their health, medication and follow-up snapshot
+          </p>
+        </div>
+        <ReportExportDialog
+          apiPath="/api/reports/health"
+          title="Report / Export"
+          description="Export health records for this centre."
+          options={REPORT_OPTIONS}
+          fileName="health"
+        />
       </div>
 
       {error && (

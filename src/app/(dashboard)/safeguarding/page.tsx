@@ -12,6 +12,14 @@ import {
   getSafeguardingSeverityDisplay,
   getSafeguardingConcernTypeDisplay,
 } from "@/types/safeguarding";
+import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
+
+const REPORT_OPTIONS = [
+  { value: "summary", label: "Summary" },
+  { value: "concerns", label: "Concerns" },
+  { value: "actions", label: "Actions" },
+  { value: "by-severity", label: "By Severity" },
+];
 
 export default function SafeguardingPage() {
   const [concerns, setConcerns] = useState<SafeguardingConcern[]>([]);
@@ -62,11 +70,19 @@ export default function SafeguardingPage() {
 
   return (
     <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Safeguarding</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage safeguarding concerns and escalations
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Safeguarding</h1>
+          <p className="text-muted-foreground mt-1">
+            Manage safeguarding concerns and escalations
+          </p>
+        </div>
+        <ReportExportDialog
+          apiPath="/api/reports/safeguarding"
+          title="Report / Export"
+          options={REPORT_OPTIONS}
+          fileName="safeguarding"
+        />
       </div>
 
       {error && (

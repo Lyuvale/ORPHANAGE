@@ -3,6 +3,14 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Visit, VisitStatus, VisitType } from "@/types/visit";
 import { getVisitStatusDisplay, getVisitTypeDisplay } from "@/types/visit";
+import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
+
+const REPORT_OPTIONS = [
+  { value: "summary", label: "Summary by Status" },
+  { value: "history", label: "Visit History" },
+  { value: "upcoming", label: "Upcoming Visits" },
+  { value: "by-status", label: "By Status" },
+];
 
 export default function VisitsPage() {
   const [visits, setVisits] = useState<Visit[]>([]);
@@ -53,11 +61,19 @@ export default function VisitsPage() {
 
   return (
     <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Visits & Family Contact</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage authorised visits and family contact records
-        </p>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Visits & Family Contact</h1>
+          <p className="text-muted-foreground mt-1">
+            Manage authorised visits and family contact records
+          </p>
+        </div>
+        <ReportExportDialog
+          apiPath="/api/reports/visits"
+          title="Report / Export"
+          options={REPORT_OPTIONS}
+          fileName="visits"
+        />
       </div>
 
       {error && (

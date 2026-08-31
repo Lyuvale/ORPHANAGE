@@ -1,6 +1,14 @@
 import Link from "next/link";
 import { STAFF_STATUSES, getStaffStatusDisplay } from "@/types/staff";
 import { CENTRE_ROLES } from "@/types/role";
+import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
+
+const REPORT_OPTIONS = [
+  { value: "summary", label: "Staff Summary" },
+  { value: "staff", label: "Staff List" },
+  { value: "by-role", label: "Staff by Role" },
+  { value: "assignments", label: "Staff Assignments" },
+];
 
 async function getOverview() {
   const res = await fetch(
@@ -69,12 +77,20 @@ export default async function StaffDirectoryPage({
             Workforce &amp; staff operations for the centre
           </p>
         </div>
-        <Link
-          href="/staff/new"
-          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-        >
-          Add Staff
-        </Link>
+        <div className="flex items-center gap-3">
+          <ReportExportDialog
+            apiPath="/api/reports/staff"
+            title="Report / Export"
+            options={REPORT_OPTIONS}
+            fileName="staff"
+          />
+          <Link
+            href="/staff/new"
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          >
+            Add Staff
+          </Link>
+        </div>
       </div>
 
       {/* Workforce snapshot */}
