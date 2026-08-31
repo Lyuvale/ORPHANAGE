@@ -5,12 +5,13 @@ export const metadata = {
   title: "Payment Confirmation",
 };
 
-export default function PaymentConfirmPage({
+export default async function PaymentConfirmPage({
   searchParams,
 }: {
-  searchParams: { ref?: string };
+  searchParams: Promise<{ ref?: string }>;
 }) {
-  const ref = searchParams.ref;
+  const params = await searchParams;
+  const ref = params.ref;
   if (!ref) redirect("/donate");
 
   return (
