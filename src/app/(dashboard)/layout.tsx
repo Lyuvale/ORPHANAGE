@@ -88,12 +88,20 @@ export default async function DashboardLayout({
                 Subscription
               </Link>
               {isManager && (
-                <Link
-                  href="/subscriptions"
-                  className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
-                >
-                  Subscriptions
-                </Link>
+                <>
+                  <Link
+                    href="/subscriptions"
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+                  >
+                    Subscriptions
+                  </Link>
+                  <Link
+                    href="/team"
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+                  >
+                    Team
+                  </Link>
+                </>
               )}
               {isPlatformAdmin && (
                 <Link

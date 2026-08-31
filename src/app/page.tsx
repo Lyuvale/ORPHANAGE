@@ -15,12 +15,6 @@ export default function Home() {
         >
           Sign in
         </Link>
-        <Link
-          href="/signup"
-          className="rounded-md border border-gray-300 px-6 py-2.5 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-100"
-        >
-          Create account
-        </Link>
       </div>
     </main>
   );

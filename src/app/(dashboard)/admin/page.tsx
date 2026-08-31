@@ -74,6 +74,12 @@ export default async function AdminPage() {
           Centres
         </Link>
         <Link
+          href="/admin/users"
+          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+          Create Users
+        </Link>
+        <Link
           href="/admin/payments"
           className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
         >

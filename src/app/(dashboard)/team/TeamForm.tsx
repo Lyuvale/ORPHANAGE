@@ -1,23 +1,24 @@
-"use client";
+﻿"use client";
 
 import { useActionState } from "react";
 import Link from "next/link";
-import { signUp, type SignUpState } from "@/lib/auth/auth-actions";
+import { provisionUser, type ProvisionUserState } from "@/lib/auth/auth-actions";
 import { CENTRE_ROLES } from "@/types/role";
 
-export interface SignupCentreOption {
-  id: string;
-  name: string;
+const STAFF_ROLES = CENTRE_ROLES.filter((r) => r !== "CENTRE_MANAGER");
+
+function roleLabel(role: string): string {
+  return role.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-export default function SignupForm({ centres }: { centres: SignupCentreOption[] }) {
-  const [state, formAction, pending] = useActionState<SignUpState | null, FormData>(
-    signUp,
+export default function TeamForm() {
+  const [state, formAction, pending] = useActionState<ProvisionUserState | null, FormData>(
+    provisionUser,
     null,
   );
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} className="max-w-md space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
@@ -56,7 +57,7 @@ export default function SignupForm({ centres }: { centres: SignupCentreOption[] 
           autoComplete="email"
           required
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
-          placeholder="you@example.com"
+          placeholder="staff@example.com"
         />
       </div>
 
@@ -77,25 +78,6 @@ export default function SignupForm({ centres }: { centres: SignupCentreOption[] 
       </div>
 
       <div>
-        <label htmlFor="centreId" className="block text-sm font-medium text-gray-700">
-          Centre
-        </label>
-        <select
-          id="centreId"
-          name="centreId"
-          required
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
-        >
-          <option value="">Select a centre…</option>
-          {centres.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
         <label htmlFor="role" className="block text-sm font-medium text-gray-700">
           Role
         </label>
@@ -106,14 +88,14 @@ export default function SignupForm({ centres }: { centres: SignupCentreOption[] 
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
         >
           <option value="">Select a role…</option>
-          {CENTRE_ROLES.map((r) => (
+          {STAFF_ROLES.map((r) => (
             <option key={r} value={r}>
-              {r.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())}
+              {roleLabel(r)}
             </option>
           ))}
         </select>
         <p className="mt-1 text-xs text-gray-500">
-          Platform administrator accounts are granted by an existing administrator.
+          Centre manager accounts are created by the platform administrator.
         </p>
       </div>
 
@@ -123,7 +105,7 @@ export default function SignupForm({ centres }: { centres: SignupCentreOption[] 
         </p>
       ) : state && state.ok ? (
         <p className="text-sm text-green-600" role="status">
-          Account created. Please sign in with your new credentials.
+          Account created. The user can now sign in.
         </p>
       ) : null}
 
@@ -136,9 +118,9 @@ export default function SignupForm({ centres }: { centres: SignupCentreOption[] 
       </button>
 
       <p className="text-sm text-center text-gray-600">
-        Already have an account?{" "}
-        <Link href="/login" className="text-blue-600 hover:text-blue-800">
-          Sign in
+        Back to{" "}
+        <Link href="/children" className="text-blue-600 hover:text-blue-800">
+          dashboard
         </Link>
       </p>
     </form>
