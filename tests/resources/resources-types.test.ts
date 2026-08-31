@@ -27,7 +27,14 @@ const ts = new Date().toISOString();
 describe("Resources & Support Types", () => {
   describe("enums", () => {
     it("defines source types", () => {
-      expect(SUPPORT_SOURCE_TYPES).toEqual(["DONATION", "SPONSORSHIP", "GRANT", "OTHER"]);
+      expect(SUPPORT_SOURCE_TYPES).toEqual([
+        "DONATION",
+        "SPONSORSHIP",
+        "GRANT",
+        "CONTRIBUTION",
+        "RESOURCE",
+        "OTHER",
+      ]);
     });
 
     it("defines expense statuses (PENDING default, only APPROVED counts toward balances)", () => {
@@ -58,6 +65,8 @@ describe("Resources & Support Types", () => {
       expect(getSourceTypeDisplay("DONATION")).toBe("Donation");
       expect(getSourceTypeDisplay("SPONSORSHIP")).toBe("Sponsorship");
       expect(getSourceTypeDisplay("GRANT")).toBe("Grant");
+      expect(getSourceTypeDisplay("CONTRIBUTION")).toBe("Contribution");
+      expect(getSourceTypeDisplay("RESOURCE")).toBe("Resource");
       expect(getSourceTypeDisplay("OTHER")).toBe("Other");
     });
 
@@ -108,6 +117,7 @@ describe("Resources & Support Types", () => {
         source_date: "2026-01-10",
         purpose: "General support",
         notes: null,
+        status: "RECEIVED",
         created_by: "u1",
         created_at: ts,
         updated_at: ts,

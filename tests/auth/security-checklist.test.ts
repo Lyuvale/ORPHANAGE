@@ -20,6 +20,20 @@ import { sanitizeForAudit, SENSITIVE_FIELDS, AUDIT_ACTIONS } from "@/types/audit
  */
 const API_ROOT = join(process.cwd(), "src", "app", "api");
 
+/**
+ * Routes that are INTENTIONALLY public (no auth) and therefore excluded from
+ * the `requireAppAccess` / `requirePermission` invariant:
+ *  - Public donation/contribution landing + initiation,
+ *  - Public payment-provider webhook (secured by server-side signature
+ *    verification + idempotent confirmation, NOT by app auth).
+ * These are the ONLY routes allowed to skip auth guards.
+ */
+const PUBLIC_ROUTES = [/\/api\/public\//];
+
+function isPublicRoute(rel: string): boolean {
+  return PUBLIC_ROUTES.some((re) => re.test(rel));
+}
+
 function listRouteFiles(dir: string): string[] {
   const out: string[] = [];
   for (const entry of readdirSync(dir)) {
@@ -92,14 +106,16 @@ describe("Security checklist — API route protection (no backend route is open)
     const open = routeFiles.filter(
       (f) => !readFileSync(f, "utf8").includes("requireAppAccess"),
     );
-    expect(open).toEqual([]);
+    const nonPublic = open.filter((f) => !isPublicRoute(f.replace(/\\/g, "/")));
+    expect(nonPublic).toEqual([]);
   });
 
   it("every API route calls requirePermission (authorization / RBAC)", () => {
     const open = routeFiles.filter(
       (f) => !readFileSync(f, "utf8").includes("requirePermission"),
     );
-    expect(open).toEqual([]);
+    const nonPublic = open.filter((f) => !isPublicRoute(f.replace(/\\/g, "/")));
+    expect(nonPublic).toEqual([]);
   });
 
   it("centres platform-management routes (mutations) additionally require CENTRE_MANAGER", () => {

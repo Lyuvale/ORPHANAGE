@@ -24,9 +24,20 @@ export const SUPPORT_SOURCE_TYPES = [
   "DONATION",
   "SPONSORSHIP",
   "GRANT",
+  "CONTRIBUTION",
+  "RESOURCE",
   "OTHER",
 ] as const;
 export type SupportSourceType = (typeof SUPPORT_SOURCE_TYPES)[number];
+
+export const SUPPORT_SOURCE_STATUSES = [
+  "PENDING",
+  "RECEIVED",
+  "FAILED",
+  "CANCELLED",
+  "REFUNDED",
+] as const;
+export type SupportSourceStatus = (typeof SUPPORT_SOURCE_STATUSES)[number];
 
 export const SUPPORT_EXPENSE_STATUSES = [
   "PENDING",
@@ -123,6 +134,7 @@ export interface SupportSource {
   source_date: string | null;
   purpose: string | null;
   notes: string | null;
+  status: SupportSourceStatus;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -459,6 +471,8 @@ export function getSourceTypeDisplay(t: SupportSourceType): string {
     DONATION: "Donation",
     SPONSORSHIP: "Sponsorship",
     GRANT: "Grant",
+    CONTRIBUTION: "Contribution",
+    RESOURCE: "Resource",
     OTHER: "Other",
   };
   return map[t];

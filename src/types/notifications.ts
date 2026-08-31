@@ -49,6 +49,10 @@ export const NOTIFICATION_EVENTS = [
   "SUBSCRIPTION_ACTIVATED",
   "SUBSCRIPTION_SUSPENDED",
   "SUBSCRIPTION_TRIAL_EXPIRING",
+  "PAYMENT_RECEIVED",
+  "CONTRIBUTION_RECEIVED",
+  "PAYMENT_FAILED",
+  "PLATFORM_ALERT",
 ] as const;
 export type NotificationEvent = (typeof NOTIFICATION_EVENTS)[number];
 
@@ -66,6 +70,9 @@ export const NOTIFICATION_ENTITIES = [
   "ACCOUNT",
   "CENTRE",
   "SUBSCRIPTION",
+  "PAYMENT",
+  "CONTRIBUTION",
+  "PLATFORM",
 ] as const;
 export type NotificationEntity = (typeof NOTIFICATION_ENTITIES)[number];
 
@@ -84,6 +91,8 @@ export const OPTIONAL_NOTIFICATION_EVENTS: NotificationEvent[] = [
   "ASSET_DAMAGED",
   "SUBSCRIPTION_EXPIRING",
   "SUBSCRIPTION_TRIAL_EXPIRING",
+  "PAYMENT_RECEIVED",
+  "CONTRIBUTION_RECEIVED",
 ];
 
 /** CRITICAL events are ALWAYS delivered and cannot be disabled by preferences. */
@@ -97,6 +106,8 @@ export const CRITICAL_NOTIFICATION_EVENTS: NotificationEvent[] = [
   "SUBSCRIPTION_EXPIRED",
   "SUBSCRIPTION_ACTIVATED",
   "SUBSCRIPTION_SUSPENDED",
+  "PAYMENT_FAILED",
+  "PLATFORM_ALERT",
 ];
 
 export function isCriticalEvent(event: NotificationEvent | null | undefined): boolean {
@@ -176,6 +187,9 @@ export function getNotificationEntityDisplay(e: NotificationEntity | null | unde
     ACCOUNT: "Account",
     CENTRE: "Centre",
     SUBSCRIPTION: "Subscription",
+    PAYMENT: "Payment",
+    CONTRIBUTION: "Contribution",
+    PLATFORM: "Platform",
   };
   return map[e];
 }

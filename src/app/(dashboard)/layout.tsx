@@ -12,13 +12,16 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   let isManager = false;
+  let isPlatformAdmin = false;
   try {
     const supabase = (await createClient()) as never;
     const ctx = await requireAppAccess(supabase, { allowInactiveSubscription: true });
     const role = await getUserRoleName(supabase, ctx as unknown as AppUserContext);
     isManager = role === "CENTRE_MANAGER";
+    isPlatformAdmin = role === "PLATFORM_ADMINISTRATOR";
   } catch {
     isManager = false;
+    isPlatformAdmin = false;
   }
 
   return (
@@ -84,6 +87,14 @@ export default async function DashboardLayout({
                   className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
                 >
                   Subscriptions
+                </Link>
+              )}
+              {isPlatformAdmin && (
+                <Link
+                  href="/admin"
+                  className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+                >
+                  Platform Admin
                 </Link>
               )}
               <Link

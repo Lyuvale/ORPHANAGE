@@ -8,9 +8,21 @@ export const CENTRE_ROLES = [
 
 export type CentreRole = (typeof CENTRE_ROLES)[number];
 
+/**
+ * The PLATFORM_ADMINISTRATOR is a platform-level role, NOT a normal Centre
+ * user role. It deliberately lives OUTSIDE `CENTRE_ROLES` so ordinary centre
+ * role handling never grants platform access. A user holding this role is
+ * additionally assigned within a centre context (the existing user_roles
+ * model) but carries `platform.*` permissions that only this role owns.
+ */
+export const PLATFORM_ROLES = ["PLATFORM_ADMINISTRATOR"] as const;
+export type PlatformRole = (typeof PLATFORM_ROLES)[number];
+
+export type RoleName = CentreRole | PlatformRole;
+
 export interface Role {
   id: string;
-  name: CentreRole;
+  name: RoleName;
   description: string | null;
   is_system: boolean;
   created_at: string;
@@ -111,6 +123,15 @@ export const PERMISSIONS = {
   SUBSCRIPTIONS_VIEW: "subscriptions.view" as const,
   SUBSCRIPTIONS_MANAGE: "subscriptions.manage" as const,
   SUBSCRIPTIONS_VIEW_OWN: "subscriptions.view_own" as const,
+
+  PLATFORM_VIEW: "platform.view" as const,
+  PLATFORM_CENTRES: "platform.centres" as const,
+  PLATFORM_SUBSCRIPTIONS: "platform.subscriptions" as const,
+  PLATFORM_PAYMENTS: "platform.payments" as const,
+  PLATFORM_SETTINGS: "platform.settings" as const,
+  ONLINE_CONTRIBUTIONS_MANAGE: "online_contributions.manage" as const,
+  PAYMENTS_VIEW: "payments.view" as const,
+  PAYMENTS_REFUND: "payments.refund" as const,
 
   DOCUMENTS_VIEW: "documents.view" as const,
   DOCUMENTS_UPLOAD: "documents.upload" as const,
@@ -323,6 +344,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "resources.assets.dispose",
     "notifications.view",
     "notifications.manage",
+    "payments.view",
   ],
   SOCIAL_WORKER: [
     "children.view", "children.create", "children.update", "children.status.update",
@@ -457,5 +479,36 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "resources.assets.dispose",
     "notifications.view",
     "subscriptions.view_own",
+    "payments.view",
+  ],
+};
+
+/**
+ * PLATFORM_ADMINISTRATOR role → permission defaults (application reference).
+ * This role is NOT a centre role; its `platform.*` permissions are withheld
+ * from every CENTRE_ROLE by default (deny-by-default for platform access).
+ */
+export const PLATFORM_ROLE_PERMISSIONS: Record<
+  PlatformRole,
+  readonly PermissionString[]
+> = {
+  PLATFORM_ADMINISTRATOR: [
+    "platform.view",
+    "platform.centres",
+    "platform.subscriptions",
+    "platform.payments",
+    "platform.settings",
+    "online_contributions.manage",
+    "payments.view",
+    "payments.refund",
+    "subscriptions.view",
+    "subscriptions.manage",
+    "subscriptions.view_own",
+    "centres.view",
+    "centres.manage",
+    "audit.view",
+    "audit.export",
+    "reports.view",
+    "reports.export",
   ],
 };
