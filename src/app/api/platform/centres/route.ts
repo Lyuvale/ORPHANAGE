@@ -22,7 +22,7 @@ export async function GET() {
     const admin = createAdminClient();
     const { data, error } = await admin
       .from("centres")
-      .select("id, name, code, is_active, created_at")
+      .select("id, name, code, status, created_at")
       .order("created_at", { ascending: true });
 
     if (error) {
@@ -54,10 +54,11 @@ export async function PATCH(request: NextRequest) {
     }
 
     const admin = createAdminClient();
+    const targetStatus = body.is_active ? "active" : "deactivated";
 
     const { data: existing } = await admin
       .from("centres")
-      .select("id, name, is_active")
+      .select("id, name, status")
       .eq("id", body.centre_id)
       .maybeSingle();
     if (!existing) {
@@ -66,7 +67,7 @@ export async function PATCH(request: NextRequest) {
 
     const { data, error } = await admin
       .from("centres")
-      .update({ is_active: body.is_active })
+      .update({ status: targetStatus })
       .eq("id", body.centre_id)
       .select()
       .single();
@@ -79,8 +80,8 @@ export async function PATCH(request: NextRequest) {
       action: "CENTRE_STATUS_CHANGED",
       entity_type: "centre",
       entity_id: body.centre_id,
-      previous_values: { is_active: existing.is_active },
-      new_values: { is_active: body.is_active },
+      previous_values: { status: existing.status },
+      new_values: { status: targetStatus },
     });
 
     return NextResponse.json({ data });

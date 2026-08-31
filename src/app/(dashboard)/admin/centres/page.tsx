@@ -9,7 +9,7 @@ interface CentreRecord {
   id: string;
   name: string;
   code: string | null;
-  is_active: boolean;
+  status: string;
   created_at: string;
 }
 
@@ -91,19 +91,19 @@ export default async function AdminCentresPage() {
                   <td className="px-4 py-2">
                     <span
                       className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                        c.is_active
+                        c.status === "active"
                           ? "bg-green-100 text-green-700"
                           : "bg-gray-100 text-gray-600"
                       }`}
                     >
-                      {c.is_active ? "Active" : "Deactivated"}
+                      {c.status === "active" ? "Active" : "Deactivated"}
                     </span>
                   </td>
                   <td className="px-4 py-2 text-xs text-gray-500">
                     {new Date(c.created_at).toLocaleDateString("en-GB")}
                   </td>
                   <td className="px-4 py-2">
-                    <CentreToggle centreId={c.id} isActive={c.is_active} />
+                    <CentreToggle centreId={c.id} isActive={c.status === "active"} />
                   </td>
                 </tr>
               ))}

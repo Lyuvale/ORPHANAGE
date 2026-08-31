@@ -43,7 +43,7 @@ export async function GET() {
     const { data: centres, error: centreError } = await admin
       .from("centres")
       .select("id, name, code")
-      .eq("is_active", true)
+      .eq("status", "active")
       .in("id", centreIds);
 
     if (centreError) {

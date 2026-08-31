@@ -27,7 +27,7 @@ export async function GET() {
     const [centreRes, activeCentreRes, subRes, activeSubRes, payRes, contribRes] =
       await Promise.all([
         admin.from("centres").select("id", { count: "exact", head: true }),
-        admin.from("centres").select("id", { count: "exact", head: true }).eq("is_active", true),
+        admin.from("centres").select("id", { count: "exact", head: true }).eq("status", "active"),
         admin
           .from("subscriptions")
           .select("id", { count: "exact", head: true }),

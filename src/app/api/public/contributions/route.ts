@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       .from("centres")
       .select("id, name")
       .eq("id", body.centre_id)
-      .eq("is_active", true)
+      .eq("status", "active")
       .maybeSingle();
     if (!centre) {
       return NextResponse.json({ error: "V_INVALID: Centre not found or inactive" }, { status: 400 });
