@@ -27,12 +27,17 @@ describe("Notifications Types", () => {
       ]);
     });
 
-    it("defines seventeen notification events", () => {
-      expect(NOTIFICATION_EVENTS).toHaveLength(17);
+    it("defines twenty-two notification events", () => {
+      expect(NOTIFICATION_EVENTS).toHaveLength(22);
       expect(NOTIFICATION_EVENTS).toContain("SAFEGUARDING_CONCERN");
       expect(NOTIFICATION_EVENTS).toContain("EXPENSE_AWAITING_APPROVAL");
       expect(NOTIFICATION_EVENTS).toContain("FUND_BALANCE_ALERT");
       expect(NOTIFICATION_EVENTS).toContain("CHILD_ADMITTED");
+      expect(NOTIFICATION_EVENTS).toContain("SUBSCRIPTION_EXPIRING");
+      expect(NOTIFICATION_EVENTS).toContain("SUBSCRIPTION_EXPIRED");
+      expect(NOTIFICATION_EVENTS).toContain("SUBSCRIPTION_ACTIVATED");
+      expect(NOTIFICATION_EVENTS).toContain("SUBSCRIPTION_SUSPENDED");
+      expect(NOTIFICATION_EVENTS).toContain("SUBSCRIPTION_TRIAL_EXPIRING");
     });
 
     it("defines notification entities", () => {

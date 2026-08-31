@@ -1,12 +1,21 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { UserProfile } from "@/types/user-profile";
 import type { Centre } from "@/types/centre";
+import type {
+  SubscriptionWithPlan,
+  PlanFeatureKey,
+} from "@/types/subscription";
+import { loadSubscriptionForContext } from "@/lib/subscriptions/subscription-access.service";
 
 /**
  * Full server-side user context.
  *
  * Contains everything a module needs to know about the current
  * authenticated user, their profile, and their centre.
+ *
+ * ACCESS CHAIN:
+ *   USER AUTHENTICATED -> USER ACTIVE -> CENTRE ACTIVE -> SUBSCRIPTION VALID
+ *     -> PLAN ALLOWS FEATURE -> USER ROLE/PERMISSION ALLOWS ACTION -> ALLOW
  *
  * Future modules should use this context instead of looking up
  * tenant/user information independently.
@@ -22,6 +31,12 @@ export interface AppUserContext {
   isUserActive: boolean;
   /** Whether the user's centre is active. */
   isCentreActive: boolean;
+  /** The centre's current subscription (with plan + features), if any. */
+  subscription: SubscriptionWithPlan | null;
+  /** Whether the centre's subscription is currently valid (service access). */
+  isSubscriptionValid: boolean;
+  /** Feature keys enabled by the centre's current plan (centre-level access). */
+  enabledPlanFeatures: Set<PlanFeatureKey>;
   /** Whether the user can access normal application services. */
   canAccess: boolean;
 }
@@ -102,10 +117,18 @@ export async function getAppUserContext(
     );
   }
 
-  // 4. Determine access status
+  // 4. Load the centre's subscription (subscription = what the centre can use).
+  //    Read via the session client -> RLS scopes to the user's own centre only.
+  const subCtx = await loadSubscriptionForContext(
+    supabase as never,
+    profile.centre_id,
+  );
+
+  // 5. Determine access status
   const isUserActive = profile.status === "active";
   const isCentreActive = centre.status === "active";
-  const canAccess = isUserActive && isCentreActive;
+  const isSubscriptionValid = subCtx.isSubscriptionValid;
+  const canAccess = isUserActive && isCentreActive && isSubscriptionValid;
 
   return {
     authUserId: user.id,
@@ -113,6 +136,9 @@ export async function getAppUserContext(
     centre: centre as Centre,
     isUserActive,
     isCentreActive,
+    subscription: subCtx.subscription,
+    isSubscriptionValid,
+    enabledPlanFeatures: subCtx.enabledFeatures,
     canAccess,
   };
 }
@@ -121,32 +147,48 @@ export async function getAppUserContext(
  * Get the application user context and enforce access.
  *
  * Same as getAppUserContext(), but throws if the user cannot access
- * normal application services (user inactive OR centre inactive).
+ * normal application services.
+ *
+ * ACCESS GATE:
+ *   - user inactive                          -> USER_DEACTIVATED
+ *   - centre inactive (suspended/deactivated)-> CENTRE_NOT_ACTIVE
+ *   - centre subscription invalid (inactive /
+ *     expired / suspended / cancelled / lapsed trial) -> SUBSCRIPTION_INACTIVE
  *
  * Use this for any request that requires normal application access.
  *
  * @param supabase - A Supabase client with the user's session.
- * @returns The full AppUserContext (guaranteed to have canAccess = true).
+ * @param opts.allowInactiveSubscription - when true, an invalid subscription is
+ *   tolerated so that subscription-related routes (e.g. the "my subscription"
+ *   page, restricted-access messaging, and platform administration) can still
+ *   run. Defaults to false (normal routes enforce the subscription gate).
+ * @returns The full AppUserContext (guaranteed to have canAccess = true when
+ *   allowInactiveSubscription is false; otherwise user+centre access is enforced).
  * @throws AuthError if the user cannot access normal services.
  */
 export async function requireAppAccess(
   supabase: SupabaseClient,
+  opts: { allowInactiveSubscription?: boolean } = {},
 ): Promise<AppUserContext> {
   const ctx = await getAppUserContext(supabase);
 
-  if (!ctx.canAccess) {
-    if (!ctx.isUserActive) {
-      throw new AuthError(
-        "Access denied: your account has been deactivated.",
-        "USER_DEACTIVATED",
-      );
-    }
-    if (!ctx.isCentreActive) {
-      throw new AuthError(
-        `Access denied: your centre (${ctx.centre.name}) is currently ${ctx.centre.status}.`,
-        "CENTRE_NOT_ACTIVE",
-      );
-    }
+  if (!ctx.isUserActive) {
+    throw new AuthError(
+      "Access denied: your account has been deactivated.",
+      "USER_DEACTIVATED",
+    );
+  }
+  if (!ctx.isCentreActive) {
+    throw new AuthError(
+      `Access denied: your centre (${ctx.centre.name}) is currently ${ctx.centre.status}.`,
+      "CENTRE_NOT_ACTIVE",
+    );
+  }
+  if (!ctx.isSubscriptionValid && !opts.allowInactiveSubscription) {
+    throw new AuthError(
+      "Access denied: your centre's subscription is currently inactive. Please contact the platform administrator.",
+      "SUBSCRIPTION_INACTIVE",
+    );
   }
 
   return ctx;

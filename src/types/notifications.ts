@@ -44,6 +44,11 @@ export const NOTIFICATION_EVENTS = [
   "ASSET_DAMAGED",
   "ACCOUNT_ACTION",
   "CENTRE_STATUS_CHANGED",
+  "SUBSCRIPTION_EXPIRING",
+  "SUBSCRIPTION_EXPIRED",
+  "SUBSCRIPTION_ACTIVATED",
+  "SUBSCRIPTION_SUSPENDED",
+  "SUBSCRIPTION_TRIAL_EXPIRING",
 ] as const;
 export type NotificationEvent = (typeof NOTIFICATION_EVENTS)[number];
 
@@ -60,6 +65,7 @@ export const NOTIFICATION_ENTITIES = [
   "ASSET",
   "ACCOUNT",
   "CENTRE",
+  "SUBSCRIPTION",
 ] as const;
 export type NotificationEntity = (typeof NOTIFICATION_ENTITIES)[number];
 
@@ -76,6 +82,8 @@ export const OPTIONAL_NOTIFICATION_EVENTS: NotificationEvent[] = [
   "EXPENSE_REJECTED",
   "ASSET_MAINTENANCE",
   "ASSET_DAMAGED",
+  "SUBSCRIPTION_EXPIRING",
+  "SUBSCRIPTION_TRIAL_EXPIRING",
 ];
 
 /** CRITICAL events are ALWAYS delivered and cannot be disabled by preferences. */
@@ -86,6 +94,9 @@ export const CRITICAL_NOTIFICATION_EVENTS: NotificationEvent[] = [
   "FUND_BALANCE_ALERT",
   "ACCOUNT_ACTION",
   "CENTRE_STATUS_CHANGED",
+  "SUBSCRIPTION_EXPIRED",
+  "SUBSCRIPTION_ACTIVATED",
+  "SUBSCRIPTION_SUSPENDED",
 ];
 
 export function isCriticalEvent(event: NotificationEvent | null | undefined): boolean {
@@ -164,6 +175,7 @@ export function getNotificationEntityDisplay(e: NotificationEntity | null | unde
     ASSET: "Asset",
     ACCOUNT: "Account",
     CENTRE: "Centre",
+    SUBSCRIPTION: "Subscription",
   };
   return map[e];
 }

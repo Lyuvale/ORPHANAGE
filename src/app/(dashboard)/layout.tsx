@@ -1,13 +1,26 @@
 import Link from "next/link";
 import NotificationBell from "./_components/notification-bell";
+import { createClient } from "@/lib/supabase/server";
+import { requireAppAccess, type AppUserContext } from "@/lib/auth/app-user-context";
+import { getUserRoleName } from "@/lib/auth/authorization.service";
 
 export const dynamic = "force-dynamic";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  let isManager = false;
+  try {
+    const supabase = (await createClient()) as never;
+    const ctx = await requireAppAccess(supabase, { allowInactiveSubscription: true });
+    const role = await getUserRoleName(supabase, ctx as unknown as AppUserContext);
+    isManager = role === "CENTRE_MANAGER";
+  } catch {
+    isManager = false;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
@@ -59,6 +72,20 @@ export default function DashboardLayout({
               >
                 Audit Trail
               </Link>
+              <Link
+                href="/subscription"
+                className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+              >
+                Subscription
+              </Link>
+              {isManager && (
+                <Link
+                  href="/subscriptions"
+                  className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+                >
+                  Subscriptions
+                </Link>
+              )}
               <Link
                 href="/notifications"
                 className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"

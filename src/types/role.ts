@@ -108,6 +108,10 @@ export const PERMISSIONS = {
   CENTRES_VIEW: "centres.view" as const,
   CENTRES_MANAGE: "centres.manage" as const,
 
+  SUBSCRIPTIONS_VIEW: "subscriptions.view" as const,
+  SUBSCRIPTIONS_MANAGE: "subscriptions.manage" as const,
+  SUBSCRIPTIONS_VIEW_OWN: "subscriptions.view_own" as const,
+
   DOCUMENTS_VIEW: "documents.view" as const,
   DOCUMENTS_UPLOAD: "documents.upload" as const,
   DOCUMENTS_DOWNLOAD: "documents.download" as const,
@@ -255,6 +259,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
   CENTRE_MANAGER: [
     "children.view", "children.create", "children.update", "children.status.update", "children.archive",
     "centres.view", "centres.manage",
+    "subscriptions.view", "subscriptions.manage", "subscriptions.view_own",
     "cases.view", "cases.create", "cases.update", "cases.status.update", "cases.close",
     "cases.assessments.view", "cases.assessments.create", "cases.assessments.update",
     "cases.plans.view", "cases.plans.create", "cases.plans.update", "cases.plans.approve",
@@ -367,6 +372,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "resources.view",
     "resources.assets.view",
     "notifications.view",
+    "subscriptions.view_own",
   ],
   CAREGIVER: [
     "children.view",
@@ -387,6 +393,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "education_development.progress.manage",
     "staff.view",
     "notifications.view",
+    "subscriptions.view_own",
   ],
   RECORDS_OFFICER: [
     "children.view", "children.create", "children.update", "children.status.update", "children.archive",
@@ -428,6 +435,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "resources.view",
     "resources.assets.view",
     "notifications.view",
+    "subscriptions.view_own",
   ],
   ACCOUNTANT_BURSAR: [
     "finance.view", "finance.create", "finance.approve",
@@ -448,5 +456,6 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "resources.assets.status",
     "resources.assets.dispose",
     "notifications.view",
+    "subscriptions.view_own",
   ],
 };
