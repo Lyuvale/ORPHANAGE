@@ -45,3 +45,5 @@ Thumbs.db
 
 .vercel
 .env*
+
+.vercel-env-pull

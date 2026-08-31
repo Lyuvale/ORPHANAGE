@@ -1,8 +1,11 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import NotificationBell from "./_components/notification-bell";
+import SignOutButton from "./_components/sign-out-button";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppAccess, type AppUserContext } from "@/lib/auth/app-user-context";
 import { getUserRoleName } from "@/lib/auth/authorization.service";
+import { AuthError } from "@/lib/auth/app-user-context";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +22,10 @@ export default async function DashboardLayout({
     const role = await getUserRoleName(supabase, ctx as unknown as AppUserContext);
     isManager = role === "CENTRE_MANAGER";
     isPlatformAdmin = role === "PLATFORM_ADMINISTRATOR";
-  } catch {
+  } catch (err) {
+    if (err instanceof AuthError && err.code === "NOT_AUTHENTICATED") {
+      redirect("/login");
+    }
     isManager = false;
     isPlatformAdmin = false;
   }
@@ -104,6 +110,7 @@ export default async function DashboardLayout({
                 Notifications
               </Link>
               <NotificationBell />
+              <SignOutButton />
             </nav>
           </div>
         </div>
