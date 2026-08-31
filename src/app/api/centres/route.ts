@@ -1,5 +1,14 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAppAccess } from "@/lib/auth/app-user-context";
+import {
+  requirePermission,
+  getUserRoleName,
+} from "@/lib/auth/authorization.service";
+import { auditCreate } from "@/lib/audit/audit.service";
 import {
   listCentres,
   createCentre,
@@ -11,8 +20,34 @@ import {
 } from "@/lib/centres/centre.validation";
 import type { CreateCentreInput, CentreStatus } from "@/types/centre";
 
+function statusFromError(message: string): number {
+  if (message.includes("NOT_AUTHENTICATED")) return 401;
+  if (message.includes("PERMISSION_DENIED")) return 403;
+  if (message.includes("USER_DEACTIVATED") || message.includes("CENTRE_NOT_ACTIVE")) return 403;
+  return 500;
+}
+
+/**
+ * Centre management is a platform-level operation.
+ * All handlers require an authenticated, active user of an active centre.
+ * Mutations (create / update / deactivate) additionally require the
+ * CENTRE_MANAGER role so ordinary staff cannot modify platform structure.
+ */
+async function requireCentreManager(
+  supabase: SupabaseClient,
+  ctx: Awaited<ReturnType<typeof requireAppAccess>>,
+): Promise<void> {
+  const roleName = await getUserRoleName(supabase, ctx);
+  if (roleName !== "CENTRE_MANAGER") {
+    throw new Error("[PERMISSION_DENIED] Centre management requires the CENTRE_MANAGER role.");
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
+    const supabase = await createClient();
+    await requireAppAccess(supabase as unknown as SupabaseClient);
+
     const { searchParams } = new URL(request.url);
 
     const statusParam = searchParams.get("status");
@@ -34,12 +69,17 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: statusFromError(message) });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as unknown as SupabaseClient);
+    await requirePermission(supabase as unknown as SupabaseClient, ctx, "centres.manage");
+    await requireCentreManager(supabase as unknown as SupabaseClient, ctx);
+
     const body = await request.json();
     const cleaned = cleanCentreInput(body);
 
@@ -73,11 +113,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const adminSupabase = createAdminClient();
     const centre = await createCentre(input);
+
+    await auditCreate(adminSupabase, ctx, "centre", centre.id, {
+      name: centre.name,
+      code: centre.code,
+      status: centre.status,
+      country: centre.country,
+    });
 
     return NextResponse.json({ data: centre }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: statusFromError(message) });
   }
 }

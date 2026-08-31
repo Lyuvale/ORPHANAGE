@@ -105,6 +105,9 @@ export const PERMISSIONS = {
   AUDIT_VIEW: "audit.view" as const,
   AUDIT_EXPORT: "audit.export" as const,
 
+  CENTRES_VIEW: "centres.view" as const,
+  CENTRES_MANAGE: "centres.manage" as const,
+
   DOCUMENTS_VIEW: "documents.view" as const,
   DOCUMENTS_UPLOAD: "documents.upload" as const,
   DOCUMENTS_DOWNLOAD: "documents.download" as const,
@@ -251,6 +254,7 @@ export const ALL_PERMISSIONS: PermissionString[] = Object.values(PERMISSIONS);
 export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> = {
   CENTRE_MANAGER: [
     "children.view", "children.create", "children.update", "children.status.update", "children.archive",
+    "centres.view", "centres.manage",
     "cases.view", "cases.create", "cases.update", "cases.status.update", "cases.close",
     "cases.assessments.view", "cases.assessments.create", "cases.assessments.update",
     "cases.plans.view", "cases.plans.create", "cases.plans.update", "cases.plans.approve",
