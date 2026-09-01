@@ -1,55 +1,46 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
-import { getUserRoleName, can } from "@/lib/auth/authorization.service";
-import { serverFetch } from "@/lib/server-fetch";
+import { getUserRoleName } from "@/lib/auth/authorization.service";
 
-// Platform Administration — PLATFORM_ADMINISTRATOR ONLY.
-// This is NOT a normal Centre user role.
-
-interface DashboardData {
-  centres: number;
-  active_centres: number;
-  subscriptions: number;
-  active_subscriptions: number;
-  payments: number;
-  total_contributions_amount: number;
-  alerts: { id: string; severity: string; title: string; message: string | null }[];
-}
-
-async function loadDashboard(): Promise<DashboardData | null> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  try {
-    const res = await serverFetch(`${baseUrl}/api/platform/dashboard`, { cache: "no-store" });
-    if (!res.ok) return null;
-    return (await res.json()).data as DashboardData;
-  } catch {
-    return null;
-  }
-}
+export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  const supabase = await createClient();
-  const ctx = await requireAppAccess(supabase as never, {
-    allowInactiveSubscription: true,
-  });
+  const supabase = (await createClient()) as never;
+  let ctx;
+  try {
+    ctx = await requireAppAccess(supabase, { allowInactiveSubscription: true });
+  } catch {
+    redirect("/login");
+  }
 
-  const roleName = await getUserRoleName(supabase as never, ctx);
-  const canView = await can(supabase as never, ctx, "platform.view");
-
-  if (roleName !== "PLATFORM_ADMINISTRATOR" || !canView) {
+  const roleName = await getUserRoleName(supabase, ctx);
+  if (roleName !== "PLATFORM_ADMINISTRATOR") {
     redirect("/children");
   }
 
-  const dashboard = await loadDashboard();
+  // Direct query — no internal fetch, no RLS issues
+  const admin = createAdminClient();
+
+  const [centreRes, activeCentreRes, subRes, activeSubRes] = await Promise.all([
+    admin.from("centres").select("id", { count: "exact", head: true }),
+    admin.from("centres").select("id", { count: "exact", head: true }).eq("status", "active"),
+    admin.from("subscriptions").select("id", { count: "exact", head: true }),
+    admin.from("subscriptions").select("id", { count: "exact", head: true }).eq("status", "active"),
+  ]);
+
+  const { count: paymentCount } = await admin
+    .from("payment_transactions")
+    .select("id", { count: "exact", head: true });
 
   const stats = [
-    { label: "Centres", value: dashboard?.centres ?? 0 },
-    { label: "Active Centres", value: dashboard?.active_centres ?? 0 },
-    { label: "Subscriptions", value: dashboard?.subscriptions ?? 0 },
-    { label: "Active Subscriptions", value: dashboard?.active_subscriptions ?? 0 },
-    { label: "Payments", value: dashboard?.payments ?? 0 },
+    { label: "Centres", value: centreRes.count ?? 0 },
+    { label: "Active Centres", value: activeCentreRes.count ?? 0 },
+    { label: "Subscriptions", value: subRes.count ?? 0 },
+    { label: "Active Subscriptions", value: activeSubRes.count ?? 0 },
+    { label: "Payments", value: paymentCount ?? 0 },
   ];
 
   return (
@@ -61,101 +52,14 @@ export default async function AdminPage() {
         </span>
       </div>
 
-      <nav className="flex flex-wrap gap-2">
-        <Link
-          href="/admin"
-          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white"
-        >
-          Overview
-        </Link>
-        <Link
-          href="/admin/centres"
-          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          Centres
-        </Link>
-        <Link
-          href="/admin/users"
-          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          Create Users
-        </Link>
-        <Link
-          href="/admin/payments"
-          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          Payments
-        </Link>
-        <Link
-          href="/admin/subscriptions"
-          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          Subscriptions
-        </Link>
-        <Link
-          href="/admin/settings"
-          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          Settings
-        </Link>
-      </nav>
-
-      {!dashboard ? (
-        <p className="text-sm text-gray-500">
-          Platform statistics are unavailable right now.
-        </p>
-      ) : (
-        <>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-            {stats.map((s) => (
-              <div key={s.label} className="rounded-lg bg-white p-5 shadow-sm border">
-                <p className="text-sm text-gray-500">{s.label}</p>
-                <p className="mt-1 text-2xl font-semibold text-gray-900">{s.value}</p>
-              </div>
-            ))}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        {stats.map((s) => (
+          <div key={s.label} className="rounded-lg bg-white p-5 shadow-sm border">
+            <p className="text-sm text-gray-500">{s.label}</p>
+            <p className="mt-1 text-2xl font-semibold text-gray-900">{s.value}</p>
           </div>
-
-          <div className="rounded-lg bg-white p-5 shadow-sm border">
-            <p className="text-sm font-medium text-gray-900">
-              Confirmed contributions (KES)
-            </p>
-            <p className="mt-1 text-2xl font-semibold text-gray-900">
-              {Number(dashboard.total_contributions_amount || 0).toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </p>
-          </div>
-
-          <div className="rounded-lg bg-white p-5 shadow-sm border">
-            <h2 className="text-sm font-medium text-gray-900 mb-3">Open platform alerts</h2>
-            {dashboard.alerts.length === 0 ? (
-              <p className="text-sm text-gray-500">No open alerts.</p>
-            ) : (
-              <ul className="divide-y">
-                {dashboard.alerts.map((a) => (
-                  <li key={a.id} className="py-2 text-sm">
-                    <span
-                      className={
-                        a.severity === "CRITICAL"
-                          ? "text-red-600 font-medium"
-                          : a.severity === "WARNING"
-                            ? "text-amber-600 font-medium"
-                            : "text-gray-700"
-                      }
-                    >
-                      {a.title}
-                    </span>
-                    {a.message ? (
-                      <span className="text-gray-500"> — {a.message}</span>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </>
-      )}
+        ))}
+      </div>
     </div>
   );
 }

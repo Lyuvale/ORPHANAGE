@@ -4,28 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-interface ProfileRow {
-  id: string;
-}
-
-interface UserRoleRow {
-  role: { name: string } | null;
-}
-
-interface SingleRowQuery<T> {
-  maybeSingle(): Promise<{ data: T | null }>;
-  single(): Promise<{ data: T }>;
-  eq(column: string, value: string): this;
-}
-
-interface LooseClient {
-  from<T>(table: string): {
-    select(columns: string): SingleRowQuery<T>;
-  };
-}
-
-const looseClient = (client: unknown) => client as LooseClient;
-
 export default function LoginForm() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -61,28 +39,24 @@ export default function LoginForm() {
         return;
       }
 
-      // Resolve the user's active role to route them to the right landing page.
-      let roleName: string | null = null;
-      const client = looseClient(supabase);
-      const { data: profile } = await client
-        .from<ProfileRow>("user_profiles")
-        .select("id")
-        .eq("auth_user_id", user.id)
-        .single();
-
-      if (profile) {
-        const { data: userRole } = await client
-          .from<UserRoleRow>("user_roles")
-          .select("role:roles(name)")
-          .eq("user_id", profile.id)
-          .eq("status", "active")
-          .maybeSingle();
-        roleName = userRole?.role?.name ?? null;
+      // Detect role via API (bypasses client RLS)
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const json = await res.json();
+          const roleName = json.role;
+          const landing =
+            roleName === "PLATFORM_ADMINISTRATOR" ? "/admin" : "/centres";
+          router.push(landing);
+          router.refresh();
+          return;
+        }
+      } catch {
+        // fallback
       }
 
-      const landing =
-        roleName === "PLATFORM_ADMINISTRATOR" ? "/admin" : "/centres";
-      router.push(landing);
+      // Default redirect if role detection fails
+      router.push("/centres");
       router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");
