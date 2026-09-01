@@ -94,14 +94,20 @@ export async function getUserAuthorization(
   supabase: SupabaseClient,
   ctx: AppUserContext,
 ): Promise<UserAuthorization | null> {
-  // 1. Get the user's active role assignment in this centre
-  const { data: userRole, error: urError } = await supabase
+  // Platform admin placeholder centre: look up role without centre filter
+  const isPlaceholderCentre = ctx.centre.id === "00000000-0000-0000-0000-000000000000";
+
+  let query = supabase
     .from("user_roles")
     .select("*, role:roles(*)")
     .eq("user_id", ctx.profile.id)
-    .eq("centre_id", ctx.centre.id)
-    .eq("status", "active")
-    .single();
+    .eq("status", "active");
+
+  if (!isPlaceholderCentre) {
+    query = query.eq("centre_id", ctx.centre.id);
+  }
+
+  const { data: userRole, error: urError } = await query.limit(1).maybeSingle();
 
   if (urError || !userRole) return null;
 
