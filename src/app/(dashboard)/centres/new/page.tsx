@@ -32,18 +32,35 @@ async function createCentre(formData: FormData) {
 
   if (error) {
     if (error.code === "23505") {
-      throw new Error("A centre with that code already exists.");
+      redirect("/centres/new?error=code_exists");
     }
-    throw new Error(error.message || "Failed to create centre.");
+    redirect("/centres/new?error=unknown");
   }
 
   redirect("/centres");
 }
 
-export default function NewCentrePage() {
+export default async function NewCentrePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const params = await searchParams;
+  const error = params.error === "code_exists"
+    ? "A centre with that code already exists. Please use a different code."
+    : params.error
+      ? "Something went wrong. Please try again."
+      : null;
+
   return (
     <div className="max-w-2xl">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Register New Centre</h2>
+
+      {error && (
+        <div className="mb-4 rounded-md bg-red-50 border border-red-200 p-4">
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
 
       <form action={createCentre} className="space-y-6 bg-white p-6 rounded-lg border">
         <div>
