@@ -40,6 +40,17 @@ export async function POST(
       );
     }
 
+    // ── Separation of duties: creator cannot approve own expense ──
+    if (
+      existing.created_by === ctx.authUserId &&
+      parsed.data.status === "APPROVED"
+    ) {
+      return NextResponse.json(
+        { error: "You cannot approve your own expense. A different authoriser is required." },
+        { status: 403 },
+      );
+    }
+
     const updated = await setExpenseApproval(adminSupabase, id, parsed.data.status, ctx.authUserId);
 
     await auditUpdate(

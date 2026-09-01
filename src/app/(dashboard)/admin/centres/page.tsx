@@ -45,7 +45,15 @@ export default async function AdminCentresPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold text-gray-900">Platform Centres</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold text-gray-900">Platform Centres</h1>
+        <Link
+          href="/admin/centres/new"
+          className="rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+        >
+          Create Centre
+        </Link>
+      </div>
       <nav className="flex flex-wrap gap-2">
         <Link
           href="/admin"
