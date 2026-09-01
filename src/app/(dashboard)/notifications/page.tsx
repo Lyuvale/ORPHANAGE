@@ -17,39 +17,45 @@ import NotificationPreferences from "./_components/notification-preferences";
 export const dynamic = "force-dynamic";
 
 export default async function NotificationsPage() {
-  const supabase = await createClient();
-  const ctx = await requireAppAccess(supabase as unknown as SupabaseClient);
-  const role = await getUserRoleName(supabase as unknown as SupabaseClient, ctx);
-  const isAdmin = role === "PLATFORM_ADMINISTRATOR";
-
-  if (isAdmin) {
-    await requirePermission(supabase as unknown as SupabaseClient, ctx, "audit.view");
-  } else {
-    await requirePermission(supabase as unknown as SupabaseClient, ctx, "notifications.view");
-  }
-
-  const adminSupabase = createAdminClient();
-
   let notifications: Awaited<ReturnType<typeof listNotifications>> = [];
-  if (isAdmin) {
-    // Platform admin sees all notifications across all centres
-    const { data, error } = await adminSupabase
-      .from("notifications")
-      .select("*")
-      .eq("recipient_user_id", ctx.profile.id)
-      .order("created_at", { ascending: false })
-      .limit(100);
-    notifications = (data ?? []) as Awaited<ReturnType<typeof listNotifications>>;
-  } else {
-    notifications = await listNotifications(
-      adminSupabase,
-      ctx.profile.id,
-      ctx.centre.id,
-      { limit: 100 },
-    );
-  }
+  let unreadCount = 0;
 
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
+  try {
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as unknown as SupabaseClient, { allowInactiveSubscription: true });
+    const role = await getUserRoleName(supabase as unknown as SupabaseClient, ctx);
+    const isAdmin = role === "PLATFORM_ADMINISTRATOR";
+
+    if (isAdmin) {
+      await requirePermission(supabase as unknown as SupabaseClient, ctx, "audit.view");
+    } else {
+      await requirePermission(supabase as unknown as SupabaseClient, ctx, "notifications.view");
+    }
+
+    const adminSupabase = createAdminClient();
+
+    if (isAdmin) {
+      const { data } = await adminSupabase
+        .from("notifications")
+        .select("*")
+        .eq("recipient_user_id", ctx.profile.id)
+        .order("created_at", { ascending: false })
+        .limit(100);
+      notifications = (data ?? []) as Awaited<ReturnType<typeof listNotifications>>;
+    } else {
+      notifications = await listNotifications(
+        adminSupabase,
+        ctx.profile.id,
+        ctx.centre.id,
+        { limit: 100 },
+      );
+    }
+
+    unreadCount = notifications.filter((n) => !n.is_read).length;
+  } catch {
+    notifications = [];
+    unreadCount = 0;
+  }
 
   return (
     <div>
@@ -98,7 +104,7 @@ export default async function NotificationsPage() {
                       </span>
                     )}
                   </div>
-                  <p className={`mt-1 text-sm font-semibold text-gray-900 ${n.is_read ? "" : ""}`}>{n.title}</p>
+                  <p className="mt-1 text-sm font-semibold text-gray-900">{n.title}</p>
                   <p className="mt-0.5 text-sm text-gray-600">{n.message}</p>
                   <div className="mt-1.5 flex items-center gap-3">
                     <span className="text-xs text-gray-400">{formatNotificationTime(n.created_at)}</span>
