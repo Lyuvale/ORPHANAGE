@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
-import { requirePermission } from "@/lib/auth/authorization.service";
+import { requirePermission, getUserRoleName } from "@/lib/auth/authorization.service";
 import { listNotifications } from "@/lib/notifications/notifications.service";
 import {
   getNotificationTypeDisplay,
@@ -19,15 +19,35 @@ export const dynamic = "force-dynamic";
 export default async function NotificationsPage() {
   const supabase = await createClient();
   const ctx = await requireAppAccess(supabase as unknown as SupabaseClient);
-  await requirePermission(supabase as unknown as SupabaseClient, ctx, "notifications.view");
+  const role = await getUserRoleName(supabase as unknown as SupabaseClient, ctx);
+  const isAdmin = role === "PLATFORM_ADMINISTRATOR";
+
+  if (isAdmin) {
+    await requirePermission(supabase as unknown as SupabaseClient, ctx, "audit.view");
+  } else {
+    await requirePermission(supabase as unknown as SupabaseClient, ctx, "notifications.view");
+  }
 
   const adminSupabase = createAdminClient();
-  const notifications = await listNotifications(
-    adminSupabase,
-    ctx.profile.id,
-    ctx.centre.id,
-    { limit: 100 },
-  );
+
+  let notifications: Awaited<ReturnType<typeof listNotifications>> = [];
+  if (isAdmin) {
+    // Platform admin sees all notifications across all centres
+    const { data, error } = await adminSupabase
+      .from("notifications")
+      .select("*")
+      .eq("recipient_user_id", ctx.profile.id)
+      .order("created_at", { ascending: false })
+      .limit(100);
+    notifications = (data ?? []) as Awaited<ReturnType<typeof listNotifications>>;
+  } else {
+    notifications = await listNotifications(
+      adminSupabase,
+      ctx.profile.id,
+      ctx.centre.id,
+      { limit: 100 },
+    );
+  }
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 

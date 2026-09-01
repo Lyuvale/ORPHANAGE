@@ -3,37 +3,50 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
-import { requirePermission } from "@/lib/auth/authorization.service";
+import { requirePermission, getUserRoleName } from "@/lib/auth/authorization.service";
 import { listPreferences, setPreference } from "@/lib/notifications/notifications.service";
 import { setPreferenceSchema } from "@/lib/notifications/notifications.validation";
-import { statusFromError } from "@/lib/resources/route-helpers";
 
 // ─── GET /api/notifications/preferences ─────────────────────
-// List the CURRENT user's notification preferences.
 
 export async function GET() {
   try {
     const supabase = await createClient();
     const ctx = await requireAppAccess(supabase as unknown as SupabaseClient);
-    await requirePermission(supabase as unknown as SupabaseClient, ctx, "notifications.view");
+    const role = await getUserRoleName(supabase as unknown as SupabaseClient, ctx);
+    const isAdmin = role === "PLATFORM_ADMINISTRATOR";
+
+    if (isAdmin) {
+      await requirePermission(supabase as unknown as SupabaseClient, ctx, "audit.view");
+    } else {
+      await requirePermission(supabase as unknown as SupabaseClient, ctx, "notifications.view");
+    }
 
     const adminSupabase = createAdminClient();
     const data = await listPreferences(adminSupabase, ctx.profile.id);
     return NextResponse.json({ data });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: statusFromError(message) });
+    const status = message.includes("NOT_AUTHENTICATED") ? 401
+      : message.includes("PERMISSION_DENIED") ? 403 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }
 
 // ─── PATCH /api/notifications/preferences ────────────────────
-// Enable/disable delivery of an optional event for the CURRENT user.
 
 export async function PATCH(request: NextRequest) {
   try {
     const supabase = await createClient();
     const ctx = await requireAppAccess(supabase as unknown as SupabaseClient);
-    await requirePermission(supabase as unknown as SupabaseClient, ctx, "notifications.view");
+    const role = await getUserRoleName(supabase as unknown as SupabaseClient, ctx);
+    const isAdmin = role === "PLATFORM_ADMINISTRATOR";
+
+    if (isAdmin) {
+      await requirePermission(supabase as unknown as SupabaseClient, ctx, "audit.view");
+    } else {
+      await requirePermission(supabase as unknown as SupabaseClient, ctx, "notifications.view");
+    }
 
     const body = await request.json();
     const parsed = setPreferenceSchema.safeParse(body);
@@ -51,6 +64,8 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ data });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: statusFromError(message) });
+    const status = message.includes("NOT_AUTHENTICATED") ? 401
+      : message.includes("PERMISSION_DENIED") ? 403 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }

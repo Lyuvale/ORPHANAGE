@@ -510,5 +510,7 @@ export const PLATFORM_ROLE_PERMISSIONS: Record<
     "audit.export",
     "reports.view",
     "reports.export",
+    "notifications.view",
+    "notifications.manage",
   ],
 };
