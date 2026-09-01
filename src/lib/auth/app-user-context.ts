@@ -92,8 +92,8 @@ export async function getAppUserContext(
     ?.role?.name;
   const isPlatformAdmin = roleName === "PLATFORM_ADMINISTRATOR";
 
-  // Platform admin may not have a centre — use placeholder
-  if (isPlatformAdmin && !profile.centre_id) {
+  // Platform admin always gets placeholder centre — they operate across all centres
+  if (isPlatformAdmin) {
     return {
       authUserId: user.id,
       profile: profile as UserProfile,
