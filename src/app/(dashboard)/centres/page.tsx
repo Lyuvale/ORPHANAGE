@@ -1,14 +1,18 @@
 import Link from "next/link";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 async function getCentres() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  const res = await fetch(`${baseUrl}/api/centres`, { cache: "no-store" });
+  const admin = createAdminClient();
+  const { data, error, count } = await admin
+    .from("centres")
+    .select("id, name, code, city, status, created_at", { count: "exact" })
+    .order("created_at", { ascending: true });
 
-  if (!res.ok) {
+  if (error) {
     return { data: [], count: 0 };
   }
 
-  return res.json();
+  return { data: data ?? [], count: count ?? 0 };
 }
 
 export default async function CentresPage() {
