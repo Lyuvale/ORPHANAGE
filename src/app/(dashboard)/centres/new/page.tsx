@@ -1,30 +1,40 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 async function createCentre(formData: FormData) {
   "use server";
 
-  const body = {
-    name: formData.get("name") as string,
-    code: formData.get("code") as string,
-    contact_email: formData.get("contact_email") as string,
-    contact_phone: formData.get("contact_phone") as string,
-    address_line1: formData.get("address_line1") as string,
-    city: formData.get("city") as string,
-    state: formData.get("state") as string,
-    country: formData.get("country") as string,
-  };
+  const name = (formData.get("name") as string)?.trim();
+  const code = (formData.get("code") as string)?.trim();
+  const contact_email = (formData.get("contact_email") as string)?.trim() || null;
+  const contact_phone = (formData.get("contact_phone") as string)?.trim() || null;
+  const address_line1 = (formData.get("address_line1") as string)?.trim() || null;
+  const city = (formData.get("city") as string)?.trim() || null;
+  const state = (formData.get("state") as string)?.trim() || null;
+  const country = (formData.get("country") as string)?.trim() || null;
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  const res = await fetch(`${baseUrl}/api/centres`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+  if (!name || !code) {
+    throw new Error("Centre name and code are required.");
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin.from("centres").insert({
+    name,
+    code,
+    contact_email,
+    contact_phone,
+    address_line1,
+    city,
+    state,
+    country,
   });
 
-  if (!res.ok) {
-    const error = await res.json();
-    throw new Error(error.error || "Failed to create centre");
+  if (error) {
+    if (error.code === "23505") {
+      throw new Error("A centre with that code already exists.");
+    }
+    throw new Error(error.message || "Failed to create centre.");
   }
 
   redirect("/centres");
