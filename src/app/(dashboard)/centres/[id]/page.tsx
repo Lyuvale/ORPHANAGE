@@ -1,14 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 async function getCentre(id: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  const res = await fetch(`${baseUrl}/api/centres/${id}`, { cache: "no-store" });
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("centres")
+    .select("*")
+    .eq("id", id)
+    .single();
 
-  if (!res.ok) return null;
-
-  const json = await res.json();
-  return json.data;
+  if (error || !data) return null;
+  return data;
 }
 
 export default async function CentreDetailPage({

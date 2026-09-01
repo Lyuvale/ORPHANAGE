@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { getUserRoleName, can } from "@/lib/auth/authorization.service";
 import CentreToggle from "./CentreToggle";
@@ -14,11 +15,14 @@ interface CentreRecord {
 }
 
 async function loadCentres(): Promise<CentreRecord[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   try {
-    const res = await fetch(`${baseUrl}/api/platform/centres`, { cache: "no-store" });
-    if (!res.ok) return [];
-    return (await res.json()).data ?? [];
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("centres")
+      .select("id, name, code, status, created_at")
+      .order("created_at", { ascending: true });
+    if (error) return [];
+    return (data ?? []) as CentreRecord[];
   } catch {
     return [];
   }
