@@ -104,12 +104,26 @@ export default async function DashboardLayout({
                 </>
               )}
               {isPlatformAdmin && (
-                <Link
-                  href="/admin"
-                  className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
-                >
-                  Platform Admin
-                </Link>
+                <>
+                  <Link
+                    href="/admin"
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+                  >
+                    Platform Admin
+                  </Link>
+                  <Link
+                    href="/admin/users"
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+                  >
+                    Create Manager
+                  </Link>
+                  <Link
+                    href="/admin/subscriptions"
+                    className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+                  >
+                    Subscriptions
+                  </Link>
+                </>
               )}
               <Link
                 href="/notifications"
