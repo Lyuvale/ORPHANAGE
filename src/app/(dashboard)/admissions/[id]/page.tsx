@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { serverFetch } from "@/lib/server-fetch";
 
 async function getAdmission(id: string) {
-  const res = await fetch(
+  const res = await serverFetch(
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/admissions/${id}`,
     { cache: "no-store" },
   );

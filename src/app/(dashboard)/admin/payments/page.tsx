@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { getUserRoleName, can } from "@/lib/auth/authorization.service";
+import { serverFetch } from "@/lib/server-fetch";
 
 interface PaymentRecord {
   id: string;
@@ -21,7 +22,7 @@ interface PaymentRecord {
 async function loadPayments(): Promise<PaymentRecord[]> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   try {
-    const res = await fetch(`${baseUrl}/api/platform/payments`, { cache: "no-store" });
+    const res = await serverFetch(`${baseUrl}/api/platform/payments`, { cache: "no-store" });
     if (!res.ok) return [];
     return (await res.json()).data ?? [];
   } catch {

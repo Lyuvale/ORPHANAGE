@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { formatTsh } from "@/types/resources";
+import { serverFetch } from "@/lib/server-fetch";
 
 async function getFunds(searchParams: Record<string, string | undefined>) {
   const params = new URLSearchParams();
   if (searchParams.source_id) params.set("source_id", searchParams.source_id);
-  const res = await fetch(
+  const res = await serverFetch(
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/resources/funds?${params.toString()}`,
     { cache: "no-store" },
   );

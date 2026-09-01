@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSourceTypeDisplay, formatTsh } from "@/types/resources";
+import { serverFetch } from "@/lib/server-fetch";
 
 async function getSource(id: string) {
-  const res = await fetch(
+  const res = await serverFetch(
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/resources/sources/${id}`,
     { cache: "no-store" },
   );

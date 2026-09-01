@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { getUserRoleName, can } from "@/lib/auth/authorization.service";
 import SettingsClient from "./SettingsClient";
+import { serverFetch } from "@/lib/server-fetch";
 
 interface SettingsData {
   settings: { key: string; value: unknown }[];
@@ -17,7 +18,7 @@ interface SettingsData {
 async function loadSettings(): Promise<SettingsData | null> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   try {
-    const res = await fetch(`${baseUrl}/api/platform/settings`, { cache: "no-store" });
+    const res = await serverFetch(`${baseUrl}/api/platform/settings`, { cache: "no-store" });
     if (!res.ok) return null;
     return (await res.json()).data as SettingsData;
   } catch {

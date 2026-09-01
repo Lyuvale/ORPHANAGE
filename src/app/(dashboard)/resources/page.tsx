@@ -4,9 +4,10 @@ import {
   getSourceTypeDisplay,
   getBenefitTypeDisplay,
 } from "@/types/resources";
+import { serverFetch } from "@/lib/server-fetch";
 
 async function getOverview() {
-  const res = await fetch(
+  const res = await serverFetch(
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/resources/overview`,
     { cache: "no-store" },
   );

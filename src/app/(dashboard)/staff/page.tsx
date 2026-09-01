@@ -2,6 +2,7 @@ import Link from "next/link";
 import { STAFF_STATUSES, getStaffStatusDisplay } from "@/types/staff";
 import { CENTRE_ROLES } from "@/types/role";
 import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
+import { serverFetch } from "@/lib/server-fetch";
 
 const REPORT_OPTIONS = [
   { value: "summary", label: "Staff Summary" },
@@ -11,7 +12,7 @@ const REPORT_OPTIONS = [
 ];
 
 async function getOverview() {
-  const res = await fetch(
+  const res = await serverFetch(
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/staff/overview`,
     { cache: "no-store" },
   );
@@ -27,7 +28,7 @@ async function getStaff(searchParams: Record<string, string | undefined>) {
   if (searchParams.operational_role) params.set("operational_role", searchParams.operational_role);
   if (searchParams.department) params.set("department", searchParams.department);
 
-  const res = await fetch(
+  const res = await serverFetch(
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/staff?${params.toString()}`,
     { cache: "no-store" },
   );

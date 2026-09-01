@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { formatTsh, getExpenseStatusDisplay } from "@/types/resources";
+import { serverFetch } from "@/lib/server-fetch";
 
 async function getExpenses(searchParams: Record<string, string | undefined>) {
   const params = new URLSearchParams();
   if (searchParams.fund_id) params.set("fund_id", searchParams.fund_id);
   if (searchParams.status) params.set("status", searchParams.status);
-  const res = await fetch(
+  const res = await serverFetch(
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/resources/expenses?${params.toString()}`,
     { cache: "no-store" },
   );

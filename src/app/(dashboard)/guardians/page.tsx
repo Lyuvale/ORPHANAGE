@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
+import { serverFetch } from "@/lib/server-fetch";
 
 const REPORT_OPTIONS = [
   { value: "summary", label: "Summary" },
@@ -14,7 +15,7 @@ async function getGuardians(searchParams: Record<string, string | undefined>) {
   if (searchParams.limit) params.set("limit", searchParams.limit);
   if (searchParams.offset) params.set("offset", searchParams.offset);
 
-  const res = await fetch(
+  const res = await serverFetch(
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/guardians?${params.toString()}`,
     { cache: "no-store" },
   );

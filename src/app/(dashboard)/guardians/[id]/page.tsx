@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { serverFetch } from "@/lib/server-fetch";
 
 async function getGuardian(id: string) {
-  const res = await fetch(
+  const res = await serverFetch(
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/guardians/${id}`,
     { cache: "no-store" },
   );
@@ -15,7 +16,7 @@ async function getGuardian(id: string) {
 }
 
 async function getGuardianRelationships(guardianId: string) {
-  const res = await fetch(
+  const res = await serverFetch(
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/guardians/relationships?guardian_id=${guardianId}`,
     { cache: "no-store" },
   );

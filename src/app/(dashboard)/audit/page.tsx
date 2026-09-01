@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ALL_AUDIT_ACTIONS } from "@/types/audit";
+import { serverFetch } from "@/lib/server-fetch";
 
 const ENTITY_LABELS: Record<string, string> = {
   child: "Child",
@@ -82,7 +83,7 @@ async function getAudit(
   if (searchParams.limit) params.set("limit", searchParams.limit);
   if (searchParams.offset) params.set("offset", searchParams.offset);
 
-  const res = await fetch(
+  const res = await serverFetch(
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/audit?${params.toString()}`,
     { cache: "no-store" },
   );

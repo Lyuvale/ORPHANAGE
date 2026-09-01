@@ -26,6 +26,7 @@ const PROTECTED_PATH_PREFIXES = [
   "/subscription",
   "/subscriptions",
   "/admin",
+  "/team",
 ];
 
 function isProtected(pathname: string): boolean {

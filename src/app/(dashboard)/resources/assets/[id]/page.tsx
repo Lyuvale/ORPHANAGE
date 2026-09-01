@@ -13,9 +13,10 @@ import AddCost from "./_components/add-cost";
 import UpdateStatus from "./_components/update-status";
 import DisposeAsset from "./_components/dispose-asset";
 import AuditHistory from "../../../_components/audit-history";
+import { serverFetch } from "@/lib/server-fetch";
 
 async function getAsset(id: string) {
-  const res = await fetch(
+  const res = await serverFetch(
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/resources/assets/${id}`,
     { cache: "no-store" },
   );

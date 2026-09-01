@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { getUserRoleName, can } from "@/lib/auth/authorization.service";
+import { serverFetch } from "@/lib/server-fetch";
 
 // Platform Administration — PLATFORM_ADMINISTRATOR ONLY.
 // This is NOT a normal Centre user role.
@@ -20,7 +21,7 @@ interface DashboardData {
 async function loadDashboard(): Promise<DashboardData | null> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   try {
-    const res = await fetch(`${baseUrl}/api/platform/dashboard`, { cache: "no-store" });
+    const res = await serverFetch(`${baseUrl}/api/platform/dashboard`, { cache: "no-store" });
     if (!res.ok) return null;
     return (await res.json()).data as DashboardData;
   } catch {

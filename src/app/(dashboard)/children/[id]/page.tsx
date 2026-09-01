@@ -2,9 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatTsh, getBenefitTypeDisplay } from "@/types/resources";
 import AuditHistory from "../../_components/audit-history";
+import { serverFetch } from "@/lib/server-fetch";
 
 async function getChild(id: string) {
-  const res = await fetch(
+  const res = await serverFetch(
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/children/${id}`,
     { cache: "no-store" },
   );
@@ -14,7 +15,7 @@ async function getChild(id: string) {
 }
 
 async function getChildBenefits(childId: string) {
-  const res = await fetch(
+  const res = await serverFetch(
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/resources/children/${childId}/benefits`,
     { cache: "no-store" },
   );

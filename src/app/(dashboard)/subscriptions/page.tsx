@@ -5,6 +5,7 @@ import { can, getUserRoleName } from "@/lib/auth/authorization.service";
 import SubscriptionAdminClient, {
   type SubscriptionAdminData,
 } from "./SubscriptionAdminClient";
+import { serverFetch } from "@/lib/server-fetch";
 
 // Platform Administration for subscriptions and plans.
 // Only CENTRE_MANAGER with subscriptions.manage may use this area.
@@ -17,19 +18,19 @@ async function loadAdminData() {
   let centres: SubscriptionAdminData["centres"] = [];
 
   try {
-    const sRes = await fetch(`${baseUrl}/api/subscriptions`, { cache: "no-store" });
+    const sRes = await serverFetch(`${baseUrl}/api/subscriptions`, { cache: "no-store" });
     if (sRes.ok) subscriptions = (await sRes.json()).data ?? [];
   } catch {
     /* ignore */
   }
   try {
-    const pRes = await fetch(`${baseUrl}/api/plans?include_inactive=true`, { cache: "no-store" });
+    const pRes = await serverFetch(`${baseUrl}/api/plans?include_inactive=true`, { cache: "no-store" });
     if (pRes.ok) plans = (await pRes.json()).data ?? [];
   } catch {
     /* ignore */
   }
   try {
-    const cRes = await fetch(`${baseUrl}/api/centres`, { cache: "no-store" });
+    const cRes = await serverFetch(`${baseUrl}/api/centres`, { cache: "no-store" });
     if (cRes.ok) centres = (await cRes.json()).data ?? [];
   } catch {
     /* ignore */

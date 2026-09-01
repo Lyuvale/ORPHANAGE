@@ -4,11 +4,12 @@ import {
   getSubscriptionStatusBadge,
   formatPlanDate,
 } from "@/types/subscription";
+import { serverFetch } from "@/lib/server-fetch";
 
 async function getMySubscription() {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   try {
-    const res = await fetch(`${baseUrl}/api/subscriptions/mine`, { cache: "no-store" });
+    const res = await serverFetch(`${baseUrl}/api/subscriptions/mine`, { cache: "no-store" });
     if (!res.ok) return null;
     const json = await res.json();
     return json.data ?? null;

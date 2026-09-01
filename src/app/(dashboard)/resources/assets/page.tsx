@@ -6,12 +6,13 @@ import {
   getAssetLocationDisplay,
   formatTsh,
 } from "@/types/resources";
+import { serverFetch } from "@/lib/server-fetch";
 
 async function getAssets(searchParams: Record<string, string | undefined>) {
   const params = new URLSearchParams();
   if (searchParams.category) params.set("category", searchParams.category);
   if (searchParams.status) params.set("status", searchParams.status);
-  const res = await fetch(
+  const res = await serverFetch(
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/resources/assets?${params.toString()}`,
     { cache: "no-store" },
   );
