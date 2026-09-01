@@ -19,6 +19,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AppUserContext } from "@/lib/auth/app-user-context";
 import { AuthError } from "@/lib/auth/app-user-context";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type {
   Role,
   UserRole,
@@ -94,10 +95,11 @@ export async function getUserAuthorization(
   supabase: SupabaseClient,
   ctx: AppUserContext,
 ): Promise<UserAuthorization | null> {
-  // Platform admin placeholder centre: look up role without centre filter
+  // Platform admin placeholder centre: use admin client (RLS blocks session client)
   const isPlaceholderCentre = ctx.centre.id === "00000000-0000-0000-0000-000000000000";
+  const client = isPlaceholderCentre ? createAdminClient() : supabase;
 
-  let query = supabase
+  let query = client
     .from("user_roles")
     .select("*, role:roles(*)")
     .eq("user_id", ctx.profile.id)

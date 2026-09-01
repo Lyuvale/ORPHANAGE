@@ -6,6 +6,7 @@ import type {
   PlanFeatureKey,
 } from "@/types/subscription";
 import { loadSubscriptionForContext } from "@/lib/subscriptions/subscription-access.service";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
  * Full server-side user context.
@@ -78,8 +79,9 @@ export async function getAppUserContext(
     );
   }
 
-  // Check role for platform admin
-  const { data: roleData } = await supabase
+  // Check role for platform admin (use admin client — RLS blocks session client when centre_id is NULL)
+  const adminClient = createAdminClient();
+  const { data: roleData } = await adminClient
     .from("user_roles")
     .select("roles(name)")
     .eq("user_profile_id", profile.id)
