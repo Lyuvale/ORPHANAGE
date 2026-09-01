@@ -83,13 +83,13 @@ export async function getAppUserContext(
   const adminClient = createAdminClient();
   const { data: roleData } = await adminClient
     .from("user_roles")
-    .select("roles(name)")
-    .eq("user_profile_id", profile.id)
+    .select("role:roles(name)")
+    .eq("user_id", profile.id)
     .limit(1)
     .maybeSingle();
 
-  const roleName = (roleData as { roles: { name: string } | null } | null)
-    ?.roles?.name;
+  const roleName = (roleData as { role: { name: string } | null } | null)
+    ?.role?.name;
   const isPlatformAdmin = roleName === "PLATFORM_ADMINISTRATOR";
 
   // Platform admin may not have a centre — use placeholder
