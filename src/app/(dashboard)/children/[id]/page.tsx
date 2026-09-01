@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { formatTsh, getBenefitTypeDisplay } from "@/types/resources";
 import AuditHistory from "../../_components/audit-history";
 import { serverFetch } from "@/lib/server-fetch";
+import CaregiverAssignment from "./_components/caregiver-assignment";
 
 async function getChild(id: string) {
   const res = await serverFetch(
@@ -352,35 +353,10 @@ export default async function ChildProfilePage({
         </div>
       </div>
 
-      {/* Future Modules Placeholder */}
-      <div className="bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-        <div className="px-4 py-5 sm:px-6">
-          <h2 className="text-lg font-medium text-gray-900">Modules</h2>
-          <p className="mt-1 text-sm text-gray-500">
-            The following modules will be available in future updates:
-          </p>
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {[
-              "Referral",
-              "Placement",
-              "Family/Guardian",
-              "Case Management",
-              "Safeguarding",
-              "Visits",
-              "Daily Care",
-              "Health",
-              "Documents",
-            ].map((module) => (
-              <div
-                key={module}
-                className="rounded-md border border-dashed border-gray-300 px-3 py-2 text-center text-sm text-gray-500"
-              >
-                {module}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* Caregiver Assignment */}
+      <CaregiverAssignment childId={child.id} currentUserId={""} />
+
+      {/* Benefits */}
     </div>
   );
 }

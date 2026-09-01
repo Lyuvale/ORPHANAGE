@@ -87,6 +87,12 @@ export default async function AdminPage() {
           Payments
         </Link>
         <Link
+          href="/admin/subscriptions"
+          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+          Subscriptions
+        </Link>
+        <Link
           href="/admin/settings"
           className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
         >

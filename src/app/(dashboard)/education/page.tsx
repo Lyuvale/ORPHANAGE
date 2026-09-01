@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { EducationStatus } from "@/types/education";
 import { getEducationStatusDisplay } from "@/types/education";
 import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
+import EducationAttendanceWidget from "./_components/education-attendance-widget";
 
 const REPORT_OPTIONS = [
   { value: "profiles", label: "Enrolment / Profiles" },
@@ -267,6 +268,18 @@ export default function EducationOverviewPage() {
       ) : (
         <div className="py-8 text-center text-muted-foreground">
           Select a child to see their education &amp; development overview
+        </div>
+      )}
+      {selectedChild && (
+        <div className="mt-6">
+          <EducationAttendanceWidget childId={selectedChild} mode="child" />
+        </div>
+      )}
+
+      {/* All-children attendance view when no child selected */}
+      {!selectedChild && (
+        <div className="mt-6">
+          <EducationAttendanceWidget mode="list" />
         </div>
       )}
     </div>
