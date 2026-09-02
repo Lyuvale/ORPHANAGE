@@ -6,6 +6,7 @@ import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { getUserRoleName } from "@/lib/auth/authorization.service";
 import CentreEditForm from "./CentreEditForm";
 import CentreActions from "./CentreActions";
+import CentreSubscriptionManager from "./CentreSubscriptionManager";
 
 export const dynamic = "force-dynamic";
 
@@ -84,6 +85,14 @@ export default async function CentreDetailPage({
     }
   }
 
+  // Load all active plans for subscription manager
+  const { data: allPlansData } = await admin
+    .from("plans")
+    .select("id, name, price, billing_period")
+    .eq("is_active", true)
+    .order("price", { ascending: true });
+  const allPlans = (allPlansData ?? []) as Record<string, unknown>[];
+
   // Load user_roles with user details (separate queries for reliability)
   const { data: rolesData } = await admin
     .from("user_roles")
@@ -99,7 +108,7 @@ export default async function CentreDetailPage({
   if (userIds.length > 0) {
     const { data: usersData } = await admin
       .from("user_profiles")
-      .select("id, full_name, email")
+      .select("id, first_name, last_name, email")
       .in("id", userIds);
     for (const u of (usersData ?? []) as Record<string, unknown>[]) {
       usersMap.set(u.id as string, u);
@@ -190,11 +199,12 @@ export default async function CentreDetailPage({
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {managers.map((m) => {
-                  const user = usersMap.get(m.user_id as string) as { full_name?: string; email?: string } | undefined;
+                  const user = usersMap.get(m.user_id as string) as { first_name?: string; last_name?: string; email?: string } | undefined;
                   const role = rolesMap.get(m.role_id as string) as { name?: string } | undefined;
+                  const fullName = user ? [user.first_name, user.last_name].filter(Boolean).join(" ") : null;
                   return (
                     <tr key={m.id as string} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-gray-900 font-medium">{user?.full_name ?? "—"}</td>
+                      <td className="px-4 py-3 text-gray-900 font-medium">{fullName || "—"}</td>
                       <td className="px-4 py-3 text-gray-500">{user?.email ?? "—"}</td>
                       <td className="px-4 py-3">
                         <span className="inline-block rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
@@ -217,59 +227,21 @@ export default async function CentreDetailPage({
         )}
       </section>
 
-      {/* Subscriptions */}
+      {/* Subscription Manager */}
       <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Subscriptions ({subscriptions.length})</h2>
-          <Link href="/admin/subscriptions" className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">Manage →</Link>
-        </div>
-        {subscriptions.length === 0 ? (
-          <div className="rounded-xl border bg-white p-8 text-center">
-            <p className="text-sm text-gray-500">No subscriptions for this centre.</p>
-            <Link href="/admin/subscriptions" className="mt-2 inline-block text-sm text-indigo-600 hover:text-indigo-800">Create subscription →</Link>
-          </div>
-        ) : (
-          <div className="overflow-x-auto rounded-xl border bg-white">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="border-b bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
-                  <th className="px-4 py-3">Plan</th>
-                  <th className="px-4 py-3">Price</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Start</th>
-                  <th className="px-4 py-3">End</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {subscriptions.map((sub) => {
-                  const plan = plansMap.get(sub.plan_id as string) as { name?: string; price?: number; billing_period?: string } | undefined;
-                  return (
-                    <tr key={sub.id as string} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-gray-900 font-medium">{plan?.name ?? "—"}</td>
-                      <td className="px-4 py-3 text-gray-900">
-                        {plan?.price != null ? `KES ${Number(plan.price).toLocaleString()}` : "—"}
-                        {plan?.billing_period && <span className="text-xs text-gray-400">/{plan.billing_period.toLowerCase()}</span>}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                          sub.status === "active" ? "bg-green-100 text-green-700" :
-                          sub.status === "trial" ? "bg-blue-100 text-blue-700" :
-                          sub.status === "expired" ? "bg-gray-100 text-gray-600" :
-                          sub.status === "suspended" ? "bg-amber-100 text-amber-700" :
-                          "bg-red-100 text-red-700"
-                        }`}>
-                          {(sub.status as string)?.charAt(0).toUpperCase()}{(sub.status as string)?.slice(1)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-500">{sub.start_date ? new Date(sub.start_date as string).toLocaleDateString() : "—"}</td>
-                      <td className="px-4 py-3 text-gray-500">{sub.end_date ? new Date(sub.end_date as string).toLocaleDateString() : "—"}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <h2 className="text-lg font-semibold text-gray-900">Subscription</h2>
+        <CentreSubscriptionManager
+          centreId={centre.id}
+          centreName={centre.name}
+          plans={allPlans as unknown as { id: string; name: string; price: number; billing_period: string }[]}
+          existingSub={subscriptions.length > 0 ? {
+            id: subscriptions[0].id as string,
+            plan_id: subscriptions[0].plan_id as string,
+            status: subscriptions[0].status as string,
+            start_date: subscriptions[0].start_date as string | null,
+            end_date: subscriptions[0].end_date as string | null,
+          } : null}
+        />
       </section>
 
       {/* Recent Payments */}

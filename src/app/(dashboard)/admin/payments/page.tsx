@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { getUserRoleName } from "@/lib/auth/authorization.service";
+import PaymentActions from "./PaymentActions";
 
 export const dynamic = "force-dynamic";
 
@@ -136,7 +137,7 @@ export default async function AdminPaymentsPage() {
         <div className="overflow-x-auto rounded-lg bg-white shadow-sm border">
           <table className="min-w-full divide-y divide-gray-200 text-sm">
             <thead>
-              <tr className="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
+                <tr className="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
                 <th className="px-4 py-3">Flow</th>
                 <th className="px-4 py-3">Centre</th>
                 <th className="px-4 py-3">Purpose</th>
@@ -145,6 +146,7 @@ export default async function AdminPaymentsPage() {
                 <th className="px-4 py-3">Contributor</th>
                 <th className="px-4 py-3">Reference</th>
                 <th className="px-4 py-3">Date</th>
+                <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -198,6 +200,9 @@ export default async function AdminPaymentsPage() {
                       {new Date(p.created_at as string).toLocaleDateString("en-GB")}
                       <br />
                       {new Date(p.created_at as string).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}
+                    </td>
+                    <td className="px-4 py-2">
+                      <PaymentActions paymentId={p.id as string} currentStatus={p.status as string} />
                     </td>
                   </tr>
                 );

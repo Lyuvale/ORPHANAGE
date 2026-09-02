@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { getUserRoleName } from "@/lib/auth/authorization.service";
 import SubscriptionActions from "./SubscriptionActions";
+import PlanEditForm from "./PlanEditForm";
 
 export const dynamic = "force-dynamic";
 
@@ -165,33 +166,28 @@ export default async function AdminSubscriptionsPage() {
             <p className="text-gray-500">No plans created yet.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border bg-white">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="border-b bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
-                  <th className="px-4 py-3">Name</th>
-                  <th className="px-4 py-3">Price</th>
-                  <th className="px-4 py-3">Period</th>
-                  <th className="px-4 py-3">Description</th>
-                  <th className="px-4 py-3">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {allPlans.map((plan) => (
-                  <tr key={plan.id as string} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-gray-900 font-medium">{plan.name as string}</td>
-                    <td className="px-4 py-3 text-gray-900">KES {Number(plan.price).toLocaleString()}</td>
-                    <td className="px-4 py-3 text-gray-500">{plan.billing_period as string}</td>
-                    <td className="px-4 py-3 text-gray-500 max-w-xs truncate">{(plan.description as string) ?? "—"}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${plan.is_active ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}>
-                        {plan.is_active ? "Active" : "Inactive"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="space-y-3">
+            {allPlans.map((plan) => (
+              <div key={plan.id as string} className="rounded-xl border bg-white p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="font-medium text-gray-900">{plan.name as string}</p>
+                    <p className="text-sm text-gray-500">
+                      KES {Number(plan.price).toLocaleString()} / {(plan.billing_period as string).toLowerCase()}
+                      {(plan.description as string) && <span className="ml-2">· {plan.description as string}</span>}
+                    </p>
+                  </div>
+                  <PlanEditForm plan={{
+                    id: plan.id as string,
+                    name: plan.name as string,
+                    description: (plan.description as string) ?? null,
+                    price: Number(plan.price),
+                    billing_period: plan.billing_period as string,
+                    is_active: plan.is_active as boolean,
+                  }} />
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </section>
