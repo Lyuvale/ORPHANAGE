@@ -63,15 +63,15 @@ export default function CentreListActions({
 
   return (
     <div className="flex items-center gap-2">
-      {!isActive && (
-        <button
-          onClick={toggle}
-          disabled={loading}
-          className="rounded-md px-2.5 py-1 text-xs font-medium border text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-        >
-          {loading ? "Updating…" : "Activate"}
-        </button>
-      )}
+      <button
+        onClick={toggle}
+        disabled={loading}
+        className={`rounded-md px-2.5 py-1 text-xs font-medium border hover:bg-gray-50 disabled:opacity-50 ${
+          isActive ? "border-amber-200 text-amber-700" : "text-gray-700"
+        }`}
+      >
+        {loading ? "Updating…" : isActive ? "Deactivate" : "Activate"}
+      </button>
       <button
         onClick={() => setConfirming(true)}
         disabled={loading}
