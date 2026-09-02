@@ -23,23 +23,23 @@ export default async function AdminPage() {
 
   const admin = createAdminClient();
 
-  // ── Parallel data queries ──────────────────────────────────
+  // ── Parallel data queries (fetch data, not head:true) ─────
   const [
     centresRes,
     activeCentresRes,
-    subsRes,
-    activeSubsRes,
+    subsData,
+    activeSubsData,
     paymentsRes,
     recentCentresRes,
     recentSubsRes,
     auditRes,
-    staffRes,
-    childrenRes,
+    staffData,
+    childrenData,
   ] = await Promise.all([
-    admin.from("centres").select("id", { count: "exact", head: true }),
-    admin.from("centres").select("id", { count: "exact", head: true }).eq("status", "active"),
-    admin.from("subscriptions").select("id", { count: "exact", head: true }),
-    admin.from("subscriptions").select("id", { count: "exact", head: true }).eq("status", "active"),
+    admin.from("centres").select("id"),
+    admin.from("centres").select("id").eq("status", "active"),
+    admin.from("subscriptions").select("id, status"),
+    admin.from("subscriptions").select("id").eq("status", "active"),
     admin
       .from("payment_transactions")
       .select("id, amount, currency, status, flow_type, created_at")
@@ -63,11 +63,19 @@ export default async function AdminPage() {
       .select("id, action, entity_type, entity_id, created_at")
       .order("created_at", { ascending: false })
       .limit(8),
-    admin.from("user_roles").select("user_id", { count: "exact", head: true }).eq("status", "active"),
-    admin.from("children").select("id", { count: "exact", head: true }).eq("status", "active"),
+    admin.from("user_profiles").select("id, centre_id").eq("status", "active"),
+    admin.from("children").select("id").eq("status", "active"),
   ]);
 
-  // ── Compute stats ──────────────────────────────────────────
+  // ── Compute counts from fetched data ──────────────────────
+  const totalCentres = (centresRes.data ?? []).length;
+  const activeCentres = (activeCentresRes.data ?? []).length;
+  const totalSubs = (subsData.data ?? []).length;
+  const activeSubs = (activeSubsData.data ?? []).length;
+  const totalStaff = (staffData.data ?? []).length;
+  const totalChildren = (childrenData.data ?? []).length;
+
+  // ── Compute payment stats ──────────────────────────────────
   const allPayments = (paymentsRes.data ?? []) as Record<string, unknown>[];
   const totalRevenue = allPayments
     .filter((p) => p.status === "SUCCESSFUL")
@@ -83,18 +91,18 @@ export default async function AdminPage() {
     .reduce((sum, p) => sum + Number(p.amount ?? 0), 0);
 
   // ── KPI cards ──────────────────────────────────────────────
-  const kpis = [
+  const kpiCards = [
     {
       label: "Total Centres",
-      value: centresRes.count ?? 0,
-      sub: `${activeCentresRes.count ?? 0} active`,
+      value: totalCentres,
+      sub: `${activeCentres} active`,
       icon: "🏛",
       color: "bg-indigo-50 text-indigo-700",
       href: "/admin/centres",
     },
     {
       label: "Total Staff",
-      value: staffRes.count ?? 0,
+      value: totalStaff,
       sub: "across all centres",
       icon: "👥",
       color: "bg-blue-50 text-blue-700",
@@ -102,16 +110,16 @@ export default async function AdminPage() {
     },
     {
       label: "Children Enrolled",
-      value: childrenRes.count ?? 0,
+      value: totalChildren,
       sub: "active children",
       icon: "👶",
       color: "bg-emerald-50 text-emerald-700",
-      href: "#",
+      href: null,
     },
     {
       label: "Subscriptions",
-      value: subsRes.count ?? 0,
-      sub: `${activeSubsRes.count ?? 0} active`,
+      value: totalSubs,
+      sub: `${activeSubs} active`,
       icon: "📋",
       color: "bg-amber-50 text-amber-700",
       href: "/admin/subscriptions",
@@ -175,21 +183,28 @@ export default async function AdminPage() {
 
       {/* ── KPI Grid ────────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        {kpis.map((kpi) => (
-          <Link
-            key={kpi.label}
-            href={kpi.href}
-            className={`group rounded-xl border bg-white p-5 shadow-sm transition hover:shadow-md ${kpi.color.split(" ")[0]} hover:border-current`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-2xl">{kpi.icon}</span>
-              <span className="text-xs text-gray-400 group-hover:text-gray-600">→</span>
+        {kpiCards.map((kpi) => {
+          const cardContent = (
+            <div className={`group rounded-xl border bg-white p-5 shadow-sm transition hover:shadow-md ${kpi.color.split(" ")[0]} hover:border-current`}>
+              <div className="flex items-center justify-between">
+                <span className="text-2xl">{kpi.icon}</span>
+                {kpi.href && <span className="text-xs text-gray-400 group-hover:text-gray-600">→</span>}
+              </div>
+              <p className="mt-3 text-2xl font-bold text-gray-900">{kpi.value}</p>
+              <p className="text-sm text-gray-500">{kpi.label}</p>
+              <p className={`mt-1 text-xs font-medium ${kpi.color.split(" ")[1]}`}>{kpi.sub}</p>
             </div>
-            <p className="mt-3 text-2xl font-bold text-gray-900">{kpi.value}</p>
-            <p className="text-sm text-gray-500">{kpi.label}</p>
-            <p className={`mt-1 text-xs font-medium ${kpi.color.split(" ")[1]}`}>{kpi.sub}</p>
-          </Link>
-        ))}
+          );
+
+          if (kpi.href) {
+            return (
+              <Link key={kpi.label} href={kpi.href}>
+                {cardContent}
+              </Link>
+            );
+          }
+          return <div key={kpi.label}>{cardContent}</div>;
+        })}
       </div>
 
       {/* ── Quick Actions ───────────────────────────────────── */}
