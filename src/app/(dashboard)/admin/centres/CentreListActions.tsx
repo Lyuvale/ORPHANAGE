@@ -63,7 +63,7 @@ export default function CentreListActions({
 
   return (
     <div className="flex items-center gap-2">
-      {!isActive ? (
+      {!isActive && (
         <button
           onClick={toggle}
           disabled={loading}
@@ -71,15 +71,14 @@ export default function CentreListActions({
         >
           {loading ? "Updating…" : "Activate"}
         </button>
-      ) : (
-        <button
-          onClick={() => setConfirming(true)}
-          disabled={loading}
-          className="rounded-md px-2.5 py-1 text-xs font-medium border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50"
-        >
-          Delete
-        </button>
       )}
+      <button
+        onClick={() => setConfirming(true)}
+        disabled={loading}
+        className="rounded-md px-2.5 py-1 text-xs font-medium border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50"
+      >
+        Delete
+      </button>
       {error ? (
         <button onClick={() => setError(null)} title="Dismiss" className="text-xs text-red-600 underline">
           {error}
@@ -91,8 +90,8 @@ export default function CentreListActions({
           <div className="mx-4 w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
             <h3 className="text-lg font-semibold text-gray-900">Delete centre?</h3>
             <p className="mt-2 text-sm text-gray-600">
-              Are you sure you want to delete <strong>{centreName}</strong>? This will deactivate the centre,
-              revoke its staff, and cancel its subscriptions.
+              Are you sure you want to <strong>permanently delete</strong> <strong>{centreName}</strong>? This cannot
+              be undone. All of its data, staff accounts and subscriptions will be removed and its code freed.
             </p>
             {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
             <div className="mt-4 flex justify-end gap-2">

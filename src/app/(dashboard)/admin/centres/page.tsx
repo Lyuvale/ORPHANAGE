@@ -21,7 +21,6 @@ async function loadCentres(): Promise<CentreRecord[]> {
       admin
         .from("centres")
         .select("id, name, code, status, created_at")
-        .eq("status", "active")
         .order("created_at", { ascending: true }),
       admin.from("roles").select("id, name"),
       admin.from("user_roles").select("centre_id, role_id"),
