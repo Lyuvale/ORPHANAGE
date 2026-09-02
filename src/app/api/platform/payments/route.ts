@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -36,6 +36,102 @@ export async function GET() {
     }
 
     return NextResponse.json({ data: data ?? [] });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: statusFromError(message) });
+  }
+}
+
+/**
+ * POST /api/platform/payments
+ *
+ * PLATFORM ADMIN: record a manual payment (cash/bank transfer).
+ * Requires platform.payments permission.
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as unknown as SupabaseClient, {
+      allowInactiveSubscription: true,
+    });
+    await requirePermission(supabase as unknown as SupabaseClient, ctx, "platform.payments");
+
+    const body = (await request.json()) as {
+      centre_id?: string;
+      flow_type?: string;
+      purpose?: string;
+      amount?: number;
+      currency?: string;
+      provider_reference?: string;
+      contributor_name?: string;
+      contributor_email?: string;
+      contributor_contact?: string;
+      subscription_id?: string;
+      status?: string;
+    };
+
+    if (!body.centre_id || !body.flow_type || !body.amount) {
+      return NextResponse.json(
+        { error: "centre_id, flow_type, and amount are required." },
+        { status: 400 },
+      );
+    }
+
+    if (!["SUBSCRIPTION", "CONTRIBUTION"].includes(body.flow_type)) {
+      return NextResponse.json(
+        { error: "flow_type must be SUBSCRIPTION or CONTRIBUTION." },
+        { status: 400 },
+      );
+    }
+
+    if (body.amount <= 0) {
+      return NextResponse.json(
+        { error: "Amount must be greater than zero." },
+        { status: 400 },
+      );
+    }
+
+    const admin = createAdminClient();
+
+    // Verify centre exists
+    const { data: centre } = await admin
+      .from("centres")
+      .select("id, name")
+      .eq("id", body.centre_id)
+      .maybeSingle();
+
+    if (!centre) {
+      return NextResponse.json({ error: "Centre not found." }, { status: 404 });
+    }
+
+    // Auto-generate provider_reference for manual payments
+    const providerRef = body.provider_reference || `MANUAL-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+
+    const { data, error } = await admin
+      .from("payment_transactions")
+      .insert({
+        centre_id: body.centre_id,
+        flow_type: body.flow_type,
+        purpose: body.purpose || null,
+        amount: body.amount,
+        currency: body.currency || "KES",
+        provider: "MOCK",
+        provider_reference: providerRef,
+        status: body.status || "PENDING",
+        contributor_name: body.contributor_name || null,
+        contributor_email: body.contributor_email || null,
+        contributor_contact: body.contributor_contact || null,
+        subscription_id: body.subscription_id || null,
+        created_by: ctx.authUserId,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: "Failed to record payment." }, { status: 500 });
+    }
+
+    return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: statusFromError(message) });
