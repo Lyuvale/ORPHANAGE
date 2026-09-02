@@ -92,10 +92,35 @@ export async function PATCH(
       }
     }
 
+    // Never allow deleting a platform administrator account through this endpoint.
+    if (rows.some((r) => rolesMap.get(r.role_id)?.name === "PLATFORM_ADMINISTRATOR")) {
+      return NextResponse.json({ error: "The platform administrator cannot be deleted." }, { status: 403 });
+    }
+
     // Perform the removal
     if (body.action === "delete") {
-      const { error } = await admin.from("user_roles").delete().eq("user_id", id).eq("centre_id", body.centre_id);
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      // Load the user profile to resolve the linked auth user
+      const { data: profile } = await admin
+        .from("user_profiles")
+        .select("id, auth_user_id")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (profile) {
+        // 1. Remove any caregiver -> child assignments (RESTRICT FK)
+        const { error: cgError } = await admin.from("child_caregivers").delete().eq("caregiver_id", id);
+        if (cgError) return NextResponse.json({ error: cgError.message }, { status: 500 });
+        // 2. Delete the profile (cascades user_roles, role_history, notifications, etc.)
+        const { error: profileError } = await admin.from("user_profiles").delete().eq("id", id);
+        if (profileError) return NextResponse.json({ error: profileError.message }, { status: 500 });
+        // 3. Delete the underlying auth user account
+        const { error: authError } = await admin.auth.admin.deleteUser(profile.auth_user_id);
+        if (authError) return NextResponse.json({ error: authError.message }, { status: 500 });
+      } else {
+        // No profile row — just clear any role assignments
+        const { error } = await admin.from("user_roles").delete().eq("user_id", id).eq("centre_id", body.centre_id);
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      }
       return NextResponse.json({ ok: true, action: "deleted" });
     }
 

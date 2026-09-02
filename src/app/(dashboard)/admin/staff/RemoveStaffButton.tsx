@@ -19,8 +19,8 @@ export default function RemoveStaffButton({
   async function handleRemove() {
     const confirmMsg =
       roleName === "CENTRE_MANAGER"
-        ? "Remove this Centre Manager? The centre will need a new manager."
-        : "Remove this staff member from the centre?";
+        ? "Permanently DELETE this Centre Manager and their account? This cannot be undone."
+        : "Permanently DELETE this staff member and their account? This cannot be undone.";
     if (!confirm(confirmMsg)) return;
 
     setSaving(true);
@@ -29,7 +29,7 @@ export default function RemoveStaffButton({
       const res = await fetch(`/api/platform/staff/${userId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ centre_id: centreId, action: "deactivate" }),
+        body: JSON.stringify({ centre_id: centreId, action: "delete" }),
       });
       const json = await res.json();
       if (!res.ok) {

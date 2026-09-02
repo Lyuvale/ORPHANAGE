@@ -15,6 +15,7 @@ interface StaffMember {
   email: string | null;
   centre_id: string;
   role_name: string;
+  status: string;
 }
 
 export default async function AdminStaffPage() {
@@ -41,12 +42,11 @@ export default async function AdminStaffPage() {
 
   const centres = (centresData ?? []) as { id: string; name: string; code: string | null; status: string }[];
 
-  // Load active centre roles (simple query — avoids flaky embedded joins)
+  // Load centre roles incl. revoked (simple query — avoids flaky embedded joins)
   const { data: userRolesData } = await admin
     .from("user_roles")
-    .select("user_id, centre_id, role_id")
-    .eq("status", "active");
-  const userRoleRows = (userRolesData ?? []) as { user_id: string; centre_id: string; role_id?: string }[];
+    .select("user_id, centre_id, role_id, status");
+  const userRoleRows = (userRolesData ?? []) as { user_id: string; centre_id: string; role_id?: string; status: string }[];
 
   // Load role names separately
   const roleIds = [...new Set(userRoleRows.map((r) => r.role_id).filter(Boolean))] as string[];
@@ -57,6 +57,7 @@ export default async function AdminStaffPage() {
       rolesMap.set(r.id, { name: r.name });
     }
   }
+  void rolesMap;
 
   // Load user profiles separately
   const userIds = [...new Set(userRoleRows.map((r) => r.user_id).filter(Boolean))] as string[];
@@ -88,6 +89,7 @@ export default async function AdminStaffPage() {
       email: profile?.email ?? null,
       centre_id: row.centre_id,
       role_name: roleName,
+      status: row.status,
     });
   }
 
@@ -121,7 +123,7 @@ export default async function AdminStaffPage() {
         <div className="rounded-xl border bg-white p-5 shadow-sm">
           <p className="text-sm text-gray-500">Total Staff</p>
           <p className="mt-1 text-2xl font-bold text-gray-900">{staff.length}</p>
-          <p className="text-xs text-gray-400">all active roles</p>
+          <p className="text-xs text-gray-400">active & revoked</p>
         </div>
         <div className="rounded-xl border bg-white p-5 shadow-sm">
           <p className="text-sm text-gray-500">Centres with Staff</p>
@@ -172,12 +174,13 @@ export default async function AdminStaffPage() {
                           <th className="px-3 py-2">Name</th>
                           <th className="px-3 py-2">Email</th>
                           <th className="px-3 py-2">Role</th>
+                          <th className="px-3 py-2">Status</th>
                           <th className="px-3 py-2">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
                         {centreStaff.map((m) => (
-                          <tr key={m.id} className="hover:bg-gray-50">
+                          <tr key={`${m.id}-${m.centre_id}`} className="hover:bg-gray-50">
                             <td className="px-3 py-2 font-medium text-gray-900">
                               {[m.first_name, m.last_name].filter(Boolean).join(" ") || "—"}
                             </td>
@@ -186,6 +189,17 @@ export default async function AdminStaffPage() {
                               <span className="inline-block rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
                                 {m.role_name}
                               </span>
+                            </td>
+                            <td className="px-3 py-2">
+                              {m.status === "active" ? (
+                                <span className="inline-block rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                                  Active
+                                </span>
+                              ) : (
+                                <span className="inline-block rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
+                                  Revoked
+                                </span>
+                              )}
                             </td>
                             <td className="px-3 py-2">
                               <RemoveStaffButton userId={m.id} centreId={m.centre_id} roleName={m.role_name} />
