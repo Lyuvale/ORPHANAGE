@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
         trial_ends_at,
         payment_status,
         created_at,
-        centres:centre_id (id, name, centre_code),
+        centres:centre_id (id, name, code),
         plans:plan_id (id, name, price, billing_period)
       `)
       .order("created_at", { ascending: false });

@@ -46,7 +46,7 @@ export default async function AdminPaymentsPage() {
   const centreIds = [...new Set(allPayments.map((p) => p.centre_id).filter(Boolean))] as string[];
   const { data: centresData } = await admin
     .from("centres")
-    .select("id, name, centre_code")
+    .select("id, name, code")
     .in("id", centreIds.length > 0 ? centreIds : ["00000000-0000-0000-0000-000000000000"]);
   const centresMap = new Map(
     (centresData ?? []).map((c: Record<string, unknown>) => [c.id, c]),
@@ -63,8 +63,8 @@ export default async function AdminPaymentsPage() {
 
   const stats = [
     { label: "Total Transactions", value: allPayments.length, color: "text-gray-900" },
-    { label: "Total Amount", value: `KES ${totalAmount.toLocaleString()}`, color: "text-gray-900" },
-    { label: "Successful", value: successfulPayments.length, sub: `KES ${successfulAmount.toLocaleString()}`, color: "text-green-700" },
+    { label: "Total Amount", value: `TZS ${totalAmount.toLocaleString()}`, color: "text-gray-900" },
+    { label: "Successful", value: successfulPayments.length, sub: `TZS ${successfulAmount.toLocaleString()}`, color: "text-green-700" },
     { label: "Pending", value: pendingPayments.length, color: "text-amber-700" },
     { label: "Failed", value: failedPayments.length, color: "text-red-700" },
     { label: "Contributions", value: contributionPayments.length, color: "text-sky-700" },

@@ -53,7 +53,7 @@ export default async function AdminPage() {
       .from("subscriptions")
       .select(`
         id, status, start_date, end_date, created_at,
-        centres:centre_id (id, name, centre_code),
+        centres:centre_id (id, name, code),
         plans:plan_id (id, name, price, billing_period)
       `)
       .order("created_at", { ascending: false })
@@ -63,7 +63,7 @@ export default async function AdminPage() {
       .select("id, action, entity_type, entity_id, created_at")
       .order("created_at", { ascending: false })
       .limit(8),
-    admin.from("user_profiles").select("id", { count: "exact", head: true }).eq("status", "active"),
+    admin.from("user_roles").select("user_id", { count: "exact", head: true }).eq("status", "active"),
     admin.from("children").select("id", { count: "exact", head: true }).eq("status", "active"),
   ]);
 
@@ -106,7 +106,7 @@ export default async function AdminPage() {
       sub: "active children",
       icon: "👶",
       color: "bg-emerald-50 text-emerald-700",
-      href: "/admin/centres",
+      href: "#",
     },
     {
       label: "Subscriptions",
@@ -118,7 +118,7 @@ export default async function AdminPage() {
     },
     {
       label: "Revenue Collected",
-      value: `KES ${totalRevenue.toLocaleString()}`,
+      value: `TZS ${totalRevenue.toLocaleString()}`,
       sub: `${allPayments.filter((p) => p.status === "SUCCESSFUL").length} successful`,
       icon: "💰",
       color: "bg-green-50 text-green-700",
@@ -126,7 +126,7 @@ export default async function AdminPage() {
     },
     {
       label: "Pending Payments",
-      value: `KES ${pendingAmount.toLocaleString()}`,
+      value: `TZS ${pendingAmount.toLocaleString()}`,
       sub: `${allPayments.filter((p) => p.status === "PENDING").length} awaiting`,
       icon: "⏳",
       color: "bg-orange-50 text-orange-700",
@@ -234,7 +234,7 @@ export default async function AdminPage() {
               <div key={rb.label}>
                 <div className="mb-1 flex items-center justify-between text-sm">
                   <span className="text-gray-600">{rb.label}</span>
-                  <span className="font-medium text-gray-900">KES {rb.amount.toLocaleString()}</span>
+                  <span className="font-medium text-gray-900">TZS {rb.amount.toLocaleString()}</span>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-gray-100">
                   <div
@@ -248,7 +248,7 @@ export default async function AdminPage() {
           <div className="mt-4 border-t pt-3">
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium text-gray-700">Total Revenue</span>
-              <span className="text-lg font-bold text-gray-900">KES {totalRevenue.toLocaleString()}</span>
+              <span className="text-lg font-bold text-gray-900">TZS {totalRevenue.toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -313,7 +313,7 @@ export default async function AdminPage() {
                     <div>
                       <p className="text-sm font-medium text-gray-900">{centre?.name ?? "Unknown"}</p>
                       <p className="text-xs text-gray-500">
-                        {plan?.name ?? "—"} {plan?.price != null ? `· KES ${Number(plan.price).toLocaleString()}` : ""}
+                        {plan?.name ?? "—"} {plan?.price != null ? `· TZS ${Number(plan.price).toLocaleString()}` : ""}
                       </p>
                     </div>
                     <span

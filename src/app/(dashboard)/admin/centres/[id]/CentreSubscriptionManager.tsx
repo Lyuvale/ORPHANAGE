@@ -175,7 +175,7 @@ export default function CentreSubscriptionManager({
               className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-xs">
               <option value="">Select plan...</option>
               {plans.map((p) => (
-                <option key={p.id} value={p.id}>{p.name} — KES {p.price.toLocaleString()}/{p.billing_period.toLowerCase()}</option>
+                <option key={p.id} value={p.id}>{p.name} — TZS {p.price.toLocaleString()}/{p.billing_period.toLowerCase()}</option>
               ))}
             </select>
           </div>
@@ -197,7 +197,7 @@ export default function CentreSubscriptionManager({
           </div>
           {selectedPlan && (
             <p className="text-xs text-gray-500">
-              Selected: {selectedPlan.name} — KES {selectedPlan.price.toLocaleString()}/{selectedPlan.billing_period.toLowerCase()}
+              Selected: {selectedPlan.name} — TZS {selectedPlan.price.toLocaleString()}/{selectedPlan.billing_period.toLowerCase()}
             </p>
           )}
           <div className="flex gap-2">

@@ -153,7 +153,7 @@ export default function DonateClient() {
         </select>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700">Amount (KES)</label>
+        <label className="block text-sm font-medium text-gray-700">Amount (TZS)</label>
         <input
           type="number"
           min="1"

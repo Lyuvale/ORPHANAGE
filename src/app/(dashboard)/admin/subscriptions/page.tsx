@@ -58,7 +58,7 @@ export default async function AdminSubscriptionsPage() {
   // Load centres for dropdown
   const { data: centresDropdown } = await admin
     .from("centres")
-    .select("id, name, centre_code, status")
+    .select("id, name, code, status")
     .eq("status", "active")
     .order("name");
 
@@ -66,7 +66,7 @@ export default async function AdminSubscriptionsPage() {
   const centreIds = [...new Set(subscriptions.map((s) => s.centre_id).filter(Boolean))] as string[];
   const centresMap = new Map<string, Record<string, unknown>>();
   if (centreIds.length > 0) {
-    const { data: cData } = await admin.from("centres").select("id, name, centre_code").in("id", centreIds);
+    const { data: cData } = await admin.from("centres").select("id, name, code").in("id", centreIds);
     for (const c of (cData ?? []) as Record<string, unknown>[]) {
       centresMap.set(c.id as string, c);
     }
@@ -113,7 +113,7 @@ export default async function AdminSubscriptionsPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {subscriptions.map((sub) => {
-                  const centre = centresMap.get(sub.centre_id as string) as { name?: string; centre_code?: string } | undefined;
+                  const centre = centresMap.get(sub.centre_id as string) as { name?: string; code?: string } | undefined;
                   const plan = plansMap.get(sub.plan_id as string) as { name?: string; price?: number; billing_period?: string } | undefined;
                   return (
                     <tr key={sub.id as string} className="hover:bg-gray-50">
@@ -121,13 +121,13 @@ export default async function AdminSubscriptionsPage() {
                         <Link href={`/admin/centres/${sub.centre_id}`} className="text-indigo-600 hover:underline font-medium">
                           {centre?.name ?? "—"}
                         </Link>
-                        <span className="ml-1 text-xs text-gray-400">({centre?.centre_code ?? "—"})</span>
+                        <span className="ml-1 text-xs text-gray-400">({centre?.code ?? "—"})</span>
                       </td>
                       <td className="px-4 py-3 text-gray-900">
                         {plan?.name ?? "—"}
                         {plan?.price != null && (
                           <span className="ml-1 text-xs text-gray-400">
-                            KES {Number(plan.price).toLocaleString()}/{(plan.billing_period ?? "").toLowerCase()}
+                            TZS {Number(plan.price).toLocaleString()}/{(plan.billing_period ?? "").toLowerCase()}
                           </span>
                         )}
                       </td>
@@ -173,7 +173,7 @@ export default async function AdminSubscriptionsPage() {
                   <div>
                     <p className="font-medium text-gray-900">{plan.name as string}</p>
                     <p className="text-sm text-gray-500">
-                      KES {Number(plan.price).toLocaleString()} / {(plan.billing_period as string).toLowerCase()}
+                      TZS {Number(plan.price).toLocaleString()} / {(plan.billing_period as string).toLowerCase()}
                       {(plan.description as string) && <span className="ml-2">· {plan.description as string}</span>}
                     </p>
                   </div>

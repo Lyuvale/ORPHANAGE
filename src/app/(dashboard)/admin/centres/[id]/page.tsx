@@ -46,7 +46,7 @@ export default async function CentreDetailPage({
   // Load related data separately (avoid complex joins that may fail)
   const [staffRes, childrenRes, paymentsRes] = await Promise.all([
     admin
-      .from("user_profiles")
+      .from("user_roles")
       .select("id", { count: "exact", head: true })
       .eq("centre_id", id)
       .eq("status", "active"),
@@ -168,7 +168,7 @@ export default async function CentreDetailPage({
         </div>
         <div className="rounded-xl bg-white p-5 shadow-sm border">
           <p className="text-sm text-gray-500">Total Payments</p>
-          <p className="mt-1 text-2xl font-bold text-gray-900">KES {totalPayments.toLocaleString()}</p>
+          <p className="mt-1 text-2xl font-bold text-gray-900">TZS {totalPayments.toLocaleString()}</p>
         </div>
         <div className="rounded-xl bg-white p-5 shadow-sm border">
           <p className="text-sm text-gray-500">Subscriptions</p>
