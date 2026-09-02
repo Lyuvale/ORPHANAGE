@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import NotificationBell from "./_components/notification-bell";
 import SignOutButton from "./_components/sign-out-button";
 import { createClient } from "@/lib/supabase/server";
@@ -8,6 +9,26 @@ import { getUserRoleName } from "@/lib/auth/authorization.service";
 import { AuthError } from "@/lib/auth/app-user-context";
 
 export const dynamic = "force-dynamic";
+
+// Tenant (centre) pages a platform admin must be kept out of. Each admin page
+// also guards itself, so this is a defence-in-depth redirect to the admin home.
+const TENANT_PATHS = [
+  "/children",
+  "/admissions",
+  "/placements",
+  "/referrals",
+  "/guardians",
+  "/cases",
+  "/safeguarding",
+  "/visits",
+  "/staff",
+  "/health",
+  "/education",
+  "/resources",
+  "/team",
+  "/audit",
+  "/centres",
+];
 
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
@@ -41,6 +62,24 @@ export default async function DashboardLayout({
     }
     isManager = false;
     isPlatformAdmin = false;
+  }
+
+  // Keep the platform admin inside the /admin area. Tenant pages (children,
+  // staff, etc.) render their own centre-level view and are not meant for the
+  // platform administrator.
+  if (isPlatformAdmin) {
+    let pathname = "";
+    try {
+      pathname = (await headers()).get("x-current-path") ?? "";
+    } catch {
+      pathname = "";
+    }
+    const onTenantPage = TENANT_PATHS.some(
+      (p) => pathname === p || pathname.startsWith(p + "/"),
+    );
+    if (onTenantPage) {
+      redirect("/admin");
+    }
   }
 
   return (

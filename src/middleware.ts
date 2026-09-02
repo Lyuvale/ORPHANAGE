@@ -36,7 +36,13 @@ function isProtected(pathname: string): boolean {
 }
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
+  // Expose the current pathname to downstream server components via a request header
+  // (Next does not expose the pathname to Server Component layouts directly).
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-current-path", request.nextUrl.pathname);
+  let supabaseResponse = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
   const { pathname } = request.nextUrl;
 
   const supabase = createServerClient(
