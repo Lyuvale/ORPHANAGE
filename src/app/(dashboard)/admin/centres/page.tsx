@@ -98,7 +98,11 @@ export default async function AdminCentresPage() {
             <tbody className="divide-y divide-gray-100">
               {centres.map((c) => (
                 <tr key={c.id}>
-                  <td className="px-4 py-2 font-medium text-gray-900">{c.name}</td>
+                  <td className="px-4 py-2 font-medium text-gray-900">
+                    <Link href={`/admin/centres/${c.id}`} className="text-indigo-600 hover:underline">
+                      {c.name}
+                    </Link>
+                  </td>
                   <td className="px-4 py-2 text-gray-700">{c.code ?? "—"}</td>
                   <td className="px-4 py-2">
                     <span
