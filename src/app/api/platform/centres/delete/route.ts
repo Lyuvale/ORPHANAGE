@@ -131,10 +131,11 @@ export async function POST(request: NextRequest) {
     }
 
     // 1. Remove all centre-scoped data across the child tables.
-    // A missing relation (table not migrated yet) is tolerated; real errors abort.
+    // A missing relation (table not migrated yet) or missing column is tolerated;
+    // real errors abort.
     for (const table of CENTRE_CHILD_TABLES) {
       const { error } = await admin.from(table as never).delete().eq("centre_id", body.centre_id);
-      if (error && !/PGRST205|42703|42P01|PGRST106/i.test(error.message ?? "")) {
+      if (error && !/PGRST205|42703|42P01|PGRST106|schema cache|Could not find the table/i.test(error.message ?? "")) {
         return NextResponse.json({ error: `Failed to clean ${table}: ${error.message}` }, { status: 500 });
       }
     }
