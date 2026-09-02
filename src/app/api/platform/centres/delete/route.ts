@@ -102,12 +102,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Cancel active subscriptions for the centre
+    // Delete all subscriptions for the centre (subscription dies with the centre)
     const { error: subError } = await admin
       .from("subscriptions")
-      .update({ status: "cancelled", updated_at: new Date().toISOString() })
-      .eq("centre_id", body.centre_id)
-      .in("status", ["trial", "active", "suspended"]);
+      .delete()
+      .eq("centre_id", body.centre_id);
     if (subError) return NextResponse.json({ error: subError.message }, { status: 500 });
 
     // Deactivate centre (soft delete)

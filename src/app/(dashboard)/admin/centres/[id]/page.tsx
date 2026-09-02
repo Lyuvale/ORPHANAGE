@@ -47,7 +47,7 @@ export default async function CentreDetailPage({
   const [staffRes, childrenRes, paymentsRes] = await Promise.all([
     admin
       .from("user_roles")
-      .select("id", { count: "exact", head: true })
+      .select("user_id, role_id")
       .eq("centre_id", id)
       .eq("status", "active"),
     admin
@@ -62,6 +62,16 @@ export default async function CentreDetailPage({
       .order("created_at", { ascending: false })
       .limit(10),
   ]);
+
+  // Role names for the centre's staff (used to exclude the PLATFORM_ADMINISTRATOR)
+  const staffRoleIds = [...new Set(((staffRes.data ?? []) as { role_id?: string }[]).map((r) => r.role_id).filter(Boolean))] as string[];
+  const staffRoleNames = new Map<string, string>();
+  if (staffRoleIds.length > 0) {
+    const { data: staffRoles } = await admin.from("roles").select("id, name").in("id", staffRoleIds);
+    for (const r of (staffRoles ?? []) as { id: string; name: string }[]) {
+      staffRoleNames.set(r.id, r.name);
+    }
+  }
 
   // Load subscriptions (separate query — avoids join issues)
   const { data: subData } = await admin
@@ -128,7 +138,9 @@ export default async function CentreDetailPage({
     }
   }
 
-  const staffCount = staffRes.count ?? 0;
+  const staffCount = ((staffRes.data ?? []) as { role_id?: string }[]).filter(
+    (r) => staffRoleNames.get(r.role_id ?? "") !== "PLATFORM_ADMINISTRATOR",
+  ).length;
   const childrenCount = childrenRes.count ?? 0;
   const payments = (paymentsRes.data ?? []) as Record<string, unknown>[];
   const totalPayments = payments.reduce((sum, p) => sum + Number(p.amount ?? 0), 0);
