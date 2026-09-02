@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { getUserRoleName, can } from "@/lib/auth/authorization.service";
-import CentreToggle from "./CentreToggle";
+import CentreListActions from "./CentreListActions";
 
 interface CentreRecord {
   id: string;
@@ -20,6 +20,7 @@ async function loadCentres(): Promise<CentreRecord[]> {
     const { data, error } = await admin
       .from("centres")
       .select("id, name, code, status, created_at")
+      .eq("status", "active")
       .order("created_at", { ascending: true });
     if (error) return [];
     return (data ?? []) as CentreRecord[];
@@ -119,7 +120,7 @@ export default async function AdminCentresPage() {
                     {new Date(c.created_at).toLocaleDateString("en-GB")}
                   </td>
                   <td className="px-4 py-2">
-                    <CentreToggle centreId={c.id} isActive={c.status === "active"} />
+                    <CentreListActions centreId={c.id} centreName={c.name} isActive={c.status === "active"} />
                   </td>
                 </tr>
               ))}
