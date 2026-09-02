@@ -34,10 +34,11 @@ export default async function AdminStaffPage() {
 
   const admin = createAdminClient();
 
-  // Load all active centres
+  // Load active centres (exclude the platform admin system centre)
   const { data: centresData } = await admin
     .from("centres")
     .select("id, name, code, status")
+    .eq("status", "active")
     .order("name");
 
   const centres = (centresData ?? []) as { id: string; name: string; code: string | null; status: string }[];
@@ -48,16 +49,29 @@ export default async function AdminStaffPage() {
     .select("user_id, centre_id, role_id, status");
   const userRoleRows = (userRolesData ?? []) as { user_id: string; centre_id: string; role_id?: string; status: string }[];
 
+  // Identify the platform admin centre (hosts PLATFORM_ADMINISTRATOR role)
+  const { data: allRolesData } = await admin.from("roles").select("id, name");
+  const roleNameById = new Map<string, string>();
+  for (const r of (allRolesData ?? []) as { id: string; name: string }[]) roleNameById.set(r.id, r.name);
+  const platformCentreIds = new Set<string>();
+  for (const r of userRoleRows) {
+    if (roleNameById.get(r.role_id ?? "") === "PLATFORM_ADMINISTRATOR" && r.centre_id) {
+      platformCentreIds.add(r.centre_id);
+    }
+  }
+
+  // Filter centres to real active ones only
+  const realCentres = centres.filter((c) => !platformCentreIds.has(c.id));
+
   // Load role names separately
   const roleIds = [...new Set(userRoleRows.map((r) => r.role_id).filter(Boolean))] as string[];
-  const rolesMap = new Map<string, { name: string }>();
+  const rolesMap = new Map<string, string>();
   if (roleIds.length > 0) {
     const { data: rolesData } = await admin.from("roles").select("id, name").in("id", roleIds);
     for (const r of (rolesData ?? []) as { id: string; name: string }[]) {
-      rolesMap.set(r.id, { name: r.name });
+      rolesMap.set(r.id, r.name);
     }
   }
-  void rolesMap;
 
   // Load user profiles separately
   const userIds = [...new Set(userRoleRows.map((r) => r.user_id).filter(Boolean))] as string[];
@@ -76,7 +90,7 @@ export default async function AdminStaffPage() {
   const staff: StaffMember[] = [];
   const seen = new Set<string>();
   for (const row of userRoleRows) {
-    const roleName = rolesMap.get(row.role_id ?? "")?.name ?? "Unknown";
+    const roleName = rolesMap.get(row.role_id ?? "") ?? "Unknown";
     if (roleName === "PLATFORM_ADMINISTRATOR") continue;
     const key = `${row.user_id}|${row.centre_id}`;
     if (seen.has(key)) continue;
@@ -128,7 +142,7 @@ export default async function AdminStaffPage() {
         <div className="rounded-xl border bg-white p-5 shadow-sm">
           <p className="text-sm text-gray-500">Centres with Staff</p>
           <p className="mt-1 text-2xl font-bold text-gray-900">{byCentre.size}</p>
-          <p className="text-xs text-gray-400">of {centres.length} active</p>
+          <p className="text-xs text-gray-400">of {realCentres.length} active</p>
         </div>
         <div className="rounded-xl border bg-white p-5 shadow-sm">
           <p className="text-sm text-gray-500">Managers</p>
@@ -140,11 +154,11 @@ export default async function AdminStaffPage() {
       </div>
 
       {/* Per-centre breakdown */}
-      {centres.length === 0 ? (
+      {realCentres.length === 0 ? (
         <p className="text-sm text-gray-500">No centres found.</p>
       ) : (
         <div className="space-y-4">
-          {centres.map((c) => {
+          {realCentres.map((c) => {
             const centreStaff = byCentre.get(c.id) ?? [];
             return (
               <div key={c.id} className="rounded-xl border bg-white p-5 shadow-sm">
