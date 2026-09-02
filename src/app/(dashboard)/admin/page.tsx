@@ -174,7 +174,7 @@ export default async function AdminPage() {
       </div>
 
       {/* ── KPI Grid ────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {kpis.map((kpi) => (
           <Link
             key={kpi.label}
@@ -193,7 +193,7 @@ export default async function AdminPage() {
       </div>
 
       {/* ── Quick Actions ───────────────────────────────────── */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Link
           href="/admin/centres/new"
           className="flex items-center gap-3 rounded-xl border-2 border-dashed border-indigo-200 bg-white p-4 text-center transition hover:border-indigo-400 hover:bg-indigo-50"

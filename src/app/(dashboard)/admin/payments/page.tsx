@@ -111,6 +111,24 @@ export default async function AdminPaymentsPage() {
         ))}
       </div>
 
+      {/* How Payments Work */}
+      <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4">
+        <h3 className="text-sm font-semibold text-indigo-900">How Payments Work</h3>
+        <div className="mt-2 grid grid-cols-1 gap-3 text-xs text-indigo-800 sm:grid-cols-2">
+          <div>
+            <p className="font-medium text-sky-800">CONTRIBUTION (Donations)</p>
+            <p>Money donated by supporters for specific purposes (food, education, etc). Tracked per centre with purpose and source.</p>
+          </div>
+          <div>
+            <p className="font-medium text-indigo-800">SUBSCRIPTION (Plan Payments)</p>
+            <p>Recurring fees paid by centres for using the platform. Tied to subscription plans (Monthly, Quarterly, Yearly).</p>
+          </div>
+        </div>
+        <div className="mt-2 text-xs text-indigo-700">
+          <strong>Status:</strong> PENDING = awaiting confirmation · SUCCESSFUL = verified and recorded · FAILED = payment did not complete · REFUNDED = money returned
+        </div>
+      </div>
+
       {/* Payments Table */}
       {allPayments.length === 0 ? (
         <p className="text-sm text-gray-500">No payment transactions yet.</p>

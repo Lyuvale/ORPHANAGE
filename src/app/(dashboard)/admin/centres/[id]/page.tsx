@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { getUserRoleName } from "@/lib/auth/authorization.service";
 import CentreEditForm from "./CentreEditForm";
+import CentreActions from "./CentreActions";
 
 export const dynamic = "force-dynamic";
 
@@ -41,8 +42,8 @@ export default async function CentreDetailPage({
     notFound();
   }
 
-  // Load related data in parallel
-  const [staffRes, childrenRes, subRes, managersRes, paymentsRes] = await Promise.all([
+  // Load related data separately (avoid complex joins that may fail)
+  const [staffRes, childrenRes, paymentsRes] = await Promise.all([
     admin
       .from("user_profiles")
       .select("id", { count: "exact", head: true })
@@ -54,24 +55,6 @@ export default async function CentreDetailPage({
       .eq("centre_id", id)
       .eq("status", "active"),
     admin
-      .from("subscriptions")
-      .select(`
-        id, status, start_date, end_date, payment_status, created_at,
-        plans:plan_id (id, name, price, billing_period)
-      `)
-      .eq("centre_id", id)
-      .order("created_at", { ascending: false })
-      .limit(5),
-    admin
-      .from("user_roles")
-      .select(`
-        id, status, assigned_at,
-        user:user_id (id, full_name, email),
-        role:roles (id, name)
-      `)
-      .eq("centre_id", id)
-      .eq("status", "active"),
-    admin
       .from("payment_transactions")
       .select("id, amount, currency, status, flow_type, purpose, created_at")
       .eq("centre_id", id)
@@ -79,35 +62,82 @@ export default async function CentreDetailPage({
       .limit(10),
   ]);
 
+  // Load subscriptions (separate query — avoids join issues)
+  const { data: subData } = await admin
+    .from("subscriptions")
+    .select("id, status, start_date, end_date, payment_status, created_at, plan_id")
+    .eq("centre_id", id)
+    .order("created_at", { ascending: false });
+
+  const subscriptions = (subData ?? []) as Record<string, unknown>[];
+
+  // Load plan details for each subscription
+  const planIds = [...new Set(subscriptions.map((s) => s.plan_id).filter(Boolean))] as string[];
+  const plansMap = new Map<string, Record<string, unknown>>();
+  if (planIds.length > 0) {
+    const { data: plansData } = await admin
+      .from("plans")
+      .select("id, name, price, billing_period")
+      .in("id", planIds);
+    for (const p of (plansData ?? []) as Record<string, unknown>[]) {
+      plansMap.set(p.id as string, p);
+    }
+  }
+
+  // Load user_roles with user details (separate queries for reliability)
+  const { data: rolesData } = await admin
+    .from("user_roles")
+    .select("id, status, assigned_at, user_id, role_id, centre_id")
+    .eq("centre_id", id)
+    .eq("status", "active");
+
+  const managers = (rolesData ?? []) as Record<string, unknown>[];
+
+  // Load user profiles for each manager
+  const userIds = [...new Set(managers.map((m) => m.user_id).filter(Boolean))] as string[];
+  const usersMap = new Map<string, Record<string, unknown>>();
+  if (userIds.length > 0) {
+    const { data: usersData } = await admin
+      .from("user_profiles")
+      .select("id, full_name, email")
+      .in("id", userIds);
+    for (const u of (usersData ?? []) as Record<string, unknown>[]) {
+      usersMap.set(u.id as string, u);
+    }
+  }
+
+  // Load role details
+  const roleIds = [...new Set(managers.map((m) => m.role_id).filter(Boolean))] as string[];
+  const rolesMap = new Map<string, Record<string, unknown>>();
+  if (roleIds.length > 0) {
+    const { data: rolesDetail } = await admin
+      .from("roles")
+      .select("id, name")
+      .in("id", roleIds);
+    for (const r of (rolesDetail ?? []) as Record<string, unknown>[]) {
+      rolesMap.set(r.id as string, r);
+    }
+  }
+
   const staffCount = staffRes.count ?? 0;
   const childrenCount = childrenRes.count ?? 0;
-  const subscriptions = (subRes.data ?? []) as Record<string, unknown>[];
-  const managers = (managersRes.data ?? []) as Record<string, unknown>[];
   const payments = (paymentsRes.data ?? []) as Record<string, unknown>[];
-
   const totalPayments = payments.reduce((sum, p) => sum + Number(p.amount ?? 0), 0);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <nav className="text-sm text-gray-500 mb-1">
             <Link href="/admin/centres" className="hover:text-gray-700">Centres</Link>
             <span className="mx-1">/</span>
             <span className="text-gray-900">{centre.name}</span>
           </nav>
-          <h1 className="text-2xl font-semibold text-gray-900">{centre.name}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{centre.name}</h1>
           <p className="text-sm text-gray-500">Code: {centre.code ?? "—"}</p>
         </div>
-        <span
-          className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${
-            centre.status === "active"
-              ? "bg-green-100 text-green-700"
-              : "bg-gray-100 text-gray-600"
-          }`}
-        >
-          {centre.status === "active" ? "Active" : "Deactivated"}
-        </span>
+        <CentreActions centreId={centre.id} centreName={centre.name} isActive={centre.status === "active"} />
       </div>
 
       <nav className="flex flex-wrap gap-2">
@@ -119,57 +149,59 @@ export default async function CentreDetailPage({
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div className="rounded-lg bg-white p-4 shadow-sm border">
+        <div className="rounded-xl bg-white p-5 shadow-sm border">
           <p className="text-sm text-gray-500">Staff</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">{staffCount}</p>
+          <p className="mt-1 text-2xl font-bold text-gray-900">{staffCount}</p>
         </div>
-        <div className="rounded-lg bg-white p-4 shadow-sm border">
+        <div className="rounded-xl bg-white p-5 shadow-sm border">
           <p className="text-sm text-gray-500">Children</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">{childrenCount}</p>
+          <p className="mt-1 text-2xl font-bold text-gray-900">{childrenCount}</p>
         </div>
-        <div className="rounded-lg bg-white p-4 shadow-sm border">
+        <div className="rounded-xl bg-white p-5 shadow-sm border">
           <p className="text-sm text-gray-500">Total Payments</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">KES {totalPayments.toLocaleString()}</p>
+          <p className="mt-1 text-2xl font-bold text-gray-900">KES {totalPayments.toLocaleString()}</p>
         </div>
-        <div className="rounded-lg bg-white p-4 shadow-sm border">
+        <div className="rounded-xl bg-white p-5 shadow-sm border">
           <p className="text-sm text-gray-500">Subscriptions</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">{subscriptions.length}</p>
+          <p className="mt-1 text-2xl font-bold text-gray-900">{subscriptions.length}</p>
         </div>
       </div>
 
       {/* Edit Centre */}
       <CentreEditForm centre={centre} />
 
-      {/* Manager / Staff */}
+      {/* Managers / Staff */}
       <section className="space-y-3">
-        <h2 className="text-lg font-medium text-gray-900">Managers & Staff ({managers.length})</h2>
+        <h2 className="text-lg font-semibold text-gray-900">Managers & Staff ({managers.length})</h2>
         {managers.length === 0 ? (
-          <p className="text-sm text-gray-500">No staff assigned.</p>
+          <div className="rounded-xl border bg-white p-8 text-center">
+            <p className="text-sm text-gray-500">No staff assigned to this centre.</p>
+          </div>
         ) : (
-          <div className="overflow-x-auto rounded-lg border bg-white">
+          <div className="overflow-x-auto rounded-xl border bg-white">
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="border-b bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
-                  <th className="px-4 py-2">Name</th>
-                  <th className="px-4 py-2">Email</th>
-                  <th className="px-4 py-2">Role</th>
-                  <th className="px-4 py-2">Status</th>
+                  <th className="px-4 py-3">Name</th>
+                  <th className="px-4 py-3">Email</th>
+                  <th className="px-4 py-3">Role</th>
+                  <th className="px-4 py-3">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {managers.map((m: Record<string, unknown>) => {
-                  const user = m.user as { full_name?: string; email?: string } | null;
-                  const role = m.role as { name?: string } | null;
+                {managers.map((m) => {
+                  const user = usersMap.get(m.user_id as string) as { full_name?: string; email?: string } | undefined;
+                  const role = rolesMap.get(m.role_id as string) as { name?: string } | undefined;
                   return (
-                    <tr key={m.id as string}>
-                      <td className="px-4 py-2 text-gray-900 font-medium">{user?.full_name ?? "—"}</td>
-                      <td className="px-4 py-2 text-gray-500">{user?.email ?? "—"}</td>
-                      <td className="px-4 py-2">
-                        <span className="inline-block rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                    <tr key={m.id as string} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-gray-900 font-medium">{user?.full_name ?? "—"}</td>
+                      <td className="px-4 py-3 text-gray-500">{user?.email ?? "—"}</td>
+                      <td className="px-4 py-3">
+                        <span className="inline-block rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
                           {role?.name ?? "—"}
                         </span>
                       </td>
-                      <td className="px-4 py-2">
+                      <td className="px-4 py-3">
                         <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                           m.status === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
                         }`}>
@@ -188,39 +220,49 @@ export default async function CentreDetailPage({
       {/* Subscriptions */}
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-medium text-gray-900">Subscriptions</h2>
-          <Link href="/admin/subscriptions" className="text-sm text-indigo-600 hover:text-indigo-800">Manage →</Link>
+          <h2 className="text-lg font-semibold text-gray-900">Subscriptions ({subscriptions.length})</h2>
+          <Link href="/admin/subscriptions" className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">Manage →</Link>
         </div>
         {subscriptions.length === 0 ? (
-          <p className="text-sm text-gray-500">No subscriptions.</p>
+          <div className="rounded-xl border bg-white p-8 text-center">
+            <p className="text-sm text-gray-500">No subscriptions for this centre.</p>
+            <Link href="/admin/subscriptions" className="mt-2 inline-block text-sm text-indigo-600 hover:text-indigo-800">Create subscription →</Link>
+          </div>
         ) : (
-          <div className="overflow-x-auto rounded-lg border bg-white">
+          <div className="overflow-x-auto rounded-xl border bg-white">
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="border-b bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
-                  <th className="px-4 py-2">Plan</th>
-                  <th className="px-4 py-2">Status</th>
-                  <th className="px-4 py-2">Start</th>
-                  <th className="px-4 py-2">End</th>
+                  <th className="px-4 py-3">Plan</th>
+                  <th className="px-4 py-3">Price</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Start</th>
+                  <th className="px-4 py-3">End</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {subscriptions.map((sub: Record<string, unknown>) => {
-                  const plan = sub.plans as { name?: string; price?: number } | null;
+                {subscriptions.map((sub) => {
+                  const plan = plansMap.get(sub.plan_id as string) as { name?: string; price?: number; billing_period?: string } | undefined;
                   return (
-                    <tr key={sub.id as string}>
-                      <td className="px-4 py-2 text-gray-900">{plan?.name ?? "—"}</td>
-                      <td className="px-4 py-2">
+                    <tr key={sub.id as string} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-gray-900 font-medium">{plan?.name ?? "—"}</td>
+                      <td className="px-4 py-3 text-gray-900">
+                        {plan?.price != null ? `KES ${Number(plan.price).toLocaleString()}` : "—"}
+                        {plan?.billing_period && <span className="text-xs text-gray-400">/{plan.billing_period.toLowerCase()}</span>}
+                      </td>
+                      <td className="px-4 py-3">
                         <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                           sub.status === "active" ? "bg-green-100 text-green-700" :
                           sub.status === "trial" ? "bg-blue-100 text-blue-700" :
-                          "bg-gray-100 text-gray-600"
+                          sub.status === "expired" ? "bg-gray-100 text-gray-600" :
+                          sub.status === "suspended" ? "bg-amber-100 text-amber-700" :
+                          "bg-red-100 text-red-700"
                         }`}>
-                          {sub.status as string}
+                          {(sub.status as string)?.charAt(0).toUpperCase()}{(sub.status as string)?.slice(1)}
                         </span>
                       </td>
-                      <td className="px-4 py-2 text-gray-500">{sub.start_date ? new Date(sub.start_date as string).toLocaleDateString() : "—"}</td>
-                      <td className="px-4 py-2 text-gray-500">{sub.end_date ? new Date(sub.end_date as string).toLocaleDateString() : "—"}</td>
+                      <td className="px-4 py-3 text-gray-500">{sub.start_date ? new Date(sub.start_date as string).toLocaleDateString() : "—"}</td>
+                      <td className="px-4 py-3 text-gray-500">{sub.end_date ? new Date(sub.end_date as string).toLocaleDateString() : "—"}</td>
                     </tr>
                   );
                 })}
@@ -232,34 +274,36 @@ export default async function CentreDetailPage({
 
       {/* Recent Payments */}
       <section className="space-y-3">
-        <h2 className="text-lg font-medium text-gray-900">Recent Payments</h2>
+        <h2 className="text-lg font-semibold text-gray-900">Recent Payments</h2>
         {payments.length === 0 ? (
-          <p className="text-sm text-gray-500">No payments yet.</p>
+          <div className="rounded-xl border bg-white p-8 text-center">
+            <p className="text-sm text-gray-500">No payments yet.</p>
+          </div>
         ) : (
-          <div className="overflow-x-auto rounded-lg border bg-white">
+          <div className="overflow-x-auto rounded-xl border bg-white">
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="border-b bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
-                  <th className="px-4 py-2">Type</th>
-                  <th className="px-4 py-2">Amount</th>
-                  <th className="px-4 py-2">Purpose</th>
-                  <th className="px-4 py-2">Status</th>
-                  <th className="px-4 py-2">Date</th>
+                  <th className="px-4 py-3">Type</th>
+                  <th className="px-4 py-3">Amount</th>
+                  <th className="px-4 py-3">Purpose</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {payments.map((p: Record<string, unknown>) => (
-                  <tr key={p.id as string}>
-                    <td className="px-4 py-2">
+                {payments.map((p) => (
+                  <tr key={p.id as string} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
                       <span className={`font-medium ${p.flow_type === "CONTRIBUTION" ? "text-sky-700" : "text-indigo-700"}`}>
                         {p.flow_type as string}
                       </span>
                     </td>
-                    <td className="px-4 py-2 text-gray-900">
+                    <td className="px-4 py-3 text-gray-900 font-medium">
                       {p.currency as string} {Number(p.amount).toLocaleString()}
                     </td>
-                    <td className="px-4 py-2 text-gray-500">{(p.purpose as string) ?? "—"}</td>
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-3 text-gray-500">{(p.purpose as string) ?? "—"}</td>
+                    <td className="px-4 py-3">
                       <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                         p.status === "SUCCESSFUL" ? "bg-green-100 text-green-700" :
                         p.status === "PENDING" ? "bg-amber-100 text-amber-700" :
@@ -269,7 +313,7 @@ export default async function CentreDetailPage({
                         {p.status as string}
                       </span>
                     </td>
-                    <td className="px-4 py-2 text-xs text-gray-500">
+                    <td className="px-4 py-3 text-xs text-gray-500">
                       {new Date(p.created_at as string).toLocaleDateString("en-GB")}
                     </td>
                   </tr>
