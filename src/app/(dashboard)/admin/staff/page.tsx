@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { getUserRoleName } from "@/lib/auth/authorization.service";
+import RemoveStaffButton from "./RemoveStaffButton";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,7 @@ interface StaffRow {
   } | null;
   role: {
     name: string;
+    is_system: boolean;
   } | null;
 }
 
@@ -54,30 +56,31 @@ export default async function AdminStaffPage() {
 
   const centres = (centresData ?? []) as { id: string; name: string; code: string | null; status: string }[];
 
-  // Load all user roles with profiles and roles
+  // Load all user roles with profiles and roles (only centre roles — excludes platform admin & system roles)
   const { data: rolesData, error } = await admin
     .from("user_roles")
     .select(`
       user_id, centre_id, status,
-      profile:user_profiles!user_id (first_name, last_name, email),
-      role:roles!role_id (name)
+      role:roles!role_id (name, is_system)
     `)
     .eq("status", "active");
 
   const roleRows = (rolesData ?? []) as unknown as StaffRow[];
 
-  // Build staff members list
+  // Build staff members list (exclude platform/system roles like PLATFORM_ADMINISTRATOR)
   const staff: StaffMember[] = [];
   const seen = new Set<string>();
   for (const row of roleRows) {
+    if (row.role?.is_system) continue;
     const key = `${row.user_id}|${row.centre_id}`;
     if (seen.has(key)) continue;
     seen.add(key);
+    const profile = row.profile ?? null;
     staff.push({
       id: row.user_id,
-      first_name: row.profile?.first_name ?? "",
-      last_name: row.profile?.last_name ?? "",
-      email: row.profile?.email ?? null,
+      first_name: profile?.first_name ?? "",
+      last_name: profile?.last_name ?? "",
+      email: profile?.email ?? null,
       centre_id: row.centre_id,
       role_name: row.role?.name ?? "Unknown",
     });
@@ -164,6 +167,7 @@ export default async function AdminStaffPage() {
                           <th className="px-3 py-2">Name</th>
                           <th className="px-3 py-2">Email</th>
                           <th className="px-3 py-2">Role</th>
+                          <th className="px-3 py-2">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
@@ -177,6 +181,9 @@ export default async function AdminStaffPage() {
                               <span className="inline-block rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
                                 {m.role_name}
                               </span>
+                            </td>
+                            <td className="px-3 py-2">
+                              <RemoveStaffButton userId={m.id} centreId={m.centre_id} roleName={m.role_name} />
                             </td>
                           </tr>
                         ))}

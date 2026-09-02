@@ -63,7 +63,7 @@ export default async function AdminPage() {
       .select("id, action, entity_type, entity_id, created_at")
       .order("created_at", { ascending: false })
       .limit(8),
-    admin.from("user_roles").select("user_id, centre_id").eq("status", "active"),
+    admin.from("user_roles").select("user_id, centre_id, role:roles!role_id(name, is_system)").eq("status", "active"),
     admin.from("children").select("id").eq("status", "active"),
   ]);
 
@@ -73,9 +73,13 @@ export default async function AdminPage() {
   const totalSubs = (subsData.data ?? []).length;
   const activeSubs = (activeSubsData.data ?? []).length;
 
-  // Count unique (user, centre) assignments from active roles = total staff+managers
-  const staffRows = (staffData.data ?? []) as { user_id: string; centre_id: string }[];
-  const staffKeys = new Set(staffRows.map((r) => `${r.user_id}|${r.centre_id}`));
+  // Count unique (user, centre) assignments from active centre roles = total staff+managers
+  const staffRows = (staffData.data ?? []) as { user_id: string; centre_id: string; role?: { is_system?: boolean } | null }[];
+  const staffKeys = new Set<string>();
+  for (const r of staffRows) {
+    if (r.role?.is_system) continue; // exclude platform admin / system roles
+    staffKeys.add(`${r.user_id}|${r.centre_id}`);
+  }
   const totalStaff = staffKeys.size;
 
   const totalChildren = (childrenData.data ?? []).length;

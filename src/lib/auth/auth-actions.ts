@@ -106,6 +106,32 @@ export async function provisionUser(
     return { ok: false, error: "The selected centre is not active." };
   }
 
+  // ── Enforce: each centre may have only ONE active CENTRE_MANAGER ────────
+  if (requestedRole === "CENTRE_MANAGER") {
+    const { data: managerRole } = await admin
+      .from("roles")
+      .select("id")
+      .eq("name", "CENTRE_MANAGER")
+      .maybeSingle();
+
+    if (managerRole) {
+      const { data: existingManagers } = await admin
+        .from("user_roles")
+        .select("id")
+        .eq("centre_id", targetCentreId)
+        .eq("role_id", managerRole.id)
+        .eq("status", "active")
+        .limit(1);
+
+      if (existingManagers && existingManagers.length > 0) {
+        return {
+          ok: false,
+          error: "This centre already has a Centre Manager. Transfer or deactivate the existing manager first.",
+        };
+      }
+    }
+  }
+
   // ── Create the auth user ───────────────────────────────────────────────
   const { data: createdUser, error: createError } =
     await admin.auth.admin.createUser({
