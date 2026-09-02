@@ -63,7 +63,7 @@ export default async function AdminPage() {
       .select("id, action, entity_type, entity_id, created_at")
       .order("created_at", { ascending: false })
       .limit(8),
-    admin.from("user_profiles").select("id, centre_id").eq("status", "active"),
+    admin.from("user_roles").select("user_id, centre_id").eq("status", "active"),
     admin.from("children").select("id").eq("status", "active"),
   ]);
 
@@ -72,7 +72,12 @@ export default async function AdminPage() {
   const activeCentres = (activeCentresRes.data ?? []).length;
   const totalSubs = (subsData.data ?? []).length;
   const activeSubs = (activeSubsData.data ?? []).length;
-  const totalStaff = (staffData.data ?? []).length;
+
+  // Count unique (user, centre) assignments from active roles = total staff+managers
+  const staffRows = (staffData.data ?? []) as { user_id: string; centre_id: string }[];
+  const staffKeys = new Set(staffRows.map((r) => `${r.user_id}|${r.centre_id}`));
+  const totalStaff = staffKeys.size;
+
   const totalChildren = (childrenData.data ?? []).length;
 
   // ── Compute payment stats ──────────────────────────────────
@@ -103,10 +108,10 @@ export default async function AdminPage() {
     {
       label: "Total Staff",
       value: totalStaff,
-      sub: "across all centres",
+      sub: "managers + staff",
       icon: "👥",
       color: "bg-blue-50 text-blue-700",
-      href: "/admin/centres",
+      href: "/admin/staff",
     },
     {
       label: "Children Enrolled",
