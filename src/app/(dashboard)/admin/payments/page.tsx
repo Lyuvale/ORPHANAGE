@@ -169,8 +169,8 @@ export default async function AdminPaymentsPage() {
                     </td>
                     <td className="px-4 py-2 text-gray-700">
                       <div>{(p.contributor_name as string) ?? "—"}</div>
-                      {p.contributor_email && (
-                        <div className="text-xs text-gray-400">{p.contributor_email as string}</div>
+                      {typeof p.contributor_email === "string" && p.contributor_email && (
+                        <div className="text-xs text-gray-400">{p.contributor_email}</div>
                       )}
                     </td>
                     <td className="px-4 py-2 font-mono text-xs text-gray-500">
