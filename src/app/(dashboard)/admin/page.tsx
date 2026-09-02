@@ -34,6 +34,7 @@ export default async function AdminPage() {
     recentSubsRes,
     auditRes,
     staffData,
+    rolesData,
     childrenData,
   ] = await Promise.all([
     admin.from("centres").select("id"),
@@ -63,7 +64,8 @@ export default async function AdminPage() {
       .select("id, action, entity_type, entity_id, created_at")
       .order("created_at", { ascending: false })
       .limit(8),
-    admin.from("user_roles").select("user_id, centre_id, role:roles!role_id(name, is_system)").eq("status", "active"),
+    admin.from("user_roles").select("user_id, centre_id, role_id").eq("status", "active"),
+    admin.from("roles").select("id, name, is_system"),
     admin.from("children").select("id").eq("status", "active"),
   ]);
 
@@ -74,10 +76,14 @@ export default async function AdminPage() {
   const activeSubs = (activeSubsData.data ?? []).length;
 
   // Count unique (user, centre) assignments from active centre roles = total staff+managers
-  const staffRows = (staffData.data ?? []) as { user_id: string; centre_id: string; role?: { is_system?: boolean } | null }[];
+  const roleMap = new Map<string, { is_system?: boolean }>();
+  for (const r of (rolesData.data ?? []) as { id: string; is_system?: boolean }[]) {
+    roleMap.set(r.id, { is_system: r.is_system });
+  }
+  const staffRows = (staffData.data ?? []) as { user_id: string; centre_id: string; role_id?: string }[];
   const staffKeys = new Set<string>();
   for (const r of staffRows) {
-    if (r.role?.is_system) continue; // exclude platform admin / system roles
+    if (roleMap.get(r.role_id ?? "")?.is_system) continue; // exclude platform admin / system roles
     staffKeys.add(`${r.user_id}|${r.centre_id}`);
   }
   const totalStaff = staffKeys.size;

@@ -17,21 +17,6 @@ interface StaffMember {
   role_name: string;
 }
 
-interface StaffRow {
-  user_id: string;
-  centre_id: string;
-  status: string;
-  profile: {
-    first_name: string;
-    last_name: string;
-    email: string | null;
-  } | null;
-  role: {
-    name: string;
-    is_system: boolean;
-  } | null;
-}
-
 export default async function AdminStaffPage() {
   const supabase = (await createClient()) as never;
   let ctx;
@@ -56,33 +41,53 @@ export default async function AdminStaffPage() {
 
   const centres = (centresData ?? []) as { id: string; name: string; code: string | null; status: string }[];
 
-  // Load all user roles with profiles and roles (only centre roles — excludes platform admin & system roles)
-  const { data: rolesData, error } = await admin
+  // Load active centre roles (simple query — avoids flaky embedded joins)
+  const { data: userRolesData } = await admin
     .from("user_roles")
-    .select(`
-      user_id, centre_id, status,
-      role:roles!role_id (name, is_system)
-    `)
+    .select("user_id, centre_id, role_id")
     .eq("status", "active");
+  const userRoleRows = (userRolesData ?? []) as { user_id: string; centre_id: string; role_id?: string }[];
 
-  const roleRows = (rolesData ?? []) as unknown as StaffRow[];
+  // Load role names + is_system flag separately
+  const roleIds = [...new Set(userRoleRows.map((r) => r.role_id).filter(Boolean))] as string[];
+  const rolesMap = new Map<string, { name: string; is_system: boolean }>();
+  if (roleIds.length > 0) {
+    const { data: rolesData } = await admin.from("roles").select("id, name, is_system").in("id", roleIds);
+    for (const r of (rolesData ?? []) as { id: string; name: string; is_system: boolean }[]) {
+      rolesMap.set(r.id, { name: r.name, is_system: r.is_system });
+    }
+  }
+
+  // Load user profiles separately
+  const userIds = [...new Set(userRoleRows.map((r) => r.user_id).filter(Boolean))] as string[];
+  const profilesMap = new Map<string, { first_name: string; last_name: string; email: string | null }>();
+  if (userIds.length > 0) {
+    const { data: profilesData } = await admin
+      .from("user_profiles")
+      .select("id, first_name, last_name, email")
+      .in("id", userIds);
+    for (const p of (profilesData ?? []) as { id: string; first_name: string; last_name: string; email: string | null }[]) {
+      profilesMap.set(p.id, { first_name: p.first_name, last_name: p.last_name, email: p.email });
+    }
+  }
 
   // Build staff members list (exclude platform/system roles like PLATFORM_ADMINISTRATOR)
   const staff: StaffMember[] = [];
   const seen = new Set<string>();
-  for (const row of roleRows) {
-    if (row.role?.is_system) continue;
+  for (const row of userRoleRows) {
+    const role = rolesMap.get(row.role_id ?? "");
+    if (role?.is_system) continue;
     const key = `${row.user_id}|${row.centre_id}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    const profile = row.profile ?? null;
+    const profile = profilesMap.get(row.user_id);
     staff.push({
       id: row.user_id,
       first_name: profile?.first_name ?? "",
       last_name: profile?.last_name ?? "",
       email: profile?.email ?? null,
       centre_id: row.centre_id,
-      role_name: row.role?.name ?? "Unknown",
+      role_name: role?.name ?? "Unknown",
     });
   }
 

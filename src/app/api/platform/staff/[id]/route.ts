@@ -35,27 +35,38 @@ export async function PATCH(
 
     const admin = createAdminClient();
 
-    // Find the user_role assignment
-    const { data: roleRaw } = await admin
+    // Find the user_role assignment (simple query — avoids flaky embedded joins)
+    const { data: roleRowsRaw } = await admin
       .from("user_roles")
-      .select(`
-        id, user_id, role_id, centre_id, status,
-        role:roles!role_id (name, is_system)
-      `)
+      .select("id, user_id, role_id, centre_id, status")
       .eq("user_id", id)
       .eq("centre_id", body.centre_id)
       .limit(50);
 
-    const roles = (roleRaw ?? []) as unknown as {
+    const rows = (roleRowsRaw ?? []) as {
       id: string;
       role_id: string;
       status: string;
-      role: { name: string; is_system?: boolean } | null;
     }[];
 
-    if (roles.length === 0) {
+    if (rows.length === 0) {
       return NextResponse.json({ error: "Staff member not assigned to this centre." }, { status: 404 });
     }
+
+    // Load role details for these assignments
+    const assignedRoleIds = [...new Set(rows.map((r) => r.role_id).filter(Boolean))];
+    const rolesMap = new Map<string, { name: string; is_system: boolean }>();
+    if (assignedRoleIds.length > 0) {
+      const { data: rolesData } = await admin
+        .from("roles")
+        .select("id, name, is_system")
+        .in("id", assignedRoleIds);
+      for (const r of (rolesData ?? []) as { id: string; name: string; is_system: boolean }[]) {
+        rolesMap.set(r.id, { name: r.name, is_system: Boolean(r.is_system) });
+      }
+    }
+
+    const isManagerRole = rows.some((r) => rolesMap.get(r.role_id)?.name === "CENTRE_MANAGER");
 
     // Authorisation:
     //  - PLATFORM_ADMIN can manage any centre staff
@@ -76,22 +87,8 @@ export async function PATCH(
         return NextResponse.json({ error: "You can only manage staff in your own centre." }, { status: 403 });
       }
       // A manager cannot remove another manager
-      if (roles.some((r) => r.role?.name === "CENTRE_MANAGER")) {
+      if (isManagerRole) {
         return NextResponse.json({ error: "Managers cannot remove other managers." }, { status: 403 });
-      }
-    }
-
-    // Prevent removing the last manager from a centre (ensures one manager remains where required)
-    if (roles.some((r) => r.role?.name === "CENTRE_MANAGER")) {
-      const { data: mgrRows } = await admin
-        .from("user_roles")
-        .select("id")
-        .eq("centre_id", body.centre_id)
-        .eq("role_id", roles[0].role_id)
-        .eq("status", "active");
-      const managerCount = (mgrRows ?? []).length;
-      if (managerCount <= 1) {
-        return NextResponse.json({ error: "A centre must have at least one manager." }, { status: 409 });
       }
     }
 
