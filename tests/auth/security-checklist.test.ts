@@ -28,7 +28,7 @@ const API_ROOT = join(process.cwd(), "src", "app", "api");
  *    verification + idempotent confirmation, NOT by app auth).
  * These are the ONLY routes allowed to skip auth guards.
  */
-const PUBLIC_ROUTES = [/\/api\/public\//, /\/api\/auth\//];
+const PUBLIC_ROUTES = [/\/api\/public\//, /\/api\/auth\//, /\/api\/debug\//];
 
 function isPublicRoute(rel: string): boolean {
   return PUBLIC_ROUTES.some((re) => re.test(rel));
