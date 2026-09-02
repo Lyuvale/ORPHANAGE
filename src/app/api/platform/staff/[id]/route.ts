@@ -107,9 +107,8 @@ export async function PATCH(
         .maybeSingle();
 
       if (profile) {
-        // 1. Remove any caregiver -> child assignments (RESTRICT FK)
-        const { error: cgError } = await admin.from("child_caregivers").delete().eq("caregiver_id", id);
-        if (cgError) return NextResponse.json({ error: cgError.message }, { status: 500 });
+        // 1. Remove any caregiver -> child assignments (RESTRICT FK); table may not exist yet
+        await admin.from("child_caregivers").delete().eq("caregiver_id", id);
         // 2. Delete the profile (cascades user_roles, role_history, notifications, etc.)
         const { error: profileError } = await admin.from("user_profiles").delete().eq("id", id);
         if (profileError) return NextResponse.json({ error: profileError.message }, { status: 500 });
