@@ -89,7 +89,6 @@ const CENTRE_CHILD_TABLES = [
   "payment_transactions",
   "centre_online_contributions",
   "notifications",
-  "notification_preferences",
   "audit_logs",
   "role_history",
   "user_roles",
@@ -144,12 +143,12 @@ export async function POST(request: NextRequest) {
     // deletion is tolerated; real errors abort.
     for (const table of CENTRE_CHILD_TABLES) {
       const { error } = await admin.from(table as never).delete().eq("centre_id", body.centre_id);
-      if (
-        error &&
-        !/PGRST205|42703|42P01|PGRST106|schema cache|Could not find the table|Could not find the .* column/i.test(
-          error.message ?? "",
-        )
-      ) {
+      const isTolerable =
+        !error ||
+        /PGRST205|PGRST106|42703|42P01|schema cache|Could not find/i.test(
+          `${error.message ?? ""} ${error.code ?? ""}`,
+        );
+      if (!isTolerable) {
         return NextResponse.json({ error: `Failed to clean ${table}: ${error.message}` }, { status: 500 });
       }
     }
