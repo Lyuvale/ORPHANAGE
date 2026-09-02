@@ -37,7 +37,7 @@ export default async function AdminPage() {
     rolesData,
     childrenData,
   ] = await Promise.all([
-    admin.from("centres").select("id"),
+    admin.from("centres").select("id").eq("status", "active"),
     admin.from("centres").select("id").eq("status", "active"),
     admin.from("subscriptions").select("id, status"),
     admin.from("subscriptions").select("id").eq("status", "active"),
@@ -64,24 +64,37 @@ export default async function AdminPage() {
       .select("id, action, entity_type, entity_id, created_at")
       .order("created_at", { ascending: false })
       .limit(8),
-    admin.from("user_roles").select("user_id, centre_id, role_id").eq("status", "active"),
+    admin.from("user_roles").select("user_id, centre_id, role_id, status"),
     admin.from("roles").select("id, name"),
     admin.from("children").select("id").eq("status", "active"),
   ]);
 
   // ── Compute counts from fetched data ──────────────────────
-  const totalCentres = (centresRes.data ?? []).length;
-  const activeCentres = (activeCentresRes.data ?? []).length;
-  const totalSubs = (subsData.data ?? []).length;
-  const activeSubs = (activeSubsData.data ?? []).length;
-
-  // Count unique (user, centre) assignments from active centre roles = total staff+managers.
-  // Exclude the PLATFORM_ADMINISTRATOR role by NAME (the is_system flag is true for ALL roles).
   const roleNameById = new Map<string, string>();
   for (const r of (rolesData.data ?? []) as { id: string; name: string }[]) {
     roleNameById.set(r.id, r.name);
   }
   const staffRows = (staffData.data ?? []) as { user_id: string; centre_id: string; role_id?: string }[];
+
+  // A centre hosting the PLATFORM_ADMINISTRATOR role is the system/platform record
+  // (e.g. "Platform Administration") — never counted as a real centre.
+  const platformCentreIds = new Set<string>();
+  for (const r of staffRows) {
+    if (roleNameById.get(r.role_id ?? "") === "PLATFORM_ADMINISTRATOR" && r.centre_id) {
+      platformCentreIds.add(r.centre_id);
+    }
+  }
+
+  // Total Centres counts ACTIVE centres only, excluding the platform admin centre
+  // (matches the centres list page).
+  const totalCentres = (centresRes.data ?? []).filter((c) => !platformCentreIds.has((c as { id: string }).id)).length;
+  const activeCentres = (activeCentresRes.data ?? []).filter((c) => !platformCentreIds.has((c as { id: string }).id)).length;
+  const totalSubs = (subsData.data ?? []).length;
+  const activeSubs = (activeSubsData.data ?? []).length;
+
+  // Total Staff counts unique (user, centre) assignments across ALL role statuses
+  // (active + revoked), matching the staff page. Exclude the PLATFORM_ADMINISTRATOR
+  // role by NAME (the is_system flag is true for ALL roles).
   const staffKeys = new Set<string>();
   for (const r of staffRows) {
     if (roleNameById.get(r.role_id ?? "") === "PLATFORM_ADMINISTRATOR") continue; // never count platform admin
@@ -111,7 +124,7 @@ export default async function AdminPage() {
     {
       label: "Total Centres",
       value: totalCentres,
-      sub: `${activeCentres} active`,
+      sub: "active centres",
       icon: "🏛",
       color: "bg-indigo-50 text-indigo-700",
       href: "/admin/centres",
@@ -119,7 +132,7 @@ export default async function AdminPage() {
     {
       label: "Total Staff",
       value: totalStaff,
-      sub: "managers + staff",
+      sub: "managers + staff (incl. revoked)",
       icon: "👥",
       color: "bg-blue-50 text-blue-700",
       href: "/admin/staff",
@@ -165,8 +178,10 @@ export default async function AdminPage() {
   ];
   const maxRevenue = Math.max(contributionTotal + subscriptionTotal, 1);
 
-  // ── Recent centres ─────────────────────────────────────────
-  const recentCentres = (recentCentresRes.data ?? []) as Record<string, unknown>[];
+  // ── Recent centres (exclude the platform admin centre) ────
+  const recentCentres = ((recentCentresRes.data ?? []) as Record<string, unknown>[]).filter(
+    (c) => !platformCentreIds.has(c.id as string),
+  );
 
   // ── Recent subscriptions ───────────────────────────────────
   const recentSubs = (recentSubsRes.data ?? []) as Record<string, unknown>[];

@@ -17,13 +17,29 @@ interface CentreRecord {
 async function loadCentres(): Promise<CentreRecord[]> {
   try {
     const admin = createAdminClient();
-    const { data, error } = await admin
-      .from("centres")
-      .select("id, name, code, status, created_at")
-      .eq("status", "active")
-      .order("created_at", { ascending: true });
+    const [{ data, error }, { data: rolesData }, { data: userRolesData }] = await Promise.all([
+      admin
+        .from("centres")
+        .select("id, name, code, status, created_at")
+        .eq("status", "active")
+        .order("created_at", { ascending: true }),
+      admin.from("roles").select("id, name"),
+      admin.from("user_roles").select("centre_id, role_id"),
+    ]);
     if (error) return [];
-    return (data ?? []) as CentreRecord[];
+
+    // Identify the system/platform centre (hosts the PLATFORM_ADMINISTRATOR role)
+    // and hide it from the real-centre list.
+    const roleNameById = new Map<string, string>();
+    for (const r of (rolesData ?? []) as { id: string; name: string }[]) roleNameById.set(r.id, r.name);
+    const platformCentreIds = new Set<string>();
+    for (const r of (userRolesData ?? []) as { centre_id: string; role_id: string }[]) {
+      if (roleNameById.get(r.role_id ?? "") === "PLATFORM_ADMINISTRATOR" && r.centre_id) {
+        platformCentreIds.add(r.centre_id);
+      }
+    }
+
+    return ((data ?? []) as CentreRecord[]).filter((c) => !platformCentreIds.has(c.id));
   } catch {
     return [];
   }
