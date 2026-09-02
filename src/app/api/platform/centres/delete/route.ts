@@ -61,7 +61,6 @@ const CENTRE_CHILD_TABLES = [
   "staff_qualifications",
   "staff_training",
   "staff_assignments",
-  "staff_history",
   "staff_profiles",
   "support_asset_costs",
   "support_asset_history",
@@ -130,12 +129,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // staff_history has no centre_id column — delete via this centre's staff_profiles
+    const { data: staffProfileRows } = await admin
+      .from("staff_profiles")
+      .select("id")
+      .eq("centre_id", body.centre_id);
+    const staffIds = ((staffProfileRows ?? []) as { id: string }[]).map((r) => r.id);
+    if (staffIds.length > 0) {
+      await admin.from("staff_history").delete().in("staff_id", staffIds);
+    }
+
     // 1. Remove all centre-scoped data across the child tables.
-    // A missing relation (table not migrated yet) or missing column is tolerated;
-    // real errors abort.
+    // A missing relation (table not migrated yet), missing column, or empty
+    // deletion is tolerated; real errors abort.
     for (const table of CENTRE_CHILD_TABLES) {
       const { error } = await admin.from(table as never).delete().eq("centre_id", body.centre_id);
-      if (error && !/PGRST205|42703|42P01|PGRST106|schema cache|Could not find the table/i.test(error.message ?? "")) {
+      if (
+        error &&
+        !/PGRST205|42703|42P01|PGRST106|schema cache|Could not find the table|Could not find the .* column/i.test(
+          error.message ?? "",
+        )
+      ) {
         return NextResponse.json({ error: `Failed to clean ${table}: ${error.message}` }, { status: 500 });
       }
     }
