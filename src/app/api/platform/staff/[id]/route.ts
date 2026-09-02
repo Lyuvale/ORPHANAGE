@@ -55,14 +55,14 @@ export async function PATCH(
 
     // Load role details for these assignments
     const assignedRoleIds = [...new Set(rows.map((r) => r.role_id).filter(Boolean))];
-    const rolesMap = new Map<string, { name: string; is_system: boolean }>();
+    const rolesMap = new Map<string, { name: string }>();
     if (assignedRoleIds.length > 0) {
       const { data: rolesData } = await admin
         .from("roles")
-        .select("id, name, is_system")
+        .select("id, name")
         .in("id", assignedRoleIds);
-      for (const r of (rolesData ?? []) as { id: string; name: string; is_system: boolean }[]) {
-        rolesMap.set(r.id, { name: r.name, is_system: Boolean(r.is_system) });
+      for (const r of (rolesData ?? []) as { id: string; name: string }[]) {
+        rolesMap.set(r.id, { name: r.name });
       }
     }
 

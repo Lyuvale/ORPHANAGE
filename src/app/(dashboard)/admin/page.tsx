@@ -65,7 +65,7 @@ export default async function AdminPage() {
       .order("created_at", { ascending: false })
       .limit(8),
     admin.from("user_roles").select("user_id, centre_id, role_id").eq("status", "active"),
-    admin.from("roles").select("id, name, is_system"),
+    admin.from("roles").select("id, name"),
     admin.from("children").select("id").eq("status", "active"),
   ]);
 
@@ -75,15 +75,16 @@ export default async function AdminPage() {
   const totalSubs = (subsData.data ?? []).length;
   const activeSubs = (activeSubsData.data ?? []).length;
 
-  // Count unique (user, centre) assignments from active centre roles = total staff+managers
-  const roleMap = new Map<string, { is_system?: boolean }>();
-  for (const r of (rolesData.data ?? []) as { id: string; is_system?: boolean }[]) {
-    roleMap.set(r.id, { is_system: r.is_system });
+  // Count unique (user, centre) assignments from active centre roles = total staff+managers.
+  // Exclude the PLATFORM_ADMINISTRATOR role by NAME (the is_system flag is true for ALL roles).
+  const roleNameById = new Map<string, string>();
+  for (const r of (rolesData.data ?? []) as { id: string; name: string }[]) {
+    roleNameById.set(r.id, r.name);
   }
   const staffRows = (staffData.data ?? []) as { user_id: string; centre_id: string; role_id?: string }[];
   const staffKeys = new Set<string>();
   for (const r of staffRows) {
-    if (roleMap.get(r.role_id ?? "")?.is_system) continue; // exclude platform admin / system roles
+    if (roleNameById.get(r.role_id ?? "") === "PLATFORM_ADMINISTRATOR") continue; // never count platform admin
     staffKeys.add(`${r.user_id}|${r.centre_id}`);
   }
   const totalStaff = staffKeys.size;

@@ -50,21 +50,21 @@ export async function POST(request: NextRequest) {
       .eq("centre_id", body.centre_id)
       .eq("status", "active");
 
-    // Build role_id -> is_system map
+    // Build role_id -> role name map (use NAME, not is_system — all roles are is_system=true)
     const roleIds = [...new Set((activeRoles ?? []).map((r) => r.role_id).filter(Boolean))] as string[];
-    const roleIsSystem = new Map<string, boolean>();
+    const roleNameById = new Map<string, string>();
     if (roleIds.length > 0) {
-      const { data: rolesData } = await admin.from("roles").select("id, is_system").in("id", roleIds);
-      for (const r of (rolesData ?? []) as { id: string; is_system: boolean }[]) {
-        roleIsSystem.set(r.id, Boolean(r.is_system));
+      const { data: rolesData } = await admin.from("roles").select("id, name").in("id", roleIds);
+      for (const r of (rolesData ?? []) as { id: string; name: string }[]) {
+        roleNameById.set(r.id, r.name);
       }
     }
 
-    // Separate centre roles to revoke (non-system) and users to potentially deactivate
-    const toRevoke = (activeRoles ?? []).filter((r) => !roleIsSystem.get(r.role_id)).map((r) => r.id);
-    const candidates = (activeRoles ?? []).filter((r) => !roleIsSystem.get(r.role_id)).map((r) => r.user_id);
+    // Revoke all roles in this centre EXCEPT the PLATFORM_ADMINISTRATOR (system admin)
+    const toRevoke = (activeRoles ?? []).filter((r) => roleNameById.get(r.role_id) !== "PLATFORM_ADMINISTRATOR").map((r) => r.id);
+    const candidates = (activeRoles ?? []).filter((r) => roleNameById.get(r.role_id) !== "PLATFORM_ADMINISTRATOR").map((r) => r.user_id);
 
-    // Revoke the centre's non-system roles
+    // Revoke the centre's staff/manager roles
     if (toRevoke.length > 0) {
       const { error } = await admin
         .from("user_roles")
@@ -73,18 +73,26 @@ export async function POST(request: NextRequest) {
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // A user is only deactivated if they hold no active system/platform role anywhere.
+    // A user is only deactivated if they hold no active PLATFORM_ADMINISTRATOR role anywhere.
     if (candidates.length > 0) {
       const uniqueCandidates = [...new Set(candidates)];
       const { data: allActiveRoles } = await admin
         .from("user_roles")
         .select("user_id, role_id")
         .eq("status", "active");
-      const remainingSystemUserIds = new Set<string>();
-      for (const r of (allActiveRoles ?? []) as { user_id: string; role_id: string }[]) {
-        if (roleIsSystem.get(r.role_id) === true) remainingSystemUserIds.add(r.user_id);
+      const platformAdminRoleIds = new Set<string>();
+      if (roleIds.length > 0) {
+        const { data: platformRoles } = await admin
+          .from("roles")
+          .select("id")
+          .eq("name", "PLATFORM_ADMINISTRATOR");
+        for (const r of (platformRoles ?? []) as { id: string }[]) platformAdminRoleIds.add(r.id);
       }
-      const deactivate = uniqueCandidates.filter((u) => !remainingSystemUserIds.has(u));
+      const isPlatformAdmin = new Set<string>();
+      for (const r of (allActiveRoles ?? []) as { user_id: string; role_id: string }[]) {
+        if (platformAdminRoleIds.has(r.role_id)) isPlatformAdmin.add(r.user_id);
+      }
+      const deactivate = uniqueCandidates.filter((u) => !isPlatformAdmin.has(u));
       if (deactivate.length > 0) {
         const { error } = await admin
           .from("user_profiles")
