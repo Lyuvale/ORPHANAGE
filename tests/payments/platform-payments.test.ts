@@ -156,38 +156,47 @@ describe("Payment Provider abstraction", () => {
   });
 });
 
-describe("Public routes & security", () => {
+describe("Centre-submitted payment flow & security", () => {
   const publicCentres = readFileSync(
     join(process.cwd(), "src/app/api/public/centres/route.ts"),
     "utf-8",
   );
-  const publicContributions = readFileSync(
-    join(process.cwd(), "src/app/api/public/contributions/route.ts"),
+  const submitPay = readFileSync(
+    join(process.cwd(), "src/app/api/subscriptions/pay-request/route.ts"),
     "utf-8",
   );
-  const webhook = readFileSync(
-    join(process.cwd(), "src/app/api/public/payments/webhook/route.ts"),
+  const submitPayments = readFileSync(
+    join(process.cwd(), "src/app/api/subscriptions/payments/route.ts"),
     "utf-8",
   );
-  const subPay = readFileSync(
-    join(process.cwd(), "src/app/api/subscriptions/pay/route.ts"),
+  const review = readFileSync(
+    join(process.cwd(), "src/app/api/platform/payments/update/route.ts"),
     "utf-8",
   );
 
-  it("public contribution pages do not store card data or secrets", () => {
+  it("public centre pages do not store card data or secrets", () => {
     expect(publicCentres).not.toMatch(/card_number/i);
-    expect(publicContributions).not.toMatch(/cvv|cvc|card_number/i);
-    expect(webhook).not.toMatch(/card_number|cvv|cvc/i);
+    expect(publicCentres).not.toMatch(/cvv|cvc|card_number/i);
   });
 
-  it("the public webhook verifies the signature server-side", () => {
-    expect(webhook).toContain("verifyWebhookSignature");
-    expect(webhook).toContain("rawBody");
+  it("the centre payment-submission route stays authenticated + permission gated", () => {
+    expect(submitPay).toContain("requireAppAccess");
+    expect(submitPay).toContain("requirePermission");
+    expect(submitPay).toContain("subscriptions.manage");
+    expect(submitPay).toContain("ctx.centre.id");
   });
 
-  it("the subscription payment route stays authenticated + permission gated", () => {
-    expect(subPay).toContain("requireAppAccess");
-    expect(subPay).toContain("requirePermission");
-    expect(subPay).toContain("subscriptions.manage");
+  it("the centre payment-history route is tenant-scoped to the own centre", () => {
+    expect(submitPayments).toContain("requireAppAccess");
+    expect(submitPayments).toContain("requirePermission");
+    expect(submitPayments).toContain("subscriptions.manage");
+    expect(submitPayments).toContain("ctx.centre.id");
+  });
+
+  it("the review route is platform-gated and auto-selects a plan on approval", () => {
+    expect(review).toContain("requirePermission");
+    expect(review).toContain("platform.payments");
+    expect(review).toContain("SUCCESSFUL");
+    expect(review).toContain("review_feedback");
   });
 });

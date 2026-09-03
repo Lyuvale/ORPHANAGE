@@ -5,6 +5,7 @@ import { can, getUserRoleName } from "@/lib/auth/authorization.service";
 import SubscriptionAdminClient, {
   type SubscriptionAdminData,
 } from "./SubscriptionAdminClient";
+import SubmitPaymentClient from "./SubmitPaymentClient";
 import { serverFetch } from "@/lib/server-fetch";
 
 // Platform Administration for subscriptions and plans.
@@ -54,8 +55,19 @@ export default async function SubscriptionsPage() {
 
   const { subscriptions, plans, centres } = await loadAdminData();
 
+  // Active plans for the centre's payment submission form.
+  const activePlans = plans
+    .filter((p: SubscriptionAdminData["plans"][number]) => p.is_active)
+    .map((p: SubscriptionAdminData["plans"][number]) => ({
+      id: p.id,
+      name: p.name,
+      price: p.price,
+      billing_period: p.billing_period,
+    }));
+
   return (
-    <div>
+    <div className="space-y-8">
+      <SubmitPaymentClient plans={activePlans} />
       <SubscriptionAdminClient
         subscriptions={subscriptions}
         plans={plans}

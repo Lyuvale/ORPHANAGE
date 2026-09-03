@@ -5,7 +5,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { getUserRoleName } from "@/lib/auth/authorization.service";
 import PaymentActions from "./PaymentActions";
-import RecordPaymentButton from "./RecordPaymentButton";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +35,7 @@ export default async function AdminPaymentsPage() {
   const { data: payments, error } = await admin
     .from("payment_transactions")
     .select(
-      "id, centre_id, flow_type, purpose, amount, currency, status, provider_reference, contributor_name, contributor_email, subscription_id, created_at",
+      "id, centre_id, flow_type, purpose, amount, currency, status, provider_reference, subscription_id, plan_id, review_feedback, created_at, reviewed_at",
     )
     .order("created_at", { ascending: false })
     .limit(200);
@@ -53,18 +52,15 @@ export default async function AdminPaymentsPage() {
     (centresData ?? []).map((c: Record<string, unknown>) => [c.id, c]),
   );
 
-  // Load all active centres for the Record Payment selector (exclude platform centre)
-  const { data: centresList } = await admin
-    .from("centres")
-    .select("id, name, code, status")
-    .eq("status", "active")
-    .neq("code", "PLT-SYS")
-    .order("name", { ascending: true });
-  const centreOptions = (centresList ?? []).map((c: Record<string, unknown>) => ({
-    id: c.id as string,
-    name: c.name as string,
-    code: c.code as string,
-  }));
+  // Load plan names for the submitted plan and the auto-selected plan.
+  const planIds = [...new Set(allPayments.map((p) => p.plan_id).filter(Boolean))] as string[];
+  const { data: plansData } = await admin
+    .from("plans")
+    .select("id, name, price")
+    .in("id", planIds.length > 0 ? planIds : ["00000000-0000-0000-0000-000000000000"]);
+  const plansMap = new Map(
+    (plansData ?? []).map((c: Record<string, unknown>) => [c.id, c]),
+  );
 
   // Stats
   const totalAmount = allPayments.reduce((sum, p) => sum + Number(p.amount ?? 0), 0);
@@ -77,10 +73,10 @@ export default async function AdminPaymentsPage() {
 
   const stats = [
     { label: "Total Transactions", value: allPayments.length, color: "text-gray-900" },
-    { label: "Total Amount", value: `TZS ${totalAmount.toLocaleString()}`, color: "text-gray-900" },
-    { label: "Successful", value: successfulPayments.length, sub: `TZS ${successfulAmount.toLocaleString()}`, color: "text-green-700" },
-    { label: "Pending", value: pendingPayments.length, color: "text-amber-700" },
-    { label: "Failed", value: failedPayments.length, color: "text-red-700" },
+    { label: "Total Amount", value: `KES ${totalAmount.toLocaleString()}`, color: "text-gray-900" },
+    { label: "Approved", value: successfulPayments.length, sub: `KES ${successfulAmount.toLocaleString()}`, color: "text-green-700" },
+    { label: "Pending Review", value: pendingPayments.length, color: "text-amber-700" },
+    { label: "Rejected", value: failedPayments.length, color: "text-red-700" },
     { label: "Contributions", value: contributionPayments.length, color: "text-sky-700" },
     { label: "Subscriptions", value: subscriptionPayments.length, color: "text-indigo-700" },
   ];
@@ -100,15 +96,12 @@ export default async function AdminPaymentsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-gray-900">Platform Payments</h1>
-        <div className="flex items-center gap-2">
-          <RecordPaymentButton centres={centreOptions} />
-          <Link
-            href="/admin"
-            className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Back to Admin
-          </Link>
-        </div>
+        <Link
+          href="/admin"
+          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+          Back to Admin
+        </Link>
       </div>
 
       <nav className="flex flex-wrap gap-2">
@@ -132,18 +125,21 @@ export default async function AdminPaymentsPage() {
       {/* How Payments Work */}
       <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4">
         <h3 className="text-sm font-semibold text-indigo-900">How Payments Work</h3>
-        <div className="mt-2 grid grid-cols-1 gap-3 text-xs text-indigo-800 sm:grid-cols-2">
-          <div>
-            <p className="font-medium text-sky-800">CONTRIBUTION (Donations)</p>
-            <p>Money donated by supporters for specific purposes (food, education, etc). Tracked per centre with purpose and source.</p>
-          </div>
-          <div>
-            <p className="font-medium text-indigo-800">SUBSCRIPTION (Plan Payments)</p>
-            <p>Recurring fees paid by centres for using the platform. Tied to subscription plans (Monthly, Quarterly, Yearly).</p>
-          </div>
+        <div className="mt-2 text-xs text-indigo-800">
+          <p>
+            <strong>Centre submits:</strong> a centre chooses a plan, enters the amount paid and the
+            transaction reference from its subscriptions page. The request arrives here as{" "}
+            <strong>PENDING</strong>.
+          </p>
+          <p className="mt-1">
+            <strong>You review:</strong> Approve to accept the payment - the system auto-selects the
+            best-fitting plan for the confirmed amount and activates the centre&apos;s subscription. Reject to
+            return it, optionally with a feedback reason the centre can see.
+          </p>
         </div>
         <div className="mt-2 text-xs text-indigo-700">
-          <strong>Status:</strong> PENDING = awaiting confirmation · SUCCESSFUL = verified and recorded · FAILED = payment did not complete · REFUNDED = money returned
+          <strong>Status:</strong> PENDING = awaiting review · SUCCESSFUL = approved (subscription active)
+          · FAILED = rejected · CANCELLED · REFUNDED
         </div>
       </div>
 
@@ -157,11 +153,11 @@ export default async function AdminPaymentsPage() {
                 <tr className="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
                 <th className="px-4 py-3">Flow</th>
                 <th className="px-4 py-3">Centre</th>
-                <th className="px-4 py-3">Purpose</th>
+                <th className="px-4 py-3">Plan</th>
                 <th className="px-4 py-3">Amount</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Contributor</th>
                 <th className="px-4 py-3">Reference</th>
+                <th className="px-4 py-3">Feedback</th>
                 <th className="px-4 py-3">Date</th>
                 <th className="px-4 py-3">Actions</th>
               </tr>
@@ -169,6 +165,7 @@ export default async function AdminPaymentsPage() {
             <tbody className="divide-y divide-gray-100">
               {allPayments.map((p) => {
                 const centre = centresMap.get(p.centre_id as string) as Record<string, unknown> | undefined;
+                const plan = plansMap.get(p.plan_id as string) as Record<string, unknown> | undefined;
                 return (
                   <tr key={p.id as string} className="hover:bg-gray-50">
                     <td className="px-4 py-2">
@@ -191,7 +188,7 @@ export default async function AdminPaymentsPage() {
                         <span className="text-gray-400 text-xs">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-2 text-gray-800">{(p.purpose as string) ?? "—"}</td>
+                    <td className="px-4 py-2 text-gray-800">{(plan?.name as string) ?? "—"}</td>
                     <td className="px-4 py-2 text-gray-800 font-medium">
                       {p.currency as string} {Number(p.amount).toLocaleString()}
                     </td>
@@ -201,17 +198,14 @@ export default async function AdminPaymentsPage() {
                           STATUS_STYLES[p.status as string] ?? "bg-gray-100 text-gray-600"
                         }`}
                       >
-                        {p.status as string}
+                        {p.status === "SUCCESSFUL" ? "APPROVED" : p.status === "FAILED" ? "REJECTED" : (p.status as string)}
                       </span>
-                    </td>
-                    <td className="px-4 py-2 text-gray-700">
-                      <div>{(p.contributor_name as string) ?? "—"}</div>
-                      {typeof p.contributor_email === "string" && p.contributor_email && (
-                        <div className="text-xs text-gray-400">{p.contributor_email}</div>
-                      )}
                     </td>
                     <td className="px-4 py-2 font-mono text-xs text-gray-500">
                       {p.provider_reference as string}
+                    </td>
+                    <td className="px-4 py-2 text-xs text-gray-600">
+                      {(p.review_feedback as string) ?? "—"}
                     </td>
                     <td className="px-4 py-2 text-xs text-gray-500">
                       {new Date(p.created_at as string).toLocaleDateString("en-GB")}
