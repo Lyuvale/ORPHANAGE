@@ -73,6 +73,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Selected plan is not available." }, { status: 400 });
     }
 
+    // The submitted amount must EXACTLY match the chosen plan's price — a
+    // centre may not pay less or more than the advertised price.
+    const planPrice = Number(plan.price);
+    if (Math.round(amount * 100) !== Math.round(planPrice * 100)) {
+      return NextResponse.json(
+        {
+          error: `Amount must exactly match the ${plan.name} plan price (TZS ${planPrice.toLocaleString()}).`,
+        },
+        { status: 400 },
+      );
+    }
+
     // Ensure this centre has a subscription to pay toward.
     const subscription = await getCurrentSubscription(admin, ctx.centre.id);
     if (!subscription) {
