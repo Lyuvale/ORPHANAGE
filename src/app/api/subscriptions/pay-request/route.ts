@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { getUserRoleName } from "@/lib/auth/authorization.service";
 import {
+  createSubscription,
   getCurrentSubscription,
   getPlanById,
 } from "@/lib/subscriptions/subscription.service";
@@ -85,13 +86,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Ensure this centre has a subscription to pay toward.
-    const subscription = await getCurrentSubscription(admin, ctx.centre.id);
-    if (!subscription) {
-      return NextResponse.json(
-        { error: "No subscription found for this centre." },
-        { status: 404 },
-      );
+    // Ensure this centre has a subscription to pay toward. A brand-new centre may
+    // not have a subscription row yet — auto-create one (suspended / payment
+    // pending) so the payment can be linked and the platform admin can activate
+    // it once approved. Subsequent submissions reuse the existing row.
+    const existingSubscription = await getCurrentSubscription(admin, ctx.centre.id);
+    let subscriptionId: string | null = existingSubscription?.id ?? null;
+    if (!subscriptionId) {
+      try {
+        const created = await createSubscription(
+          admin,
+          {
+            centreId: ctx.centre.id,
+            planId: plan.id,
+            status: "suspended",
+            paymentStatus: "pending",
+            paymentProvider: "MOCK",
+            paymentReference: reference,
+          },
+          {
+            actorUserId: ctx.authUserId,
+            reason: "Auto-created on first payment submission (pending admin approval).",
+          },
+        );
+        subscriptionId = created.id;
+      } catch {
+        return NextResponse.json(
+          { error: "Failed to prepare subscription for payment." },
+          { status: 500 },
+        );
+      }
     }
 
     const { data, error } = await admin
@@ -105,7 +129,7 @@ export async function POST(request: NextRequest) {
         provider: "MOCK",
         provider_reference: reference,
         status: "PENDING",
-        subscription_id: subscription.id,
+        subscription_id: subscriptionId,
         plan_id: plan.id,
         metadata: { notes: body.notes ?? null, submitted_plan: plan.name },
         created_by: ctx.authUserId,

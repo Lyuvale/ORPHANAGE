@@ -186,6 +186,22 @@ describe("Centre-submitted payment flow & security", () => {
     expect(submitPay).toContain("ctx.centre.id");
   });
 
+  it("the submission route allows inactive subscriptions (pay to activate)", () => {
+    expect(submitPay).toContain("allowInactiveSubscription");
+    expect(submitPayments).toContain("allowInactiveSubscription");
+  });
+
+  it("the submission route rejects amounts that do not match the plan price", () => {
+    expect(submitPay).toContain("Amount must exactly match");
+    expect(submitPay).toContain("planPrice");
+  });
+
+  it("the submission route auto-creates a suspended subscription for a new centre", () => {
+    expect(submitPay).toContain("createSubscription");
+    expect(submitPay).toContain("suspended");
+    expect(submitPay).not.toContain("No subscription found for this centre");
+  });
+
   it("the centre payment-history route is tenant-scoped to the own centre", () => {
     expect(submitPayments).toContain("requireAppAccess");
     expect(submitPayments).toContain("getUserRoleName");
