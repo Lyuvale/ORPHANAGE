@@ -24,7 +24,12 @@ function statusFromError(message: string): number {
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
-    await requireAppAccess(supabase as unknown as SupabaseClient);
+    // Allow a centre without an active subscription to browse plans so it can
+    // pick one and submit a payment request. (The submit endpoint uses the same
+    // option; a fresh centre has SUBSCRIPTION_INACTIVE by default.)
+    await requireAppAccess(supabase as unknown as SupabaseClient, {
+      allowInactiveSubscription: true,
+    });
 
     const includeInactive = request.nextUrl.searchParams.get("include_inactive") === "true";
     const admin = createAdminClient();
