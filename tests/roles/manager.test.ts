@@ -120,3 +120,36 @@ describe("Manager dashboard", () => {
     }
   });
 });
+
+describe("Manager approvals inbox (Approve / Reject visible)", () => {
+  const page = src("src/app/(dashboard)/approvals/page.tsx");
+  const client = src("src/app/(dashboard)/approvals/ApprovalsClient.tsx");
+  const layout = src("src/app/(dashboard)/layout.tsx");
+
+  it("gates the inbox on approval permissions", () => {
+    for (const perm of [
+      "referrals.review",
+      "referrals.reject",
+      "visits.approve",
+      "visits.reject",
+      "admissions.review",
+      "resources.approve",
+    ]) {
+      expect(page).toContain(perm);
+    }
+  });
+
+  it("shows Approve and Reject buttons wired to the review endpoints", () => {
+    expect(client).toContain("Approve");
+    expect(client).toContain("Reject");
+    expect(client).toContain("/api/referrals/");
+    expect(client).toContain("/api/visits/");
+    expect(client).toContain("/api/admissions/");
+    expect(client).toContain("/approval");
+  });
+
+  it("exposes an Approvals menu entry to approvers", () => {
+    expect(layout).toContain('href="/approvals"');
+    expect(layout).toContain("canApprove");
+  });
+});
