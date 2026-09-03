@@ -3,22 +3,27 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
-import { requirePermission } from "@/lib/auth/authorization.service";
+import { getUserRoleName } from "@/lib/auth/authorization.service";
 
 /**
  * GET /api/subscriptions/payments
  *
- * AUTHENTICATED CENTRE: list this centre's OWN submitted payment requests and
- * their review status (PENDING / SUCCESSFUL / FAILED / CANCELLED / REFUNDED)
+ * AUTHENTICATED CENTRE MANAGER: list this centre's OWN submitted payment requests
+ * and their review status (PENDING / SUCCESSFUL / FAILED / CANCELLED / REFUNDED)
  * plus any review feedback. Tenant-scoped to ctx.centre.id.
  *
- * SECURITY: gated by requireAppAccess + permissions ({subscriptions.manage}).
+ * SECURITY: gated by requireAppAccess + CENTRE_MANAGER role and scoped to the
+ * caller's own centre.
  */
 export async function GET() {
   try {
     const supabase = await createClient();
     const ctx = await requireAppAccess(supabase as unknown as SupabaseClient);
-    await requirePermission(supabase as unknown as SupabaseClient, ctx, "subscriptions.manage");
+
+    const roleName = await getUserRoleName(supabase as unknown as SupabaseClient, ctx);
+    if (roleName !== "CENTRE_MANAGER") {
+      return NextResponse.json({ error: "Access denied." }, { status: 403 });
+    }
 
     const admin = createAdminClient();
 

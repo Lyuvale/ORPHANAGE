@@ -179,17 +179,17 @@ describe("Centre-submitted payment flow & security", () => {
     expect(publicCentres).not.toMatch(/cvv|cvc|card_number/i);
   });
 
-  it("the centre payment-submission route stays authenticated + permission gated", () => {
+  it("the centre payment-submission route stays authenticated + role gated", () => {
     expect(submitPay).toContain("requireAppAccess");
-    expect(submitPay).toContain("requirePermission");
-    expect(submitPay).toContain("subscriptions.manage");
+    expect(submitPay).toContain("getUserRoleName");
+    expect(submitPay).toContain("CENTRE_MANAGER");
     expect(submitPay).toContain("ctx.centre.id");
   });
 
   it("the centre payment-history route is tenant-scoped to the own centre", () => {
     expect(submitPayments).toContain("requireAppAccess");
-    expect(submitPayments).toContain("requirePermission");
-    expect(submitPayments).toContain("subscriptions.manage");
+    expect(submitPayments).toContain("getUserRoleName");
+    expect(submitPayments).toContain("CENTRE_MANAGER");
     expect(submitPayments).toContain("ctx.centre.id");
   });
 

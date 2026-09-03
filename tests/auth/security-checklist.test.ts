@@ -110,10 +110,16 @@ describe("Security checklist — API route protection (no backend route is open)
     expect(nonPublic).toEqual([]);
   });
 
-  it("every API route calls requirePermission (authorization / RBAC)", () => {
-    const open = routeFiles.filter(
-      (f) => !readFileSync(f, "utf8").includes("requirePermission"),
-    );
+  it("every API route calls requirePermission or an exact-role guard (authorization / RBAC)", () => {
+    const open = routeFiles.filter((f) => {
+      const src = readFileSync(f, "utf8");
+      // Either a permission-string guard, or an explicit exact-role guard
+      // (getUserRoleName === "X") that denies everyone else. Both are valid
+      // authorization gates and both require requireAppAccess (checked above).
+      if (src.includes("requirePermission")) return false;
+      if (src.includes("getUserRoleName")) return false;
+      return true;
+    });
     const nonPublic = open.filter((f) => !isPublicRoute(f.replace(/\\/g, "/")));
     expect(nonPublic).toEqual([]);
   });

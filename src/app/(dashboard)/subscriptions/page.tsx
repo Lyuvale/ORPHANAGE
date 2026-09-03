@@ -1,13 +1,15 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
-import { can } from "@/lib/auth/authorization.service";
+import { getUserRoleName } from "@/lib/auth/authorization.service";
 import SubmitPaymentClient from "./SubmitPaymentClient";
 import { serverFetch } from "@/lib/server-fetch";
 
 // Centre-level subscription page: submit a subscription payment for review
 // and view your payment requests / feedback.
-// Accessible to CENTRE_MANAGER (or roles) with subscriptions.manage.
+// Gated by the CENTRE_MANAGER role (retrieved from the DB by getUserRoleName)
+// so it works independently of any specific permission-string mapping in the
+// roles table — the same signal used to render the nav link.
 
 async function loadPlans() {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -29,9 +31,10 @@ export default async function SubscriptionsPage() {
     allowInactiveSubscription: true,
   });
 
-  const canManage = await can(supabase as never, ctx, "subscriptions.manage");
+  const roleName = await getUserRoleName(supabase as never, ctx);
 
-  if (!canManage) {
+  // Only a CENTRE_MANAGER submits subscription payments on behalf of the centre.
+  if (roleName !== "CENTRE_MANAGER") {
     redirect("/children");
   }
 

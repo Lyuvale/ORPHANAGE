@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
-import { requirePermission } from "@/lib/auth/authorization.service";
+import { getUserRoleName } from "@/lib/auth/authorization.service";
 import {
   getCurrentSubscription,
   getPlanById,
@@ -19,13 +19,13 @@ function parseAmount(value: unknown): number | null {
 /**
  * POST /api/subscriptions/pay-request
  *
- * AUTHENTICATED CENTRE: submit a subscription payment request for review.
+ * AUTHENTICATED CENTRE MANAGER: submit a subscription payment request for review.
  * The centre chooses a plan, enters the amount paid and the transaction
  * reference (rejea ya muamala). The request is stored as PENDING and later
  * reviewed by the platform admin (approved → subscription activated / plan
  * auto-selected; rejected → feedback reason).
  *
- * SECURITY: gated by requireAppAccess + requirePermission("subscriptions.manage").
+ * SECURITY: gated by requireAppAccess + CENTRE_MANAGER role.
  * The centre may only ever submit for its OWN centre (ctx.centre.id — never
  * taken from the client).
  */
@@ -33,7 +33,11 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
     const ctx = await requireAppAccess(supabase as unknown as SupabaseClient);
-    await requirePermission(supabase as unknown as SupabaseClient, ctx, "subscriptions.manage");
+
+    const roleName = await getUserRoleName(supabase as unknown as SupabaseClient, ctx);
+    if (roleName !== "CENTRE_MANAGER") {
+      return NextResponse.json({ error: "Access denied." }, { status: 403 });
+    }
 
     const body = (await request.json()) as {
       plan_id?: string;
