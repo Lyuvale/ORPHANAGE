@@ -18,7 +18,11 @@ import { getUserRoleName } from "@/lib/auth/authorization.service";
 export async function GET() {
   try {
     const supabase = await createClient();
-    const ctx = await requireAppAccess(supabase as unknown as SupabaseClient);
+    // A centre checks its payment requests precisely while its subscription is
+    // inactive/pending — allow it so they can see review status + feedback.
+    const ctx = await requireAppAccess(supabase as unknown as SupabaseClient, {
+      allowInactiveSubscription: true,
+    });
 
     const roleName = await getUserRoleName(supabase as unknown as SupabaseClient, ctx);
     if (roleName !== "CENTRE_MANAGER") {

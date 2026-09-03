@@ -32,7 +32,11 @@ function parseAmount(value: unknown): number | null {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    const ctx = await requireAppAccess(supabase as unknown as SupabaseClient);
+    // A centre submits a payment precisely because its subscription is
+    // inactive/pending. Allow inactive subscription so the request can go through.
+    const ctx = await requireAppAccess(supabase as unknown as SupabaseClient, {
+      allowInactiveSubscription: true,
+    });
 
     const roleName = await getUserRoleName(supabase as unknown as SupabaseClient, ctx);
     if (roleName !== "CENTRE_MANAGER") {
