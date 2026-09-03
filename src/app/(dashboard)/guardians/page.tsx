@@ -1,6 +1,9 @@
 import Link from "next/link";
 import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
 import { serverFetch } from "@/lib/server-fetch";
+import { createClient } from "@/lib/supabase/server";
+import { requireAppAccess } from "@/lib/auth/app-user-context";
+import { can } from "@/lib/auth/authorization.service";
 
 const REPORT_OPTIONS = [
   { value: "summary", label: "Summary" },
@@ -52,6 +55,18 @@ export default async function GuardiansListPage({
   const params = await searchParams;
   const { data: guardians, count } = await getGuardians(params);
 
+  // Registration entry is visible only to roles that may create guardians.
+  let showRegister = false;
+  try {
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as never, {
+      allowInactiveSubscription: true,
+    });
+    showRegister = await can(supabase as never, ctx, "guardians.create");
+  } catch {
+    showRegister = false;
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -63,12 +78,14 @@ export default async function GuardiansListPage({
             options={REPORT_OPTIONS}
             fileName="guardians"
           />
-          <Link
-            href="/guardians/new"
-            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
-            Add Guardian
-          </Link>
+          {showRegister && (
+            <Link
+              href="/register"
+              className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            >
+              New Registration
+            </Link>
+          )}
         </div>
       </div>
 
@@ -102,12 +119,14 @@ export default async function GuardiansListPage({
       {guardians.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-sm text-gray-500">No guardians found.</p>
-          <Link
-            href="/guardians/new"
-            className="mt-4 inline-block text-sm font-semibold text-indigo-600 hover:text-indigo-500"
-          >
-            Add the first guardian
-          </Link>
+          {showRegister && (
+            <Link
+              href="/register"
+              className="mt-4 inline-block text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+            >
+              Start a new registration
+            </Link>
+          )}
         </div>
       ) : (
         <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">

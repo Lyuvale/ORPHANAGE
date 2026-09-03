@@ -104,3 +104,51 @@ describe("Register navigation", () => {
     expect(layout).toContain('"/register"');
   });
 });
+
+describe("Old single-record creation pages are removed; lists point to /register", () => {
+  const lists: [string, string][] = [
+    ["src/app/(dashboard)/children/page.tsx", "children.create"],
+    ["src/app/(dashboard)/referrals/page.tsx", "referrals.create"],
+    ["src/app/(dashboard)/admissions/page.tsx", "admissions.create"],
+    ["src/app/(dashboard)/placements/page.tsx", "placements.create"],
+    ["src/app/(dashboard)/guardians/page.tsx", "guardians.create"],
+  ];
+
+  for (const [rel, perm] of lists) {
+    it(`${rel} gates the registration entry by ${perm} and links /register`, () => {
+      const code = src(rel);
+      expect(code).toContain(perm);
+      expect(code).toContain('href="/register"');
+      expect(code).toContain("showRegister");
+    });
+  }
+
+  it("no references to the removed single-record pages remain", () => {
+    const { readdirSync, statSync, readFileSync } = require("node:fs") as typeof import("node:fs");
+    const { join: joinPath } = require("node:path") as typeof import("node:path");
+    const roots = [
+      join(process.cwd(), "src"),
+      join(process.cwd(), "tests"),
+    ];
+    const leftovers: string[] = [];
+    const walk = (dir: string) => {
+      for (const entry of readdirSync(dir)) {
+        const full = joinPath(dir, entry);
+        if (statSync(full).isDirectory()) {
+          walk(full);
+        } else if (full.endsWith(".tsx") || full.endsWith(".ts")) {
+          const text = readFileSync(full, "utf8");
+          if (
+            /"(children|referrals|admissions|placements|guardians)\/new"|'\/(children|referrals|admissions|placements|guardians)\/new/.test(
+              text,
+            )
+          ) {
+            leftovers.push(full);
+          }
+        }
+      }
+    };
+    for (const root of roots) walk(root);
+    expect(leftovers).toEqual([]);
+  });
+});

@@ -1,6 +1,9 @@
 import Link from "next/link";
 import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
 import { serverFetch } from "@/lib/server-fetch";
+import { createClient } from "@/lib/supabase/server";
+import { requireAppAccess } from "@/lib/auth/app-user-context";
+import { can } from "@/lib/auth/authorization.service";
 
 const REPORT_OPTIONS = [
   { value: "referrals", label: "Referrals List" },
@@ -70,6 +73,18 @@ export default async function ReferralsListPage({
   const params = await searchParams;
   const { data: referrals, count } = await getReferrals(params);
 
+  // Registration entry is visible only to roles that may create referrals.
+  let showRegister = false;
+  try {
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as never, {
+      allowInactiveSubscription: true,
+    });
+    showRegister = await can(supabase as never, ctx, "referrals.create");
+  } catch {
+    showRegister = false;
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -81,12 +96,14 @@ export default async function ReferralsListPage({
             options={REPORT_OPTIONS}
             fileName="referrals"
           />
-          <Link
-            href="/referrals/new"
-            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
-            New Referral
-          </Link>
+          {showRegister && (
+            <Link
+              href="/register"
+              className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            >
+              New Registration
+            </Link>
+          )}
         </div>
       </div>
 
@@ -136,12 +153,14 @@ export default async function ReferralsListPage({
       {referrals.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-sm text-gray-500">No referrals found.</p>
-          <Link
-            href="/referrals/new"
-            className="mt-4 inline-block text-sm font-semibold text-indigo-600 hover:text-indigo-500"
-          >
-            Create the first referral
-          </Link>
+          {showRegister && (
+            <Link
+              href="/register"
+              className="mt-4 inline-block text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+            >
+              Start a new registration
+            </Link>
+          )}
         </div>
       ) : (
         <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">

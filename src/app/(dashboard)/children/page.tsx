@@ -1,6 +1,9 @@
 import Link from "next/link";
 import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
 import { serverFetch } from "@/lib/server-fetch";
+import { createClient } from "@/lib/supabase/server";
+import { requireAppAccess } from "@/lib/auth/app-user-context";
+import { can } from "@/lib/auth/authorization.service";
 
 const REPORT_OPTIONS = [
   { value: "by-status", label: "Children by Status" },
@@ -55,6 +58,18 @@ export default async function ChildrenListPage({
   const params = await searchParams;
   const { data: children, count } = await getChildren(params);
 
+  // Registration entry is visible only to roles that may create children.
+  let showRegister = false;
+  try {
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as never, {
+      allowInactiveSubscription: true,
+    });
+    showRegister = await can(supabase as never, ctx, "children.create");
+  } catch {
+    showRegister = false;
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -66,12 +81,14 @@ export default async function ChildrenListPage({
             options={REPORT_OPTIONS}
             fileName="children"
           />
-          <Link
-            href="/children/new"
-            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
-            Add Child
-          </Link>
+          {showRegister && (
+            <Link
+              href="/register"
+              className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            >
+              New Registration
+            </Link>
+          )}
         </div>
       </div>
 
@@ -108,12 +125,14 @@ export default async function ChildrenListPage({
       {children.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-sm text-gray-500">No children found.</p>
-          <Link
-            href="/children/new"
-            className="mt-4 inline-block text-sm font-semibold text-indigo-600 hover:text-indigo-500"
-          >
-            Add the first child
-          </Link>
+          {showRegister && (
+            <Link
+              href="/register"
+              className="mt-4 inline-block text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+            >
+              Start a new registration
+            </Link>
+          )}
         </div>
       ) : (
         <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
