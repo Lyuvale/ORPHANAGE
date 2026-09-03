@@ -1,43 +1,26 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
-import { can, getUserRoleName } from "@/lib/auth/authorization.service";
-import SubscriptionAdminClient, {
-  type SubscriptionAdminData,
-} from "./SubscriptionAdminClient";
+import { can } from "@/lib/auth/authorization.service";
 import SubmitPaymentClient from "./SubmitPaymentClient";
 import { serverFetch } from "@/lib/server-fetch";
 
-// Platform Administration for subscriptions and plans.
-// Only CENTRE_MANAGER with subscriptions.manage may use this area.
+// Centre-level subscription page: submit a subscription payment for review
+// and view your payment requests / feedback.
+// Accessible to CENTRE_MANAGER (or roles) with subscriptions.manage.
 
-async function loadAdminData() {
+async function loadPlans() {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-
-  let subscriptions: SubscriptionAdminData["subscriptions"] = [];
-  let plans: SubscriptionAdminData["plans"] = [];
-  let centres: SubscriptionAdminData["centres"] = [];
-
+  let plans: { id: string; name: string; price: number | string; billing_period: string; is_active: boolean }[] = [];
   try {
-    const sRes = await serverFetch(`${baseUrl}/api/subscriptions`, { cache: "no-store" });
-    if (sRes.ok) subscriptions = (await sRes.json()).data ?? [];
-  } catch {
-    /* ignore */
-  }
-  try {
-    const pRes = await serverFetch(`${baseUrl}/api/plans?include_inactive=true`, { cache: "no-store" });
+    const pRes = await serverFetch(`${baseUrl}/api/plans?include_inactive=false`, { cache: "no-store" });
     if (pRes.ok) plans = (await pRes.json()).data ?? [];
   } catch {
     /* ignore */
   }
-  try {
-    const cRes = await serverFetch(`${baseUrl}/api/centres`, { cache: "no-store" });
-    if (cRes.ok) centres = (await cRes.json()).data ?? [];
-  } catch {
-    /* ignore */
-  }
-
-  return { subscriptions, plans, centres };
+  return plans
+    .filter((p) => p.is_active)
+    .map((p) => ({ id: p.id, name: p.name, price: p.price, billing_period: p.billing_period }));
 }
 
 export default async function SubscriptionsPage() {
@@ -46,33 +29,18 @@ export default async function SubscriptionsPage() {
     allowInactiveSubscription: true,
   });
 
-  const roleName = await getUserRoleName(supabase as never, ctx);
   const canManage = await can(supabase as never, ctx, "subscriptions.manage");
 
-  if (roleName !== "CENTRE_MANAGER" || !canManage) {
+  if (!canManage) {
     redirect("/children");
   }
 
-  const { subscriptions, plans, centres } = await loadAdminData();
-
-  // Active plans for the centre's payment submission form.
-  const activePlans = plans
-    .filter((p: SubscriptionAdminData["plans"][number]) => p.is_active)
-    .map((p: SubscriptionAdminData["plans"][number]) => ({
-      id: p.id,
-      name: p.name,
-      price: p.price,
-      billing_period: p.billing_period,
-    }));
+  const activePlans = await loadPlans();
 
   return (
-    <div className="space-y-8">
+    <div>
       <SubmitPaymentClient plans={activePlans} />
-      <SubscriptionAdminClient
-        subscriptions={subscriptions}
-        plans={plans}
-        centres={centres}
-      />
     </div>
   );
 }
+
