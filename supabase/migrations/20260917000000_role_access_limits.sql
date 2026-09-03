@@ -63,3 +63,19 @@ WHERE rp.role_id = r.id
     ('staff', 'create'),
     ('staff', 'update')
   );
+
+-- CENTRE_MANAGER: not involved in registration — intake creation belongs to
+-- the Social Worker and the Records Officer (official registrar). The manager
+-- keeps view/update/review/approve rights for oversight.
+DELETE FROM role_permissions rp
+USING roles r, permissions p
+WHERE rp.role_id = r.id
+  AND rp.permission_id = p.id
+  AND r.name = 'CENTRE_MANAGER'
+  AND (p.module, p.action) IN (
+    ('children', 'create'),
+    ('referrals', 'create'),
+    ('admissions', 'create'),
+    ('placements', 'create'),
+    ('guardians', 'create')
+  );

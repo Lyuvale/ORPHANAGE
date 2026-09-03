@@ -232,9 +232,9 @@ describe("Permission Definitions", () => {
 });
 
 describe("Role → Permission Assignments", () => {
-  it("CENTRE_MANAGER has children permissions", () => {
+  it("CENTRE_MANAGER has children view/update/archive but does NOT register", () => {
     expect(ROLE_PERMISSIONS.CENTRE_MANAGER).toContain("children.view");
-    expect(ROLE_PERMISSIONS.CENTRE_MANAGER).toContain("children.create");
+    expect(ROLE_PERMISSIONS.CENTRE_MANAGER).not.toContain("children.create");
     expect(ROLE_PERMISSIONS.CENTRE_MANAGER).toContain("children.update");
     expect(ROLE_PERMISSIONS.CENTRE_MANAGER).toContain("children.archive");
   });

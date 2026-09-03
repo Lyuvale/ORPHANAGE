@@ -45,27 +45,27 @@ describe("Referrals, Admissions & Placements Permissions", () => {
   });
 
   describe("role permission assignments", () => {
-    it("CENTRE_MANAGER has all referral permissions", () => {
+    it("CENTRE_MANAGER reviews referrals but does NOT register them", () => {
       const perms = ROLE_PERMISSIONS.CENTRE_MANAGER;
       expect(perms).toContain("referrals.view");
-      expect(perms).toContain("referrals.create");
+      expect(perms).not.toContain("referrals.create");
       expect(perms).toContain("referrals.update");
       expect(perms).toContain("referrals.review");
       expect(perms).toContain("referrals.approve");
       expect(perms).toContain("referrals.reject");
     });
 
-    it("CENTRE_MANAGER has all admission permissions", () => {
+    it("CENTRE_MANAGER reviews admissions but does NOT register them", () => {
       const perms = ROLE_PERMISSIONS.CENTRE_MANAGER;
       expect(perms).toContain("admissions.view");
-      expect(perms).toContain("admissions.create");
+      expect(perms).not.toContain("admissions.create");
       expect(perms).toContain("admissions.review");
     });
 
-    it("CENTRE_MANAGER has all placement permissions", () => {
+    it("CENTRE_MANAGER oversees placements but does NOT register them", () => {
       const perms = ROLE_PERMISSIONS.CENTRE_MANAGER;
       expect(perms).toContain("placements.view");
-      expect(perms).toContain("placements.create");
+      expect(perms).not.toContain("placements.create");
       expect(perms).toContain("placements.update");
     });
 

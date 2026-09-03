@@ -207,8 +207,8 @@ async function ManagerSection({ restricted }: { restricted: boolean }) {
         </h3>
         <div className="mt-3 flex flex-wrap gap-3">
           {[
-            ["/register", "New Registration"],
-            ["/reports/children", "Reports"],
+            ["/team", "Team"],
+            ["/staff", "Staff"],
             ["/audit", "Audit Trail"],
             ["/resources", "Resources"],
           ].map(([href, text]) => (

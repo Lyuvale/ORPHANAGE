@@ -278,7 +278,7 @@ export const ALL_PERMISSIONS: PermissionString[] = Object.values(PERMISSIONS);
  */
 export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> = {
   CENTRE_MANAGER: [
-    "children.view", "children.create", "children.update", "children.status.update", "children.archive",
+    "children.view", "children.update", "children.status.update", "children.archive",
     "centres.view", "centres.manage",
     "subscriptions.view", "subscriptions.manage", "subscriptions.view_own",
     "cases.view", "cases.create", "cases.update", "cases.status.update", "cases.close",
@@ -291,9 +291,9 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "reports.view", "reports.export",
     "audit.view", "audit.export",
     "documents.view", "documents.upload", "documents.download",
-    "referrals.view", "referrals.create", "referrals.update", "referrals.review", "referrals.approve", "referrals.reject",
-    "admissions.view", "admissions.create", "admissions.review",
-    "placements.view", "placements.create", "placements.update",
+    "referrals.view", "referrals.update", "referrals.review", "referrals.approve", "referrals.reject",
+    "admissions.view", "admissions.review",
+    "placements.view", "placements.update",
     "safeguarding.view", "safeguarding.create", "safeguarding.update", "safeguarding.status.update", "safeguarding.escalate",
     "safeguarding.actions.view", "safeguarding.actions.create", "safeguarding.actions.update",
     "safeguarding.documents.view", "safeguarding.documents.upload", "safeguarding.documents.download", "safeguarding.documents.delete",
@@ -310,7 +310,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "daily_care.followups.create", "daily_care.followups.update",
     "presence.view", "presence.create", "presence.update",
     "presence.check_in", "presence.check_out", "presence.off_site", "presence.daily_summary",
-    "guardians.view", "guardians.create", "guardians.update", "guardians.deactivate",
+    "guardians.view", "guardians.update", "guardians.deactivate",
     "guardians.relationship.manage", "guardians.documents.view", "guardians.documents.upload", "guardians.documents.download",
     "visits.view", "visits.create", "visits.update", "visits.request", "visits.approve", "visits.reject",
     "visits.checkin", "visits.checkout", "visits.complete", "visits.cancel",

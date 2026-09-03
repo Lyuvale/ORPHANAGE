@@ -31,6 +31,18 @@ describe("Manager static permissions (spec duties)", () => {
     }
   });
 
+  it("is NOT involved in registration: no intake creation rights", () => {
+    for (const p of [
+      "children.create",
+      "referrals.create",
+      "admissions.create",
+      "placements.create",
+      "guardians.create",
+    ]) {
+      expect(perms).not.toContain(p);
+    }
+  });
+
   it("views (never creates) finance; approves under approval rules", () => {
     expect(perms).toContain("finance.view");
     expect(perms).toContain("finance.approve");

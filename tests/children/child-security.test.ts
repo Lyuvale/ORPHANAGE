@@ -45,8 +45,8 @@ describe("Role Access to Children", () => {
       expect(ROLE_PERMISSIONS.CENTRE_MANAGER).toContain("children.view");
     });
 
-    it("has children.create", () => {
-      expect(ROLE_PERMISSIONS.CENTRE_MANAGER).toContain("children.create");
+    it("does NOT have children.create (registration is not a manager duty)", () => {
+      expect(ROLE_PERMISSIONS.CENTRE_MANAGER).not.toContain("children.create");
     });
 
     it("has children.update", () => {

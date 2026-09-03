@@ -41,10 +41,10 @@ describe("Guardians Permissions", () => {
   });
 
   describe("role permission assignments", () => {
-    it("CENTRE_MANAGER has all guardian permissions", () => {
+    it("CENTRE_MANAGER oversees guardians but does NOT register them", () => {
       const perms = ROLE_PERMISSIONS.CENTRE_MANAGER;
       expect(perms).toContain("guardians.view");
-      expect(perms).toContain("guardians.create");
+      expect(perms).not.toContain("guardians.create");
       expect(perms).toContain("guardians.update");
       expect(perms).toContain("guardians.deactivate");
       expect(perms).toContain("guardians.relationship.manage");
