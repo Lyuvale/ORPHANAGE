@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { getUserRoleName } from "@/lib/auth/authorization.service";
+import { finalizeExpiredSubscription } from "@/lib/subscriptions/subscription-access.service";
 
 /**
  * GET /api/subscriptions/payments
@@ -30,6 +31,14 @@ export async function GET() {
     }
 
     const admin = createAdminClient();
+
+    // Self-healing: if this centre's plan period is over, durably transition
+    // it to `expired` now so the centre is inactive until it renews.
+    try {
+      await finalizeExpiredSubscription(admin, ctx.centre.id);
+    } catch {
+      // Finalization failure must not block listing payment requests.
+    }
 
     const { data, error } = await admin
       .from("payment_transactions")

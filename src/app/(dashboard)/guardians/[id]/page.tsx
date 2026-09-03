@@ -182,12 +182,25 @@ export default async function GuardianDetailPage({
                       is_primary: boolean;
                       is_active: boolean;
                       start_date: string;
+                      child?: {
+                        first_name: string;
+                        middle_name: string | null;
+                        last_name: string;
+                        reference_number: string | null;
+                      } | null;
                     }) => (
                       <tr key={rel.id}>
                         <td className="py-2 text-sm text-indigo-600">
                           <Link href={`/children/${rel.child_id}`}>
-                            {rel.child_id.slice(0, 8)}...
+                            {rel.child
+                              ? `${rel.child.first_name}${rel.child.middle_name ? ` ${rel.child.middle_name}` : ""} ${rel.child.last_name}`
+                              : `${rel.child_id.slice(0, 8)}...`}
                           </Link>
+                          {rel.child?.reference_number && (
+                            <span className="block text-xs text-gray-400 font-mono">
+                              {rel.child.reference_number}
+                            </span>
+                          )}
                         </td>
                         <td className="py-2 text-sm text-gray-900">
                           {rel.relationship_type.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}

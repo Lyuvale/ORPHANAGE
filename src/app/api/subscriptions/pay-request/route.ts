@@ -68,6 +68,20 @@ export async function POST(request: NextRequest) {
 
     const admin = createAdminClient();
 
+    // A transaction reference (rejea ya muamala) may only ever be used once.
+    const { data: duplicateRef } = await admin
+      .from("payment_transactions")
+      .select("id")
+      .eq("provider", "MOCK")
+      .eq("provider_reference", reference)
+      .maybeSingle();
+    if (duplicateRef) {
+      return NextResponse.json(
+        { error: "This transaction reference (rejea ya muamala) has already been used." },
+        { status: 409 },
+      );
+    }
+
     // The chosen plan must exist and be active.
     const plan = await getPlanById(admin, body.plan_id);
     if (!plan || !plan.is_active) {
@@ -138,6 +152,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
+      // Safety net for a concurrent duplicate submission (UNIQUE provider, provider_reference).
+      if ((error as { code?: string }).code === "23505") {
+        return NextResponse.json(
+          { error: "This transaction reference (rejea ya muamala) has already been used." },
+          { status: 409 },
+        );
+      }
       return NextResponse.json({ error: "Failed to submit payment request." }, { status: 500 });
     }
 

@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
-import { requirePermission } from "@/lib/auth/authorization.service";
-import { runExpiryChecks } from "@/lib/subscriptions/subscription-access.service";
+import { getUserRoleName } from "@/lib/auth/authorization.service";
+import {
+  finalizeExpiredSubscription,
+  runExpiryChecks,
+} from "@/lib/subscriptions/subscription-access.service";
 
 function statusFromError(message: string): number {
   if (message.includes("NOT_AUTHENTICATED")) return 401;
@@ -13,9 +17,12 @@ function statusFromError(message: string): number {
 }
 
 // ─── POST /api/subscriptions/check-expiry ─────────────────────
-// Platform-level: run the expiry/trial alert scan and deliver notifications
-// via the existing notification system. Safe to call on demand (by an admin or
-// a future scheduled job).
+// Finalize expired subscriptions:
+//   - CENTRE_MANAGER: scoped to their OWN centre only (no cross-centre data).
+//     A centre whose plan period is over is transitioned to `expired`,
+//     making the centre inactive in the database.
+//   - PLATFORM_ADMINISTRATOR: platform-wide expiry sweep (counts + alerts).
+// Safe to call on demand (or from a future scheduled job).
 
 export async function POST() {
   try {
@@ -23,10 +30,21 @@ export async function POST() {
     const ctx = await requireAppAccess(supabase as unknown as SupabaseClient, {
       allowInactiveSubscription: true,
     });
-    await requirePermission(supabase as unknown as SupabaseClient, ctx, "subscriptions.manage");
+    const roleName = await getUserRoleName(supabase as unknown as SupabaseClient, ctx);
 
-    const report = await runExpiryChecks(undefined);
-    return NextResponse.json({ data: report });
+    const admin = createAdminClient();
+
+    if (roleName === "CENTRE_MANAGER") {
+      const result = await finalizeExpiredSubscription(admin, ctx.centre.id);
+      return NextResponse.json({ data: result });
+    }
+
+    if (roleName === "PLATFORM_ADMINISTRATOR") {
+      const report = await runExpiryChecks(admin);
+      return NextResponse.json({ data: report });
+    }
+
+    return NextResponse.json({ error: "Access denied." }, { status: 403 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: statusFromError(message) });

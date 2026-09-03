@@ -25,6 +25,16 @@ async function getChildBenefits(childId: string) {
   return json.data;
 }
 
+async function getChildGuardians(childId: string) {
+  const res = await serverFetch(
+    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/guardians/relationships?child_id=${childId}&is_active=true`,
+    { cache: "no-store" },
+  );
+  if (!res.ok) return [];
+  const json = await res.json();
+  return json.data ?? [];
+}
+
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
     active: "bg-green-100 text-green-800",
@@ -58,6 +68,7 @@ export default async function ChildProfilePage({
   const child = result.data;
   const history = child.status_history ?? [];
   const benefits = await getChildBenefits(id);
+  const guardians = await getChildGuardians(id);
 
   return (
     <div>
@@ -164,6 +175,76 @@ export default async function ChildProfilePage({
               </dd>
             </div>
           </dl>
+        </div>
+      </div>
+
+      {/* Guardians / Family */}
+      <div className="bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-6">
+        <div className="px-4 py-5 sm:px-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-medium text-gray-900">
+              Guardians & Family
+            </h2>
+            <p className="mt-1 text-sm text-gray-500">
+              People linked to this child (relationship, primary contact, phone)
+            </p>
+          </div>
+          <Link
+            href="/guardians"
+            className="text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+          >
+            Manage
+          </Link>
+        </div>
+        <div className="border-t border-gray-200">
+          {guardians.length === 0 ? (
+            <p className="px-4 py-5 sm:px-6 text-sm text-gray-500">
+              No guardians linked to this child yet.
+            </p>
+          ) : (
+            <ul className="divide-y divide-gray-200">
+              {guardians.map(
+                (rel: {
+                  id: string;
+                  guardian_id: string;
+                  relationship_type: string;
+                  is_primary: boolean;
+                  guardian?: {
+                    first_name: string;
+                    middle_name: string | null;
+                    last_name: string;
+                    phone: string | null;
+                  } | null;
+                }) => {
+                  const g = rel.guardian;
+                  const name = g
+                    ? `${g.first_name}${g.middle_name ? ` ${g.middle_name}` : ""} ${g.last_name}`
+                    : "Unknown guardian";
+                  return (
+                    <li key={rel.id} className="px-4 py-4 sm:px-6">
+                      <div className="flex items-center justify-between">
+                        <Link
+                          href={`/guardians/${rel.guardian_id}`}
+                          className="text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+                        >
+                          {name}
+                        </Link>
+                        {rel.is_primary && (
+                          <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                            Primary
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-1 text-sm text-gray-500">
+                        {rel.relationship_type.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
+                        {g?.phone ? ` · ${g.phone}` : ""}
+                      </div>
+                    </li>
+                  );
+                },
+              )}
+            </ul>
+          )}
         </div>
       </div>
 

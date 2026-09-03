@@ -10,7 +10,7 @@ import {
 } from "@/lib/auth/authorization.service";
 import { auditCreate } from "@/lib/audit/audit.service";
 import {
-  listCentres,
+  getCentreById,
   createCentre,
   centreCodeExists,
 } from "@/lib/centres/centre.service";
@@ -18,7 +18,7 @@ import {
   createCentreSchema,
   cleanCentreInput,
 } from "@/lib/centres/centre.validation";
-import type { CreateCentreInput, CentreStatus } from "@/types/centre";
+import type { CreateCentreInput } from "@/types/centre";
 
 function statusFromError(message: string): number {
   if (message.includes("NOT_AUTHENTICATED")) return 401;
@@ -46,27 +46,14 @@ async function requireCentreManager(
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
-    await requireAppAccess(supabase as unknown as SupabaseClient);
+    const ctx = await requireAppAccess(supabase as unknown as SupabaseClient);
 
-    const { searchParams } = new URL(request.url);
-
-    const statusParam = searchParams.get("status");
-    const status: CentreStatus | undefined =
-      statusParam === "active" || statusParam === "suspended" || statusParam === "deactivated"
-        ? statusParam
-        : undefined;
-    const search = searchParams.get("search") ?? undefined;
-    const limit = parseInt(searchParams.get("limit") ?? "50", 10);
-    const offset = parseInt(searchParams.get("offset") ?? "0", 10);
-
-    const result = await listCentres({
-      status,
-      search,
-      limit: Math.min(limit, 100),
-      offset: Math.max(offset, 0),
-    });
-
-    return NextResponse.json(result);
+    // Tenant isolation: a centre caller may only ever see their OWN centre.
+    // Cross-centre listing is a platform operation (/api/platform/centres).
+    // Query params are accepted but ignored beyond scoping for compatibility.
+    void request;
+    const own = await getCentreById(ctx.centre.id);
+    return NextResponse.json({ data: own ? [own] : [], count: own ? 1 : 0 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: statusFromError(message) });

@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 async function getCentre(id: string) {
@@ -20,6 +22,14 @@ export default async function CentreDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+
+  // Tenant isolation: a centre user may only view their OWN centre.
+  const supabase = await createClient();
+  const ctx = await requireAppAccess(supabase as never);
+  if (id !== ctx.centre.id) {
+    redirect(`/centres/${ctx.centre.id}`);
+  }
+
   const centre = await getCentre(id);
 
   if (!centre) {

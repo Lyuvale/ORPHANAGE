@@ -151,6 +151,22 @@ export interface ChildGuardian {
   metadata: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
+  // Optional display embeds populated by listRelationships so UIs can show
+  // names instead of raw ids (guardian info merged with child info).
+  guardian?: {
+    id: string;
+    first_name: string;
+    middle_name: string | null;
+    last_name: string;
+    phone: string | null;
+  } | null;
+  child?: {
+    id: string;
+    first_name: string;
+    middle_name: string | null;
+    last_name: string;
+    reference_number: string | null;
+  } | null;
 }
 
 // ─── Create Relationship Input ───────────────────────────────

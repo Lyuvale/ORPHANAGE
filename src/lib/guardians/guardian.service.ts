@@ -268,7 +268,39 @@ export async function listRelationships(
     throw new Error(`Failed to list relationships: ${error.message}`);
   }
 
-  return { data: (data ?? []) as ChildGuardian[], count: count ?? 0 };
+  const rows = (data ?? []) as ChildGuardian[];
+
+  // Attach guardian + child display info so callers can show names
+  // (guardian info merged with child info) without extra round trips.
+  if (rows.length > 0) {
+    const guardianIds = [...new Set(rows.map((r) => r.guardian_id))];
+    const childIds = [...new Set(rows.map((r) => r.child_id))];
+
+    const [{ data: guardians }, { data: children }] = await Promise.all([
+      adminSupabase
+        .from("guardians")
+        .select("id, first_name, middle_name, last_name, phone")
+        .in("id", guardianIds),
+      adminSupabase
+        .from("children")
+        .select("id, first_name, middle_name, last_name, reference_number")
+        .in("id", childIds),
+    ]);
+
+    const guardianById = new Map(
+      ((guardians ?? []) as NonNullable<ChildGuardian["guardian"]>[]).map((g) => [g.id, g]),
+    );
+    const childById = new Map(
+      ((children ?? []) as NonNullable<ChildGuardian["child"]>[]).map((c) => [c.id, c]),
+    );
+
+    for (const row of rows) {
+      row.guardian = guardianById.get(row.guardian_id) ?? null;
+      row.child = childById.get(row.child_id) ?? null;
+    }
+  }
+
+  return { data: rows, count: count ?? 0 };
 }
 
 // ─── Get Relationship By ID ──────────────────────────────────

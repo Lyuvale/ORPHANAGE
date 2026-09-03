@@ -107,6 +107,22 @@ export async function POST(request: NextRequest) {
     // Auto-generate provider_reference for manual payments
     const providerRef = body.provider_reference || `MANUAL-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
 
+    // An explicitly provided reference may only ever be used once.
+    if (body.provider_reference) {
+      const { data: duplicateRef } = await admin
+        .from("payment_transactions")
+        .select("id")
+        .eq("provider", "MOCK")
+        .eq("provider_reference", body.provider_reference)
+        .maybeSingle();
+      if (duplicateRef) {
+        return NextResponse.json(
+          { error: "This transaction reference has already been used." },
+          { status: 409 },
+        );
+      }
+    }
+
     const { data, error } = await admin
       .from("payment_transactions")
       .insert({
@@ -128,6 +144,12 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
+      if ((error as { code?: string }).code === "23505") {
+        return NextResponse.json(
+          { error: "This transaction reference has already been used." },
+          { status: 409 },
+        );
+      }
       return NextResponse.json({ error: "Failed to record payment." }, { status: 500 });
     }
 

@@ -173,6 +173,10 @@ describe("Centre-submitted payment flow & security", () => {
     join(process.cwd(), "src/app/api/platform/payments/update/route.ts"),
     "utf-8",
   );
+  const checkExpiry = readFileSync(
+    join(process.cwd(), "src/app/api/subscriptions/check-expiry/route.ts"),
+    "utf-8",
+  );
 
   it("public centre pages do not store card data or secrets", () => {
     expect(publicCentres).not.toMatch(/card_number/i);
@@ -202,6 +206,12 @@ describe("Centre-submitted payment flow & security", () => {
     expect(submitPay).not.toContain("No subscription found for this centre");
   });
 
+  it("a transaction reference cannot be reused (duplicate guard)", () => {
+    expect(submitPay).toContain("already been used");
+    expect(submitPay).toContain("provider_reference");
+    expect(submitPay).toContain("409");
+  });
+
   it("the centre payment-history route is tenant-scoped to the own centre", () => {
     expect(submitPayments).toContain("requireAppAccess");
     expect(submitPayments).toContain("getUserRoleName");
@@ -214,5 +224,18 @@ describe("Centre-submitted payment flow & security", () => {
     expect(review).toContain("platform.payments");
     expect(review).toContain("SUCCESSFUL");
     expect(review).toContain("review_feedback");
+  });
+
+  it("an expired plan period durably deactivates the centre (finalize to expired)", () => {
+    // Visiting payment history self-heals expiry for the caller's own centre.
+    expect(submitPayments).toContain("finalizeExpiredSubscription");
+    expect(submitPayments).toContain("ctx.centre.id");
+  });
+
+  it("check-expiry scopes centre managers to their own centre only", () => {
+    expect(checkExpiry).toContain("CENTRE_MANAGER");
+    expect(checkExpiry).toContain("finalizeExpiredSubscription");
+    expect(checkExpiry).toContain("ctx.centre.id");
+    expect(checkExpiry).toContain("PLATFORM_ADMINISTRATOR");
   });
 });

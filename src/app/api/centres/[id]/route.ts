@@ -58,6 +58,11 @@ export async function GET(
       return NextResponse.json({ error: "Centre not found" }, { status: 404 });
     }
 
+    // Tenant isolation: a centre caller may only view their OWN centre.
+    if (id !== ctx.centre.id) {
+      return NextResponse.json({ error: "Access denied." }, { status: 403 });
+    }
+
     return NextResponse.json({ data: centre });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
@@ -75,6 +80,11 @@ export async function PATCH(
     const ctx = await requireAppAccess(supabase as unknown as SupabaseClient);
     await requirePermission(supabase as unknown as SupabaseClient, ctx, "centres.manage");
     await requireCentreManager(supabase as unknown as SupabaseClient, ctx);
+
+    // Tenant isolation: a centre manager may only modify their OWN centre.
+    if (id !== ctx.centre.id) {
+      return NextResponse.json({ error: "Access denied." }, { status: 403 });
+    }
 
     const body = await request.json();
     const cleaned = cleanCentreInput(body);
@@ -144,6 +154,11 @@ export async function DELETE(
     const ctx = await requireAppAccess(supabase as unknown as SupabaseClient);
     await requirePermission(supabase as unknown as SupabaseClient, ctx, "centres.manage");
     await requireCentreManager(supabase as unknown as SupabaseClient, ctx);
+
+    // Tenant isolation: a centre manager may only modify their OWN centre.
+    if (id !== ctx.centre.id) {
+      return NextResponse.json({ error: "Access denied." }, { status: 403 });
+    }
 
     const existing = await getCentreById(id);
     if (!existing) {

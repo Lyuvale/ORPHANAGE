@@ -29,6 +29,7 @@ import {
   getCurrentSubscription,
   getSubscriptionById,
   evaluateSubscriptionAccess,
+  setSubscriptionStatus,
 } from "./subscription.service";
 import { PlanFeatureError, AccessError } from "./subscription-domain";
 import { notifyRole } from "@/lib/notifications/notifications.service";
@@ -122,6 +123,64 @@ export async function requirePlanFeature(
   }
 }
 
+// ─── Expiry finalization (durable transition to expired) ─────────────────
+
+export interface ExpiryFinalizeResult {
+  subscriptionId: string | null;
+  transitioned: boolean;
+  status: Subscription["status"] | "none";
+}
+
+/**
+ * Finalize expiry for ONE centre: if its current subscription is trial/active
+ * but past its effective end date, durably transition it to `expired`
+ * (status change + history + manager notification). This makes
+ * "plan period over => centre inactive" permanent in the database — not just
+ * a per-request evaluation — so dashboards and audits show the true state.
+ */
+export async function finalizeExpiredSubscription(
+  admin: AdminClient,
+  centreId: string,
+  today: Date = new Date(),
+): Promise<ExpiryFinalizeResult> {
+  const current = await getCurrentSubscription(admin, centreId);
+  if (!current) {
+    return { subscriptionId: null, transitioned: false, status: "none" };
+  }
+  if (current.status !== "trial" && current.status !== "active") {
+    return { subscriptionId: current.id, transitioned: false, status: current.status };
+  }
+
+  const todayIso = today.toISOString().slice(0, 10);
+  const effectiveEnd =
+    current.status === "trial" && current.trial_ends_at
+      ? current.trial_ends_at
+      : current.end_date;
+
+  if (effectiveEnd && effectiveEnd < todayIso) {
+    await setSubscriptionStatus(admin, current.id, "expired", {
+      reason:
+        current.status === "trial"
+          ? "Trial period ended."
+          : "Subscription period ended.",
+    });
+    try {
+      const withPlan = await getSubscriptionById(admin, current.id, { centreId });
+      await notifySubscriptionEvent(
+        admin,
+        centreId,
+        "EXPIRED",
+        withPlan?.plan?.name ?? "subscription",
+      );
+    } catch {
+      // Notification failure must not break finalization.
+    }
+    return { subscriptionId: current.id, transitioned: true, status: "expired" };
+  }
+
+  return { subscriptionId: current.id, transitioned: false, status: current.status };
+}
+
 // ─── Expiry alerts (reuse existing notification system) ──────
 
 export interface ExpiryAlertReport {
@@ -169,7 +228,17 @@ export async function runExpiryChecks(
 
     let event: string | null = null;
     if (dayDiff < 0) {
+      // Past due: durably transition to expired (status + history + notify),
+      // so the centre becomes inactive in the database — not just per-request.
+      try {
+        await finalizeExpiredSubscription(supabase, row.centre_id);
+        report.notified += 1;
+      } catch {
+        // Per-row failure must not stop the sweep.
+      }
       event = row.status === "trial" ? "TRIAL_EXPIRED" : "SUBSCRIPTION_EXPIRED";
+      report.alerts.push({ centreId: row.centre_id, subscriptionId: row.id, event });
+      continue;
     } else if (dayDiff <= warningDays) {
       event = row.status === "trial" ? "TRIAL_EXPIRING" : "SUBSCRIPTION_EXPIRING";
     }
