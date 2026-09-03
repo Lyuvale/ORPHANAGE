@@ -73,8 +73,8 @@ export default async function AdminPaymentsPage() {
 
   const stats = [
     { label: "Total Transactions", value: allPayments.length, color: "text-gray-900" },
-    { label: "Total Amount", value: `KES ${totalAmount.toLocaleString()}`, color: "text-gray-900" },
-    { label: "Approved", value: successfulPayments.length, sub: `KES ${successfulAmount.toLocaleString()}`, color: "text-green-700" },
+    { label: "Total Amount", value: `TZS ${totalAmount.toLocaleString()}`, color: "text-gray-900" },
+    { label: "Approved", value: successfulPayments.length, sub: `TZS ${successfulAmount.toLocaleString()}`, color: "text-green-700" },
     { label: "Pending Review", value: pendingPayments.length, color: "text-amber-700" },
     { label: "Rejected", value: failedPayments.length, color: "text-red-700" },
     { label: "Contributions", value: contributionPayments.length, color: "text-sky-700" },

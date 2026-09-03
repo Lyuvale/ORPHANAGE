@@ -131,13 +131,13 @@ export default function SubmitPaymentClient({ plans }: { plans: Plan[] }) {
               <option value="">Choose plan…</option>
               {plans.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.name} — {p.price} / {p.billing_period.toLowerCase()}
+                  {p.name} — TZS {Number(p.price).toLocaleString()} / {p.billing_period.toLowerCase()}
                 </option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Amount (KES)</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Amount (TZS)</label>
             <input
               type="number"
               min="0.01"

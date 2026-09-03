@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
         flow_type: body.flow_type,
         purpose: body.purpose || null,
         amount: body.amount,
-        currency: body.currency || "KES",
+        currency: body.currency || "TZS",
         provider: "MOCK",
         provider_reference: providerRef,
         status: body.status || "PENDING",

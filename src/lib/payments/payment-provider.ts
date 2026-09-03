@@ -110,7 +110,7 @@ class MockPaymentProvider implements PaymentProvider {
       reference: body.reference ?? "",
       status: statusMap,
       amount: Number(body.amount ?? 0),
-      currency: body.currency ?? "KES",
+      currency: body.currency ?? "TZS",
       metadata: body.metadata ?? {},
     };
   }

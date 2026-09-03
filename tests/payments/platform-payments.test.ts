@@ -132,7 +132,7 @@ describe("Payment Provider abstraction", () => {
   it("createCheckout returns a provider reference and a checkout URL", async () => {
     const result = await provider.createCheckout({
       amount: 100,
-      currency: "KES",
+      currency: "TZS",
       purpose: "General Support",
       reference: "test-ref-1",
     });

@@ -311,7 +311,7 @@ export async function initiatePayment(
       flow_type: input.flowType,
       purpose: input.purpose ?? null,
       amount: input.amount,
-      currency: input.currency ?? "KES",
+      currency: input.currency ?? "TZS",
       provider: "MOCK",
       provider_reference: input.providerReference,
       status: "PENDING",

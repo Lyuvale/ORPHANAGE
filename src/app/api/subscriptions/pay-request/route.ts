@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
         flow_type: "SUBSCRIPTION",
         purpose: `${plan.name} subscription`,
         amount,
-        currency: "KES",
+        currency: "TZS",
         provider: "MOCK",
         provider_reference: reference,
         status: "PENDING",
