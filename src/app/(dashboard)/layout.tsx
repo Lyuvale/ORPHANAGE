@@ -5,7 +5,7 @@ import NotificationBell from "./_components/notification-bell";
 import SignOutButton from "./_components/sign-out-button";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppAccess, type AppUserContext } from "@/lib/auth/app-user-context";
-import { getUserRoleName } from "@/lib/auth/authorization.service";
+import { getUserPermissions, getUserRoleName } from "@/lib/auth/authorization.service";
 import { AuthError } from "@/lib/auth/app-user-context";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +29,7 @@ const TENANT_PATHS = [
   "/audit",
   "/centres",
   "/register",
+  "/dashboard",
 ];
 
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
@@ -51,18 +52,32 @@ export default async function DashboardLayout({
   let isPlatformAdmin = false;
   let canRegister = false;
   let centreName = "";
+  // The user's own DB permissions, fetched once. Every centre menu entry is
+  // shown only when the matching permission is held, so each role sees only
+  // the modules it may use (spec: role-based menu).
+  let perms = new Set<string>();
   try {
     const supabase = (await createClient()) as never;
     const ctx = await requireAppAccess(supabase, { allowInactiveSubscription: true });
     const role = await getUserRoleName(supabase, ctx as unknown as AppUserContext);
     isManager = role === "CENTRE_MANAGER";
     isPlatformAdmin = role === "PLATFORM_ADMINISTRATOR";
-    // Roles that hold at least one intake creation permission (per static
-    // role map; the /register page itself enforces the exact DB permissions).
+    try {
+      const list = await getUserPermissions(
+        supabase as never,
+        ctx as unknown as AppUserContext,
+      );
+      perms = new Set(list);
+    } catch {
+      perms = new Set<string>();
+    }
+    // Intake creation permission in any of the five registration modules.
     canRegister =
-      role === "CENTRE_MANAGER" ||
-      role === "SOCIAL_WORKER" ||
-      role === "RECORDS_OFFICER";
+      perms.has("referrals.create") ||
+      perms.has("children.create") ||
+      perms.has("guardians.create") ||
+      perms.has("admissions.create") ||
+      perms.has("placements.create");
     centreName = ctx.centre?.name ?? "";
   } catch (err) {
     if (err instanceof AuthError && err.code === "NOT_AUTHENTICATED") {
@@ -123,22 +138,27 @@ export default async function DashboardLayout({
                 </>
               ) : (
                 <>
-                  <NavLink href="/children">Children</NavLink>
+                  <NavLink href="/dashboard">Dashboard</NavLink>
+                  {perms.has("children.view") && <NavLink href="/children">Children</NavLink>}
                   {canRegister && <NavLink href="/register">Register</NavLink>}
-                  <NavLink href="/admissions">Admissions</NavLink>
-                  <NavLink href="/placements">Placements</NavLink>
-                  <NavLink href="/referrals">Referrals</NavLink>
-                  <NavLink href="/guardians">Guardians</NavLink>
-                  <NavLink href="/cases">Cases</NavLink>
-                  <NavLink href="/safeguarding">Safeguarding</NavLink>
-                  <NavLink href="/visits">Visits</NavLink>
-                  <NavLink href="/staff">Staff</NavLink>
-                  <NavLink href="/health">Health</NavLink>
-                  <NavLink href="/education">Education</NavLink>
-                  <NavLink href="/resources">Resources</NavLink>
-                  {isManager && <NavLink href="/team">Team</NavLink>}
+                  {perms.has("admissions.view") && <NavLink href="/admissions">Admissions</NavLink>}
+                  {perms.has("placements.view") && <NavLink href="/placements">Placements</NavLink>}
+                  {perms.has("referrals.view") && <NavLink href="/referrals">Referrals</NavLink>}
+                  {perms.has("guardians.view") && <NavLink href="/guardians">Guardians</NavLink>}
+                  {perms.has("cases.view") && <NavLink href="/cases">Cases</NavLink>}
+                  {perms.has("safeguarding.view") && (
+                    <NavLink href="/safeguarding">Safeguarding</NavLink>
+                  )}
+                  {perms.has("visits.view") && <NavLink href="/visits">Visits</NavLink>}
+                  {perms.has("staff.view") && <NavLink href="/staff">Staff</NavLink>}
+                  {perms.has("health.view") && <NavLink href="/health">Health</NavLink>}
+                  {perms.has("education_development.view") && (
+                    <NavLink href="/education">Education</NavLink>
+                  )}
+                  {perms.has("resources.view") && <NavLink href="/resources">Resources</NavLink>}
+                  {perms.has("staff.assign_roles") && <NavLink href="/team">Team</NavLink>}
                   {isManager && <NavLink href="/subscriptions">Subscriptions</NavLink>}
-                  <NavLink href="/audit">Audit</NavLink>
+                  {perms.has("audit.view") && <NavLink href="/audit">Audit</NavLink>}
                 </>
               )}
               <NavLink href="/notifications">Notifications</NavLink>

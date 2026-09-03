@@ -145,17 +145,17 @@ describe("Case & Safeguarding Permissions", () => {
       expect(perms).toContain("safeguarding.actions.update");
     });
 
-    it("CAREGIVER has minimal case permissions (view only)", () => {
+    it("CAREGIVER has no case permissions (confidential cases forbidden)", () => {
       const perms = ROLE_PERMISSIONS.CAREGIVER;
-      expect(perms).toContain("cases.view");
+      expect(perms).not.toContain("cases.view");
       expect(perms).not.toContain("cases.create");
       expect(perms).not.toContain("cases.update");
       expect(perms).not.toContain("cases.status.update");
     });
 
-    it("CAREGIVER has minimal safeguarding permissions (view only)", () => {
+    it("CAREGIVER has no safeguarding permissions (restricted records forbidden)", () => {
       const perms = ROLE_PERMISSIONS.CAREGIVER;
-      expect(perms).toContain("safeguarding.view");
+      expect(perms).not.toContain("safeguarding.view");
       expect(perms).not.toContain("safeguarding.create");
       expect(perms).not.toContain("safeguarding.update");
     });

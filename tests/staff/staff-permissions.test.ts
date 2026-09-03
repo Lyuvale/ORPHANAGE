@@ -54,20 +54,18 @@ describe("Staff Management Permissions", () => {
       expect(perms).not.toContain("staff.emergency.view");
     });
 
-    it("CAREGIVER is view-only for staff", () => {
+    it("CAREGIVER has no staff permissions (no user visibility)", () => {
       const perms = ROLE_PERMISSIONS.CAREGIVER;
-      expect(perms).toContain("staff.view");
+      expect(perms).not.toContain("staff.view");
       expect(perms).not.toContain("staff.create");
       expect(perms).not.toContain("staff.update");
       expect(perms).not.toContain("staff.assignments.manage");
     });
 
-    it("RECORDS_OFFICER manages records but not status, assignments or emergency", () => {
+    it("RECORDS_OFFICER manages records but not users, status, assignments or emergency", () => {
       const perms = ROLE_PERMISSIONS.RECORDS_OFFICER;
       for (const p of [
         "staff.view",
-        "staff.create",
-        "staff.update",
         "staff.training.view",
         "staff.training.manage",
         "staff.qualifications.view",
@@ -77,6 +75,8 @@ describe("Staff Management Permissions", () => {
       ]) {
         expect(perms).toContain(p);
       }
+      expect(perms).not.toContain("staff.create");
+      expect(perms).not.toContain("staff.update");
       expect(perms).not.toContain("staff.status.manage");
       expect(perms).not.toContain("staff.assignments.manage");
       expect(perms).not.toContain("staff.emergency.view");

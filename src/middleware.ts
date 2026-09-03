@@ -83,10 +83,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // If the user is already signed in, send them away from the auth pages.
+  // If the user is already signed in, send them to their role dashboard.
   if (user && (pathname === "/login" || pathname === "/signup")) {
     const url = request.nextUrl.clone();
-    url.pathname = "/centres";
+    url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
 
