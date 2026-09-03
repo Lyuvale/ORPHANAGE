@@ -63,6 +63,10 @@ export async function POST(request: NextRequest) {
     await requirePermission(supabase as unknown as SupabaseClient, ctx, "guardians.relationship.manage");
 
     const body = await request.json();
+    // Tenant default: callers never send centre_id — attribute the record to
+    // the caller's own centre. An explicit different centre is still rejected
+    // below, so cross-centre creation stays impossible.
+    if (!body.centre_id) body.centre_id = ctx.centre.id;
     const cleaned = cleanGuardianInput(body);
     const parsed = createRelationshipSchema.safeParse(cleaned);
 

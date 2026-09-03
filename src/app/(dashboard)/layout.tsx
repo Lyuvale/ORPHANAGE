@@ -28,6 +28,7 @@ const TENANT_PATHS = [
   "/team",
   "/audit",
   "/centres",
+  "/register",
 ];
 
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
@@ -48,6 +49,7 @@ export default async function DashboardLayout({
 }) {
   let isManager = false;
   let isPlatformAdmin = false;
+  let canRegister = false;
   let centreName = "";
   try {
     const supabase = (await createClient()) as never;
@@ -55,6 +57,12 @@ export default async function DashboardLayout({
     const role = await getUserRoleName(supabase, ctx as unknown as AppUserContext);
     isManager = role === "CENTRE_MANAGER";
     isPlatformAdmin = role === "PLATFORM_ADMINISTRATOR";
+    // Roles that hold at least one intake creation permission (per static
+    // role map; the /register page itself enforces the exact DB permissions).
+    canRegister =
+      role === "CENTRE_MANAGER" ||
+      role === "SOCIAL_WORKER" ||
+      role === "RECORDS_OFFICER";
     centreName = ctx.centre?.name ?? "";
   } catch (err) {
     if (err instanceof AuthError && err.code === "NOT_AUTHENTICATED") {
@@ -62,6 +70,7 @@ export default async function DashboardLayout({
     }
     isManager = false;
     isPlatformAdmin = false;
+    canRegister = false;
   }
 
   // Keep the platform admin inside the /admin area. Tenant pages (children,
@@ -115,6 +124,7 @@ export default async function DashboardLayout({
               ) : (
                 <>
                   <NavLink href="/children">Children</NavLink>
+                  {canRegister && <NavLink href="/register">Register</NavLink>}
                   <NavLink href="/admissions">Admissions</NavLink>
                   <NavLink href="/placements">Placements</NavLink>
                   <NavLink href="/referrals">Referrals</NavLink>
