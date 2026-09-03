@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
+import ApproveRejectButtons from "@/app/(dashboard)/_components/approve-reject-buttons";
 import { serverFetch } from "@/lib/server-fetch";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
@@ -74,15 +75,22 @@ export default async function ReferralsListPage({
   const { data: referrals, count } = await getReferrals(params);
 
   // Registration entry is visible only to roles that may create referrals.
+  // Review actions are visible only to roles holding review/reject rights.
   let showRegister = false;
+  let canReview = false;
+  let canReject = false;
   try {
     const supabase = await createClient();
     const ctx = await requireAppAccess(supabase as never, {
       allowInactiveSubscription: true,
     });
     showRegister = await can(supabase as never, ctx, "referrals.create");
+    canReview = await can(supabase as never, ctx, "referrals.review");
+    canReject = await can(supabase as never, ctx, "referrals.reject");
   } catch {
     showRegister = false;
+    canReview = false;
+    canReject = false;
   }
 
   return (
@@ -185,6 +193,11 @@ export default async function ReferralsListPage({
                 <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                   Submitted
                 </th>
+                {(canReview || canReject) && (
+                  <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
@@ -233,6 +246,21 @@ export default async function ReferralsListPage({
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                       {new Date(referral.submitted_at).toLocaleDateString()}
                     </td>
+                    {(canReview || canReject) && (
+                      <td className="whitespace-nowrap px-3 py-4 text-sm">
+                        {(referral.status === "submitted" || referral.status === "under_review") ? (
+                          <ApproveRejectButtons
+                            url={`/api/referrals/${referral.id}`}
+                            approveBody={{ new_status: "admitted" }}
+                            rejectBody={{ new_status: "rejected" }}
+                            showApprove={canReview}
+                            showReject={canReject}
+                          />
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ),
               )}

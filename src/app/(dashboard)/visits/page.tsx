@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { Visit, VisitStatus, VisitType } from "@/types/visit";
 import { getVisitStatusDisplay, getVisitTypeDisplay } from "@/types/visit";
 import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
+import ApproveRejectButtons from "@/app/(dashboard)/_components/approve-reject-buttons";
 
 const REPORT_OPTIONS = [
   { value: "summary", label: "Summary by Status" },
@@ -24,7 +25,19 @@ export default function VisitsPage() {
     search: "",
   });
   const [page, setPage] = useState(0);
+  const [perms, setPerms] = useState<string[]>([]);
   const limit = 20;
+
+  // Own approval rights (visibility only — the endpoint enforces again).
+  useEffect(() => {
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { permissions: [] }))
+      .then((j) => setPerms(Array.isArray(j.permissions) ? j.permissions : []))
+      .catch(() => setPerms([]));
+  }, []);
+
+  const canApproveVisit = perms.includes("visits.approve");
+  const canRejectVisit = perms.includes("visits.reject");
 
   const fetchVisits = useCallback(async () => {
     setLoading(true);
@@ -146,6 +159,9 @@ export default function VisitsPage() {
                 <th className="px-4 py-3 text-left font-medium">Purpose</th>
                 <th className="px-4 py-3 text-left font-medium">Supervised</th>
                 <th className="px-4 py-3 text-left font-medium">Outcome</th>
+                {(canApproveVisit || canRejectVisit) && (
+                  <th className="px-4 py-3 text-left font-medium">Actions</th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -190,6 +206,21 @@ export default function VisitsPage() {
                   <td className="px-4 py-3">
                     {v.outcome || "-"}
                   </td>
+                  {(canApproveVisit || canRejectVisit) && (
+                    <td className="px-4 py-3">
+                      {v.status === "requested" || v.status === "pending_approval" ? (
+                        <ApproveRejectButtons
+                          url={`/api/visits/${v.id}/status`}
+                          approveBody={{ new_status: "approved" }}
+                          rejectBody={{ new_status: "rejected" }}
+                          showApprove={canApproveVisit}
+                          showReject={canRejectVisit}
+                        />
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

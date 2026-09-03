@@ -30,7 +30,6 @@ const TENANT_PATHS = [
   "/centres",
   "/register",
   "/dashboard",
-  "/approvals",
 ];
 
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
@@ -52,7 +51,6 @@ export default async function DashboardLayout({
   let isManager = false;
   let isPlatformAdmin = false;
   let canRegister = false;
-  let canApprove = false;
   let centreName = "";
   // The user's own DB permissions, fetched once. Every centre menu entry is
   // shown only when the matching permission is held, so each role sees only
@@ -80,15 +78,6 @@ export default async function DashboardLayout({
       perms.has("guardians.create") ||
       perms.has("admissions.create") ||
       perms.has("placements.create");
-    // Approval permission in any review queue (referrals, visits,
-    // admissions, expenses).
-    canApprove =
-      perms.has("referrals.review") ||
-      perms.has("referrals.reject") ||
-      perms.has("visits.approve") ||
-      perms.has("visits.reject") ||
-      perms.has("admissions.review") ||
-      perms.has("resources.approve");
     centreName = ctx.centre?.name ?? "";
   } catch (err) {
     if (err instanceof AuthError && err.code === "NOT_AUTHENTICATED") {
@@ -97,7 +86,6 @@ export default async function DashboardLayout({
     isManager = false;
     isPlatformAdmin = false;
     canRegister = false;
-    canApprove = false;
   }
 
   // Keep the platform admin inside the /admin area. Tenant pages (children,
@@ -151,7 +139,6 @@ export default async function DashboardLayout({
               ) : (
                 <>
                   <NavLink href="/dashboard">Dashboard</NavLink>
-                  {canApprove && <NavLink href="/approvals">Approvals</NavLink>}
                   {perms.has("children.view") && <NavLink href="/children">Children</NavLink>}
                   {canRegister && <NavLink href="/register">Register</NavLink>}
                   {perms.has("admissions.view") && <NavLink href="/admissions">Admissions</NavLink>}

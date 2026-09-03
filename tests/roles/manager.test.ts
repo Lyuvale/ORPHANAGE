@@ -121,35 +121,43 @@ describe("Manager dashboard", () => {
   });
 });
 
-describe("Manager approvals inbox (Approve / Reject visible)", () => {
-  const page = src("src/app/(dashboard)/approvals/page.tsx");
-  const client = src("src/app/(dashboard)/approvals/ApprovalsClient.tsx");
-  const layout = src("src/app/(dashboard)/layout.tsx");
+describe("Manager Approve / Reject inside each module (no standalone page)", () => {
+  const referrals = src("src/app/(dashboard)/referrals/page.tsx");
+  const admissions = src("src/app/(dashboard)/admissions/page.tsx");
+  const visits = src("src/app/(dashboard)/visits/page.tsx");
+  const expenses = src("src/app/(dashboard)/resources/expenses/page.tsx");
+  const buttons = src("src/app/(dashboard)/_components/approve-reject-buttons.tsx");
 
-  it("gates the inbox on approval permissions", () => {
-    for (const perm of [
-      "referrals.review",
-      "referrals.reject",
-      "visits.approve",
-      "visits.reject",
-      "admissions.review",
-      "resources.approve",
-    ]) {
-      expect(page).toContain(perm);
-    }
+  it("has no standalone approvals page", () => {
+    const { existsSync } = require("node:fs") as typeof import("node:fs");
+    expect(existsSync(join(process.cwd(), "src/app/(dashboard)/approvals"))).toBe(false);
   });
 
-  it("shows Approve and Reject buttons wired to the review endpoints", () => {
-    expect(client).toContain("Approve");
-    expect(client).toContain("Reject");
-    expect(client).toContain("/api/referrals/");
-    expect(client).toContain("/api/visits/");
-    expect(client).toContain("/api/admissions/");
-    expect(client).toContain("/approval");
+  it("referrals list shows Approve/Reject for pending items to reviewers", () => {
+    expect(referrals).toContain("referrals.review");
+    expect(referrals).toContain("ApproveRejectButtons");
+    expect(referrals).toContain("admitted");
   });
 
-  it("exposes an Approvals menu entry to approvers", () => {
-    expect(layout).toContain('href="/approvals"');
-    expect(layout).toContain("canApprove");
+  it("admissions list shows Approve/Reject for pending items to reviewers", () => {
+    expect(admissions).toContain("admissions.review");
+    expect(admissions).toContain("ApproveRejectButtons");
+  });
+
+  it("visits list shows Approve/Reject to approvers (via own caps)", () => {
+    expect(visits).toContain("visits.approve");
+    expect(visits).toContain("ApproveRejectButtons");
+    expect(visits).toContain("/api/auth/me");
+  });
+
+  it("expenses list shows Approve/Reject for pending items to approvers", () => {
+    expect(expenses).toContain("resources.approve");
+    expect(expenses).toContain("ApproveRejectButtons");
+  });
+
+  it("shared buttons show Approve and Reject and refresh after acting", () => {
+    expect(buttons).toContain("Approve");
+    expect(buttons).toContain("Reject");
+    expect(buttons).toContain("router.refresh");
   });
 });

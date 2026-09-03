@@ -1,5 +1,6 @@
 import Link from "next/link";
 import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
+import ApproveRejectButtons from "@/app/(dashboard)/_components/approve-reject-buttons";
 import { serverFetch } from "@/lib/server-fetch";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
@@ -56,15 +57,19 @@ export default async function AdmissionsListPage({
   const { data: admissions, count } = await getAdmissions(params);
 
   // Registration entry is visible only to roles that may create admissions.
+  // Review actions are visible only to roles holding admissions.review.
   let showRegister = false;
+  let canReview = false;
   try {
     const supabase = await createClient();
     const ctx = await requireAppAccess(supabase as never, {
       allowInactiveSubscription: true,
     });
     showRegister = await can(supabase as never, ctx, "admissions.create");
+    canReview = await can(supabase as never, ctx, "admissions.review");
   } catch {
     showRegister = false;
+    canReview = false;
   }
 
   return (
@@ -148,6 +153,11 @@ export default async function AdmissionsListPage({
                 <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                   Created
                 </th>
+                {canReview && (
+                  <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
@@ -181,6 +191,19 @@ export default async function AdmissionsListPage({
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                       {new Date(admission.created_at).toLocaleDateString()}
                     </td>
+                    {canReview && (
+                      <td className="whitespace-nowrap px-3 py-4 text-sm">
+                        {admission.status === "pending" ? (
+                          <ApproveRejectButtons
+                            url={`/api/admissions/${admission.id}`}
+                            approveBody={{ new_status: "approved" }}
+                            rejectBody={{ new_status: "denied" }}
+                          />
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ),
               )}

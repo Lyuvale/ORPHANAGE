@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { formatTsh, getExpenseStatusDisplay } from "@/types/resources";
 import { serverFetch } from "@/lib/server-fetch";
+import ApproveRejectButtons from "@/app/(dashboard)/_components/approve-reject-buttons";
+import { createClient } from "@/lib/supabase/server";
+import { requireAppAccess } from "@/lib/auth/app-user-context";
+import { can } from "@/lib/auth/authorization.service";
 
 async function getExpenses(searchParams: Record<string, string | undefined>) {
   const params = new URLSearchParams();
@@ -21,6 +25,18 @@ export default async function ExpensesPage({
 }) {
   const params = await searchParams;
   const { data: expenses } = await getExpenses(params);
+
+  // Approval buttons are visible only to roles holding resources.approve.
+  let canApproveExp = false;
+  try {
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as never, {
+      allowInactiveSubscription: true,
+    });
+    canApproveExp = await can(supabase as never, ctx, "resources.approve");
+  } catch {
+    canApproveExp = false;
+  }
 
   return (
     <div>
@@ -77,6 +93,9 @@ export default async function ExpensesPage({
                 <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Fund</th>
                 <th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Amount</th>
                 <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
+                {canApproveExp && (
+                  <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Actions</th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
@@ -109,6 +128,20 @@ export default async function ExpensesPage({
                         {getExpenseStatusDisplay(e.approval_status as never)}
                       </span>
                     </td>
+                    {canApproveExp && (
+                      <td className="px-3 py-4 text-sm">
+                        {e.approval_status === "PENDING" ? (
+                          <ApproveRejectButtons
+                            url={`/api/resources/expenses/${e.id}/approval`}
+                            method="POST"
+                            approveBody={{ status: "APPROVED" }}
+                            rejectBody={{ status: "REJECTED" }}
+                          />
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ),
               )}
