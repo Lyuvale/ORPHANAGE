@@ -113,6 +113,8 @@ export interface ChildSearchFilters {
   search?: string;
   limit?: number;
   offset?: number;
+  // Assignment scoping (spec: caregiver sees assigned children only).
+  ids?: string[];
 }
 
 // ─── Display Helpers ─────────────────────────────────────────────────────────

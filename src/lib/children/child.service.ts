@@ -39,6 +39,14 @@ export async function listChildren(
     );
   }
 
+  if (filters.ids) {
+    // Empty id set => no rows (never fall back to unscoped listing).
+    if (filters.ids.length === 0) {
+      return { data: [], count: 0 };
+    }
+    query = query.in("id", filters.ids);
+  }
+
   const limit = filters.limit ?? 50;
   const offset = filters.offset ?? 0;
   query = query.range(offset, offset + limit - 1);

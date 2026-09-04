@@ -276,6 +276,7 @@ export const visitSearchSchema = z.object({
   status: z.enum(VISIT_STATUSES).optional(),
   visit_type: z.enum(VISIT_TYPES).optional(),
   child_id: z.string().uuid().optional().or(z.literal("")),
+  child_ids: z.array(z.string().uuid()).optional(),
   guardian_id: z.string().uuid().optional().or(z.literal("")),
   date_from: z
     .string()
@@ -317,6 +318,7 @@ export const visitSearchSchema = z.object({
 
 export const restrictionSearchSchema = z.object({
   child_id: z.string().uuid().optional().or(z.literal("")),
+  child_ids: z.array(z.string().uuid()).optional(),
   guardian_id: z.string().uuid().optional().or(z.literal("")),
   is_active: z
     .string()
@@ -347,6 +349,7 @@ export const restrictionSearchSchema = z.object({
 
 export const contactAttemptSearchSchema = z.object({
   child_id: z.string().uuid().optional().or(z.literal("")),
+  child_ids: z.array(z.string().uuid()).optional(),
   guardian_id: z.string().uuid().optional().or(z.literal("")),
   contact_type: z.enum(CONTACT_ATTEMPT_TYPES).optional(),
   date_from: z

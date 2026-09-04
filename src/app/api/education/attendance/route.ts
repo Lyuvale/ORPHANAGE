@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
+import { getChildById } from "@/lib/children/child.service";
+import { caregiverAssignmentScope } from "@/lib/caregivers/caregiver.service";
 import { auditCreate } from "@/lib/audit/audit.service";
 import {
   listEducationAttendance,
@@ -30,8 +32,29 @@ export async function GET(request: NextRequest) {
     const dateTo = searchParams.get("date_to") ?? undefined;
 
     const admin = createAdminClient();
+
+    // Tenant isolation (the table was previously listed cross-centre).
+    // Spec: a caregiver sees ASSIGNED CHILDREN ONLY.
+    const { assignedIds } = await caregiverAssignmentScope(
+      admin,
+      supabase as unknown as SupabaseClient,
+      ctx,
+    );
+    if (assignedIds) {
+      if (childId && !assignedIds.includes(childId)) {
+        return NextResponse.json({ error: "Child not found" }, { status: 404 });
+      }
+    } else if (childId) {
+      const child = await getChildById(admin, childId);
+      if (!child || child.centre_id !== ctx.centre.id) {
+        return NextResponse.json({ error: "Child not found" }, { status: 404 });
+      }
+    }
+
     const records = await listEducationAttendance(admin, {
+      centre_id: ctx.centre.id,
       child_id: childId,
+      child_ids: assignedIds ?? undefined,
       date_from: dateFrom,
       date_to: dateTo,
     });
@@ -76,6 +99,22 @@ export async function POST(request: NextRequest) {
     }
 
     const admin = createAdminClient();
+
+    // The child must belong to the caller's own centre; a caregiver may
+    // record only for ASSIGNED children.
+    const target = await getChildById(admin, body.child_id);
+    if (!target || target.centre_id !== ctx.centre.id) {
+      return NextResponse.json({ error: "Child not found" }, { status: 404 });
+    }
+    const { assignedIds: writeIds } = await caregiverAssignmentScope(
+      admin,
+      supabase as unknown as SupabaseClient,
+      ctx,
+    );
+    if (writeIds && !writeIds.includes(body.child_id)) {
+      return NextResponse.json({ error: "Child not found" }, { status: 404 });
+    }
+
     const record = await createEducationAttendance(
       admin,
       {

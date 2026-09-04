@@ -121,6 +121,7 @@ export const updatePlacementStatusSchema = z.object({
 export const placementSearchSchema = z.object({
   status: z.enum(PLACEMENT_STATUSES).optional(),
   child_id: z.string().uuid().optional(),
+  child_ids: z.array(z.string().uuid()).optional(),
   placement_type: z.enum(PLACEMENT_TYPES).optional(),
   search: z
     .string()

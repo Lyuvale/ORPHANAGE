@@ -107,6 +107,7 @@ export interface OffSiteInput {
 export interface PresenceSearchFilters {
   centre_id: string;
   child_id?: string;
+  child_ids?: string[];
   presence_date?: string;
   status?: PresenceStatus;
   date_from?: string;

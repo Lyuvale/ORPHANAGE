@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import { formatTsh, getBenefitTypeDisplay } from "@/types/resources";
 import AuditHistory from "../../_components/audit-history";
 import { serverFetch } from "@/lib/server-fetch";
+import { createClient } from "@/lib/supabase/server";
+import { requireAppAccess } from "@/lib/auth/app-user-context";
+import { can } from "@/lib/auth/authorization.service";
 import CaregiverAssignment from "./_components/caregiver-assignment";
 
 async function getChild(id: string) {
@@ -69,6 +72,20 @@ export default async function ChildProfilePage({
   const history = child.status_history ?? [];
   const benefits = await getChildBenefits(id);
   const guardians = await getChildGuardians(id);
+
+  // Assignment management (manager assigning child -> caregiver) is visible
+  // only to roles holding staff.assignments.manage. This also keeps the
+  // centre staff list out of reach for caregivers.
+  let canManageAssignments = false;
+  try {
+    const supabase = await createClient();
+    const actx = await requireAppAccess(supabase as never, {
+      allowInactiveSubscription: true,
+    });
+    canManageAssignments = await can(supabase as never, actx, "staff.assignments.manage");
+  } catch {
+    canManageAssignments = false;
+  }
 
   return (
     <div>
@@ -434,8 +451,8 @@ export default async function ChildProfilePage({
         </div>
       </div>
 
-      {/* Caregiver Assignment */}
-      <CaregiverAssignment childId={child.id} currentUserId={""} />
+      {/* Caregiver Assignment (managers only) */}
+      {canManageAssignments && <CaregiverAssignment childId={child.id} currentUserId={""} />}
 
       {/* Benefits */}
     </div>

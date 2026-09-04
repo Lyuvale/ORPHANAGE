@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
+import { caregiverAssignmentScope } from "@/lib/caregivers/caregiver.service";
 import { auditCreate } from "@/lib/audit/audit.service";
 import {
   listChildCaregivers,
@@ -32,6 +33,17 @@ export async function GET(request: NextRequest) {
     }
 
     const admin = createAdminClient();
+
+    // Spec: a caregiver sees assignments of ASSIGNED CHILDREN ONLY.
+    const { assignedIds } = await caregiverAssignmentScope(
+      admin,
+      supabase as unknown as SupabaseClient,
+      ctx,
+    );
+    if (assignedIds && !assignedIds.includes(childId)) {
+      return NextResponse.json({ error: "Child not found" }, { status: 404 });
+    }
+
     const assignments = await listChildCaregivers(admin, childId);
     return NextResponse.json({ data: assignments });
   } catch (error) {

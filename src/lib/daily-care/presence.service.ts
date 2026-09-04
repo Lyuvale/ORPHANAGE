@@ -27,6 +27,10 @@ export async function listPresenceRecords(
   if (filters.child_id) {
     query = query.eq("child_id", filters.child_id);
   }
+  if (filters.child_ids) {
+    if (filters.child_ids.length === 0) return { data: [], count: 0 };
+    query = query.in("child_id", filters.child_ids);
+  }
   if (filters.presence_date) {
     query = query.eq("presence_date", filters.presence_date);
   }
@@ -311,6 +315,7 @@ export async function getDailyPresenceSummary(
   adminSupabase: AdminClient,
   centreId: string,
   presenceDate: string,
+  childIds?: string[],
 ): Promise<{
   total: number;
   present: ChildPresence[];
@@ -319,11 +324,28 @@ export async function getDailyPresenceSummary(
   on_leave: ChildPresence[];
     not_recorded: { child_id: string; first_name: string; last_name: string; reference_number: string }[];
 }> {
-  const { data: presenceData, error: presenceError } = await adminSupabase
+  let presenceQuery = adminSupabase
     .from("child_presence")
     .select("*")
     .eq("centre_id", centreId)
     .eq("presence_date", presenceDate);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let childrenQuery: any = adminSupabase
+    .from("children")
+    .select("id, first_name, last_name, reference_number")
+    .eq("centre_id", centreId)
+    .eq("status", "active");
+
+  if (childIds) {
+    if (childIds.length === 0) {
+      return { total: 0, present: [], absent: [], off_site: [], on_leave: [], not_recorded: [] };
+    }
+    presenceQuery = presenceQuery.in("child_id", childIds);
+    childrenQuery = childrenQuery.in("id", childIds);
+  }
+
+  const { data: presenceData, error: presenceError } = await presenceQuery;
 
   if (presenceError) {
     throw new Error(`Failed to get presence summary: ${presenceError.message}`);
@@ -332,11 +354,7 @@ export async function getDailyPresenceSummary(
   const records = (presenceData ?? []) as ChildPresence[];
 
   // Get active children in this centre
-  const { data: activeChildren, error: childrenError } = await adminSupabase
-    .from("children")
-    .select("id, first_name, last_name, reference_number")
-    .eq("centre_id", centreId)
-    .eq("status", "active");
+  const { data: activeChildren, error: childrenError } = await childrenQuery;
 
   if (childrenError) {
     throw new Error(`Failed to get active children: ${childrenError.message}`);

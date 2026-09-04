@@ -1,4 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { AppUserContext } from "@/lib/auth/app-user-context";
+import { getUserRoleName } from "@/lib/auth/authorization.service";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AdminClient = SupabaseClient<any, "public", any>;
@@ -161,4 +163,68 @@ export async function endCaregiverAssignment(
 
   if (error) throw new Error(error.message);
   return data as CaregiverAssignment;
+}
+
+// ─── Assignment scoping (spec: caregiver sees assigned children only) ───
+// A caregiver may access a child record only when BOTH hold:
+//   1. the child belongs to the caregiver's centre, and
+//   2. the child is ACTIVELY assigned to that caregiver.
+
+/** Active child ids assigned to a caregiver within a centre. */
+export async function getActiveCaregiverChildIds(
+  admin: AdminClient,
+  caregiverProfileId: string,
+  centreId: string,
+): Promise<string[]> {
+  const { data, error } = await admin
+    .from("child_caregivers")
+    .select("child_id")
+    .eq("caregiver_id", caregiverProfileId)
+    .eq("centre_id", centreId)
+    .eq("status", "active");
+
+  if (error) throw new Error(error.message);
+  return [...new Set(((data ?? []) as { child_id: string }[]).map((r) => r.child_id))];
+}
+
+/** Whether a child is actively assigned to a caregiver (same centre). */
+export async function isChildAssignedToCaregiver(
+  admin: AdminClient,
+  caregiverProfileId: string,
+  centreId: string,
+  childId: string,
+): Promise<boolean> {
+  const { data, error } = await admin
+    .from("child_caregivers")
+    .select("id")
+    .eq("caregiver_id", caregiverProfileId)
+    .eq("centre_id", centreId)
+    .eq("child_id", childId)
+    .eq("status", "active")
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  return !!data;
+}
+
+/**
+ * Assignment scope for the caller. Returns the caller's role plus, for
+ * CAREGIVER callers only, their actively assigned child ids (same centre).
+ * Non-caregivers receive `assignedIds: null` meaning "no assignment scoping".
+ *
+ * Route pattern:
+ *   const { assignedIds } = await caregiverAssignmentScope(admin, supabase, ctx);
+ *   if (assignedIds && childId && !assignedIds.includes(childId)) deny;
+ *   service(admin, { ..., child_ids: assignedIds ?? undefined });
+ */
+export async function caregiverAssignmentScope(
+  admin: AdminClient,
+  sessionSupabase: SupabaseClient,
+  ctx: AppUserContext,
+): Promise<{ roleName: string | null; assignedIds: string[] | null }> {
+  const roleName = await getUserRoleName(sessionSupabase, ctx);
+  if (roleName !== "CAREGIVER") return { roleName, assignedIds: null };
+  const assignedIds = await getActiveCaregiverChildIds(admin, ctx.profile.id, ctx.centre.id);
+  return { roleName, assignedIds };
 }

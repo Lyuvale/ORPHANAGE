@@ -60,6 +60,10 @@ export async function listVisits(
   if (filters.child_id) {
     query = query.eq("child_id", filters.child_id);
   }
+  if (filters.child_ids) {
+    if (filters.child_ids.length === 0) return { data: [], count: 0 };
+    query = query.in("child_id", filters.child_ids);
+  }
   if (filters.guardian_id) {
     query = query.eq("guardian_id", filters.guardian_id);
   }

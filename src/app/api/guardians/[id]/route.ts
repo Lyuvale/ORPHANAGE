@@ -10,7 +10,9 @@ import {
   updateGuardian,
   updateGuardianStatus,
   getGuardianDocuments,
+  listRelationships,
 } from "@/lib/guardians/guardian.service";
+import { caregiverAssignmentScope } from "@/lib/caregivers/caregiver.service";
 import {
   updateGuardianSchema,
   updateGuardianStatusSchema,
@@ -39,6 +41,25 @@ export async function GET(
 
     if (guardian.centre_id !== ctx.centre.id) {
       return NextResponse.json({ error: "Guardian not found" }, { status: 404 });
+    }
+
+    // Spec: a caregiver opens guardians of ASSIGNED CHILDREN ONLY.
+    const { assignedIds } = await caregiverAssignmentScope(
+      adminSupabase,
+      supabase as unknown as SupabaseClient,
+      ctx,
+    );
+    if (assignedIds) {
+      const { data: rels, count: relCount } = await listRelationships(adminSupabase, {
+        centre_id: ctx.centre.id,
+        guardian_id: id,
+        child_ids: assignedIds,
+        limit: 1,
+        offset: 0,
+      });
+      if (relCount === 0 || rels.length === 0) {
+        return NextResponse.json({ error: "Guardian not found" }, { status: 404 });
+      }
     }
 
     // Fetch documents if user has permission

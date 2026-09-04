@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
+import { caregiverAssignmentScope } from "@/lib/caregivers/caregiver.service";
 import { auditCreate } from "@/lib/audit/audit.service";
 import { listMedicationAdministrations, recordMedicationAdministration } from "@/lib/health/health.service";
 import { createMedicationAdministrationSchema, medicationAdminSearchSchema, cleanHealthInput } from "@/lib/health/health.validation";
@@ -36,9 +37,22 @@ export async function GET(request: NextRequest) {
     }
 
     const adminSupabase = createAdminClient();
+
+    // Spec: a caregiver sees ASSIGNED CHILDREN ONLY.
+    const { assignedIds } = await caregiverAssignmentScope(
+      adminSupabase,
+      supabase as unknown as SupabaseClient,
+      ctx,
+    );
+    const requestedChildId = parsed.data.child_id || undefined;
+    if (assignedIds && requestedChildId && !assignedIds.includes(requestedChildId)) {
+      return NextResponse.json({ error: "Child not found" }, { status: 404 });
+    }
+
     const { data, count } = await listMedicationAdministrations(adminSupabase, {
       centre_id: ctx.centre.id,
-      child_id: parsed.data.child_id || undefined,
+      child_id: requestedChildId,
+      child_ids: assignedIds ?? undefined,
       medication_id: parsed.data.medication_id || undefined,
       status: parsed.data.status,
       limit: parsed.data.limit,
@@ -74,6 +88,17 @@ export async function POST(request: NextRequest) {
     }
 
     const adminSupabase = createAdminClient();
+
+    // Spec: a caregiver administers ASSIGNED CHILDREN ONLY.
+    const { assignedIds: writeIds } = await caregiverAssignmentScope(
+      adminSupabase,
+      supabase as unknown as SupabaseClient,
+      ctx,
+    );
+    if (writeIds && !writeIds.includes(parsed.data.child_id)) {
+      return NextResponse.json({ error: "Child not found" }, { status: 404 });
+    }
+
     const admin = await recordMedicationAdministration(
       adminSupabase,
       parsed.data as CreateMedicationAdministrationInput,

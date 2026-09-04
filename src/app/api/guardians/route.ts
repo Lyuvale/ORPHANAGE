@@ -9,7 +9,9 @@ import {
   listGuardians,
   createGuardian,
   findDuplicateGuardians,
+  listRelationships,
 } from "@/lib/guardians/guardian.service";
+import { caregiverAssignmentScope } from "@/lib/caregivers/caregiver.service";
 import {
   createGuardianSchema,
   guardianSearchSchema,
@@ -41,10 +43,29 @@ export async function GET(request: NextRequest) {
     }
 
     const adminSupabase = createAdminClient();
+
+    // Spec: a caregiver sees guardians of ASSIGNED CHILDREN ONLY.
+    const { assignedIds } = await caregiverAssignmentScope(
+      adminSupabase,
+      supabase as unknown as SupabaseClient,
+      ctx,
+    );
+    let guardianIds: string[] | undefined;
+    if (assignedIds) {
+      const { data: rels } = await listRelationships(adminSupabase, {
+        centre_id: ctx.centre.id,
+        child_ids: assignedIds,
+        limit: 500,
+        offset: 0,
+      });
+      guardianIds = [...new Set(rels.map((r) => r.guardian_id))];
+    }
+
     const { data, count } = await listGuardians(adminSupabase, {
       centre_id: ctx.centre.id,
       status: parsed.data.status,
       search: parsed.data.search,
+      ids: guardianIds,
       limit: parsed.data.limit,
       offset: parsed.data.offset,
     });

@@ -297,6 +297,7 @@ export interface VisitSearchFilters {
   status?: VisitStatus;
   visit_type?: VisitType;
   child_id?: string;
+  child_ids?: string[];
   guardian_id?: string;
   date_from?: string;
   date_to?: string;

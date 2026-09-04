@@ -99,6 +99,7 @@ export interface PlacementSearchFilters {
   centre_id: string;
   status?: PlacementStatus;
   child_id?: string;
+  child_ids?: string[];
   placement_type?: PlacementType;
   search?: string;
   limit?: number;

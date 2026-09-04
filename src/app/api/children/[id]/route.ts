@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
+import { caregiverAssignmentScope } from "@/lib/caregivers/caregiver.service";
 import { auditUpdate, auditDelete } from "@/lib/audit/audit.service";
 import { notifyRole } from "@/lib/notifications/notifications.service";
 import {
@@ -39,6 +40,16 @@ export async function GET(
     }
 
     if (child.centre_id !== ctx.centre.id) {
+      return NextResponse.json({ error: "Child not found" }, { status: 404 });
+    }
+
+    // Spec: a caregiver may open ASSIGNED children only.
+    const { assignedIds } = await caregiverAssignmentScope(
+      adminSupabase,
+      supabase as unknown as SupabaseClient,
+      ctx,
+    );
+    if (assignedIds && !assignedIds.includes(id)) {
       return NextResponse.json({ error: "Child not found" }, { status: 404 });
     }
 

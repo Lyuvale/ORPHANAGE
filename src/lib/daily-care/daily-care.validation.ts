@@ -307,6 +307,7 @@ export const updateFollowupSchema = z
 
 export const presenceSearchSchema = z.object({
   child_id: z.string().uuid().optional().or(z.literal("")),
+  child_ids: z.array(z.string().uuid()).optional(),
   presence_date: z
     .string()
     .refine((val) => !val || !isNaN(Date.parse(val)), "Invalid date")
@@ -341,6 +342,7 @@ export const presenceSearchSchema = z.object({
 
 export const dailyCareSearchSchema = z.object({
   child_id: z.string().uuid().optional().or(z.literal("")),
+  child_ids: z.array(z.string().uuid()).optional(),
   care_date: z
     .string()
     .refine((val) => !val || !isNaN(Date.parse(val)), "Invalid date")
@@ -375,6 +377,7 @@ export const dailyCareSearchSchema = z.object({
 
 export const mealSearchSchema = z.object({
   child_id: z.string().uuid().optional().or(z.literal("")),
+  child_ids: z.array(z.string().uuid()).optional(),
   meal_date: z
     .string()
     .refine((val) => !val || !isNaN(Date.parse(val)), "Invalid date")
@@ -409,6 +412,7 @@ export const mealSearchSchema = z.object({
 
 export const dailyNoteSearchSchema = z.object({
   child_id: z.string().uuid().optional().or(z.literal("")),
+  child_ids: z.array(z.string().uuid()).optional(),
   note_date: z
     .string()
     .refine((val) => !val || !isNaN(Date.parse(val)), "Invalid date")
@@ -443,6 +447,7 @@ export const dailyNoteSearchSchema = z.object({
 
 export const followupSearchSchema = z.object({
   child_id: z.string().uuid().optional().or(z.literal("")),
+  child_ids: z.array(z.string().uuid()).optional(),
   status: z.enum(FOLLOWUP_STATUSES).optional(),
   responsible_user_id: z.string().uuid().optional().or(z.literal("")),
   limit: z

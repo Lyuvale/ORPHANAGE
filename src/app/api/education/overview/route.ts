@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
+import { caregiverAssignmentScope } from "@/lib/caregivers/caregiver.service";
 import { getEducationOverview } from "@/lib/education/education.service";
 
 function statusFromError(message: string): number {
@@ -27,6 +28,17 @@ export async function GET(request: NextRequest) {
     }
 
     const adminSupabase = createAdminClient();
+
+    // Spec: a caregiver opens ASSIGNED CHILDREN ONLY.
+    const { assignedIds } = await caregiverAssignmentScope(
+      adminSupabase,
+      supabase as unknown as SupabaseClient,
+      ctx,
+    );
+    if (assignedIds && !assignedIds.includes(childId)) {
+      return NextResponse.json({ error: "Child not found" }, { status: 404 });
+    }
+
     const overview = await getEducationOverview(adminSupabase, ctx.centre.id, childId);
 
     return NextResponse.json({ data: overview });

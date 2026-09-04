@@ -219,6 +219,8 @@ export interface GuardianSearchFilters {
   search?: string;
   limit?: number;
   offset?: number;
+  // Assignment scoping (spec: caregiver sees assigned children's guardians).
+  ids?: string[];
 }
 
 // ─── Relationship Search Filters ─────────────────────────────
@@ -226,6 +228,7 @@ export interface GuardianSearchFilters {
 export interface RelationshipSearchFilters {
   centre_id: string;
   child_id?: string;
+  child_ids?: string[];
   guardian_id?: string;
   is_active?: boolean;
   limit?: number;

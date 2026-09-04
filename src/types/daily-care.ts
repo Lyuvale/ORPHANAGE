@@ -197,6 +197,7 @@ export interface UpdateFollowupInput {
 export interface DailyCareSearchFilters {
   centre_id: string;
   child_id?: string;
+  child_ids?: string[];
   care_date?: string;
   activity_type?: CareActivityType;
   date_from?: string;
@@ -208,6 +209,7 @@ export interface DailyCareSearchFilters {
 export interface MealSearchFilters {
   centre_id: string;
   child_id?: string;
+  child_ids?: string[];
   meal_date?: string;
   meal_type?: MealType;
   date_from?: string;
@@ -219,6 +221,7 @@ export interface MealSearchFilters {
 export interface DailyNoteSearchFilters {
   centre_id: string;
   child_id?: string;
+  child_ids?: string[];
   note_date?: string;
   note_type?: DailyNoteType;
   date_from?: string;

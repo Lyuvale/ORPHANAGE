@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AuthError, requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
+import { caregiverAssignmentScope } from "@/lib/caregivers/caregiver.service";
 import { auditCreate } from "@/lib/audit/audit.service";
 import { notifyRole } from "@/lib/notifications/notifications.service";
 import {
@@ -41,12 +42,22 @@ export async function GET(request: NextRequest) {
     }
 
     const adminSupabase = createAdminClient();
+
+    // Spec: a caregiver sees ASSIGNED CHILDREN ONLY (same centre + active
+    // assignment). Scope the listing to their assigned child ids.
+    const { assignedIds } = await caregiverAssignmentScope(
+      adminSupabase,
+      supabase as unknown as SupabaseClient,
+      ctx,
+    );
+
     const { data, count } = await listChildren(adminSupabase, {
       centre_id: ctx.centre.id,
       status: parsed.data.status,
       search: parsed.data.search,
       limit: parsed.data.limit,
       offset: parsed.data.offset,
+      ids: assignedIds ?? undefined,
     });
 
     return NextResponse.json({ data, count });

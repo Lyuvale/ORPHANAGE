@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
+import { caregiverAssignmentScope } from "@/lib/caregivers/caregiver.service";
 import { auditCreate, auditUpdate } from "@/lib/audit/audit.service";
 import {
   checkInVisit,
@@ -39,6 +40,16 @@ export async function GET(
     }
 
     if (visit.centre_id !== ctx.centre.id) {
+      return NextResponse.json({ error: "Visit not found" }, { status: 404 });
+    }
+
+    // Spec: a caregiver opens ASSIGNED CHILDREN ONLY.
+    const { assignedIds } = await caregiverAssignmentScope(
+      adminSupabase,
+      supabase as unknown as SupabaseClient,
+      ctx,
+    );
+    if (assignedIds && visit.child_id && !assignedIds.includes(visit.child_id as string)) {
       return NextResponse.json({ error: "Visit not found" }, { status: 404 });
     }
 
@@ -80,6 +91,16 @@ export async function POST(
     }
 
     if (existing.centre_id !== ctx.centre.id) {
+      return NextResponse.json({ error: "Visit not found" }, { status: 404 });
+    }
+
+    // Spec: a caregiver acts on ASSIGNED CHILDREN ONLY.
+    const { assignedIds: writeIds } = await caregiverAssignmentScope(
+      adminSupabase,
+      supabase as unknown as SupabaseClient,
+      ctx,
+    );
+    if (writeIds && existing.child_id && !writeIds.includes(existing.child_id as string)) {
       return NextResponse.json({ error: "Visit not found" }, { status: 404 });
     }
 

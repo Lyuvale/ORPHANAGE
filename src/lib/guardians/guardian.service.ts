@@ -36,6 +36,11 @@ export async function listGuardians(
     query = query.eq("status", filters.status);
   }
 
+  if (filters.ids) {
+    if (filters.ids.length === 0) return { data: [], count: 0 };
+    query = query.in("id", filters.ids);
+  }
+
   if (filters.search) {
     const term = filters.search.trim();
     query = query.or(
@@ -248,6 +253,11 @@ export async function listRelationships(
 
   if (filters.child_id) {
     query = query.eq("child_id", filters.child_id);
+  }
+
+  if (filters.child_ids) {
+    if (filters.child_ids.length === 0) return { data: [], count: 0 };
+    query = query.in("child_id", filters.child_ids);
   }
 
   if (filters.guardian_id) {

@@ -32,6 +32,11 @@ export async function listPlacements(
     query = query.eq("child_id", filters.child_id);
   }
 
+  if (filters.child_ids) {
+    if (filters.child_ids.length === 0) return { data: [], count: 0 };
+    query = query.in("child_id", filters.child_ids);
+  }
+
   if (filters.placement_type) {
     query = query.eq("placement_type", filters.placement_type);
   }

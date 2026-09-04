@@ -319,6 +319,7 @@ export const updateHealthFollowupSchema = z
 
 const baseSearchShape = {
   child_id: z.string().uuid().optional().or(z.literal("")),
+  child_ids: z.array(z.string().uuid()).optional(),
   limit: z
     .string()
     .optional()

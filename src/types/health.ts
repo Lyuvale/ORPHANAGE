@@ -622,6 +622,7 @@ export interface EmergencyHealthView {
 export interface HealthSearchFilters {
   centre_id: string;
   child_id?: string;
+  child_ids?: string[];
   limit?: number;
   offset?: number;
 }

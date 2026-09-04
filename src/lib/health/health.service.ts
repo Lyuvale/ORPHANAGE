@@ -345,6 +345,10 @@ export async function listMedications(
     .order("created_at", { ascending: false });
 
   if (filters.child_id) query = query.eq("child_id", filters.child_id);
+  if (filters.child_ids) {
+    if (filters.child_ids.length === 0) return { data: [], count: 0 };
+    query = query.in("child_id", filters.child_ids);
+  }
   if (filters.status) query = query.eq("status", filters.status);
 
   const limit = filters.limit ?? 50;
@@ -458,6 +462,10 @@ export async function listMedicationAdministrations(
     .order("scheduled_time", { ascending: false });
 
   if (filters.child_id) query = query.eq("child_id", filters.child_id);
+  if (filters.child_ids) {
+    if (filters.child_ids.length === 0) return { data: [], count: 0 };
+    query = query.in("child_id", filters.child_ids);
+  }
   if (filters.medication_id) query = query.eq("medication_id", filters.medication_id);
   if (filters.status) query = query.eq("status", filters.status);
 

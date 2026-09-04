@@ -34,7 +34,7 @@ export interface CreateEducationAttendanceInput {
 
 export async function listEducationAttendance(
   admin: AdminClient,
-  filters: { child_id?: string; date_from?: string; date_to?: string },
+  filters: { centre_id?: string; child_id?: string; child_ids?: string[]; date_from?: string; date_to?: string },
 ): Promise<EducationAttendanceDetail[]> {
   let query = admin
     .from("education_attendance")
@@ -44,8 +44,15 @@ export async function listEducationAttendance(
     `)
     .order("attendance_date", { ascending: false });
 
+  if (filters.centre_id) {
+    query = query.eq("centre_id", filters.centre_id);
+  }
   if (filters.child_id) {
     query = query.eq("child_id", filters.child_id);
+  }
+  if (filters.child_ids) {
+    if (filters.child_ids.length === 0) return [];
+    query = query.in("child_id", filters.child_ids);
   }
   if (filters.date_from) {
     query = query.gte("attendance_date", filters.date_from);

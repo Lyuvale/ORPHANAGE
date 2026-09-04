@@ -271,6 +271,7 @@ export interface EducationOverview {
 export interface EducationSearchFilters {
   centre_id: string;
   child_id?: string;
+  child_ids?: string[];
   limit?: number;
   offset?: number;
 }

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
+import { caregiverAssignmentScope } from "@/lib/caregivers/caregiver.service";
 import { auditCreate } from "@/lib/audit/audit.service";
 import {
   listRelationships,
@@ -29,9 +30,21 @@ export async function GET(request: NextRequest) {
     const isActive = searchParams.get("is_active");
 
     const adminSupabase = createAdminClient();
+
+    // Spec: a caregiver sees relationships of ASSIGNED CHILDREN ONLY.
+    const { assignedIds } = await caregiverAssignmentScope(
+      adminSupabase,
+      supabase as unknown as SupabaseClient,
+      ctx,
+    );
+    if (assignedIds && childId && !assignedIds.includes(childId)) {
+      return NextResponse.json({ error: "Child not found" }, { status: 404 });
+    }
+
     const { data, count } = await listRelationships(adminSupabase, {
       centre_id: ctx.centre.id,
       child_id: childId,
+      child_ids: assignedIds ?? undefined,
       guardian_id: guardianId,
       is_active: isActive !== null ? isActive === "true" : undefined,
       limit: parseInt(searchParams.get("limit") ?? "50", 10),

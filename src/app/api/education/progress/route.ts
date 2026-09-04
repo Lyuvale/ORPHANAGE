@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
+import { caregiverAssignmentScope } from "@/lib/caregivers/caregiver.service";
 import { auditCreate } from "@/lib/audit/audit.service";
 import {
   listEducationProgress,
@@ -39,9 +40,22 @@ export async function GET(request: NextRequest) {
     }
 
     const adminSupabase = createAdminClient();
+
+    // Spec: a caregiver sees ASSIGNED CHILDREN ONLY.
+    const { assignedIds } = await caregiverAssignmentScope(
+      adminSupabase,
+      supabase as unknown as SupabaseClient,
+      ctx,
+    );
+    const requestedChildId = parsed.data.child_id || undefined;
+    if (assignedIds && requestedChildId && !assignedIds.includes(requestedChildId)) {
+      return NextResponse.json({ error: "Child not found" }, { status: 404 });
+    }
+
     const result = await listEducationProgress(adminSupabase, {
       centre_id: ctx.centre.id,
-      child_id: parsed.data.child_id || undefined,
+      child_id: requestedChildId,
+      child_ids: assignedIds ?? undefined,
       goal_id: parsed.data.goal_id || undefined,
       limit: parsed.data.limit,
       offset: parsed.data.offset,
@@ -81,6 +95,17 @@ export async function POST(request: NextRequest) {
     }
 
     const adminSupabase = createAdminClient();
+
+    // Spec: a caregiver records ASSIGNED CHILDREN ONLY.
+    const { assignedIds: writeIds } = await caregiverAssignmentScope(
+      adminSupabase,
+      supabase as unknown as SupabaseClient,
+      ctx,
+    );
+    if (writeIds && !writeIds.includes(parsed.data.child_id)) {
+      return NextResponse.json({ error: "Child not found" }, { status: 404 });
+    }
+
     const progress = await createEducationProgress(
       adminSupabase,
       parsed.data as CreateEducationProgressInput,

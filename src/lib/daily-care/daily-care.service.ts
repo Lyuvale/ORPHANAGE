@@ -34,6 +34,10 @@ export async function listDailyCareRecords(
   if (filters.child_id) {
     query = query.eq("child_id", filters.child_id);
   }
+  if (filters.child_ids) {
+    if (filters.child_ids.length === 0) return { data: [], count: 0 };
+    query = query.in("child_id", filters.child_ids);
+  }
   if (filters.care_date) {
     query = query.eq("care_date", filters.care_date);
   }
@@ -109,6 +113,10 @@ export async function listMealRecords(
   if (filters.child_id) {
     query = query.eq("child_id", filters.child_id);
   }
+  if (filters.child_ids) {
+    if (filters.child_ids.length === 0) return { data: [], count: 0 };
+    query = query.in("child_id", filters.child_ids);
+  }
   if (filters.meal_date) {
     query = query.eq("meal_date", filters.meal_date);
   }
@@ -183,6 +191,10 @@ export async function listDailyNotes(
 
   if (filters.child_id) {
     query = query.eq("child_id", filters.child_id);
+  }
+  if (filters.child_ids) {
+    if (filters.child_ids.length === 0) return { data: [], count: 0 };
+    query = query.in("child_id", filters.child_ids);
   }
   if (filters.note_date) {
     query = query.eq("note_date", filters.note_date);

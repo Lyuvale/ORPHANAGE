@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
+import { caregiverAssignmentScope } from "@/lib/caregivers/caregiver.service";
 import { auditCreate } from "@/lib/audit/audit.service";
 import {
   listPresenceRecords,
@@ -45,18 +46,31 @@ export async function GET(request: NextRequest) {
 
     const adminSupabase = createAdminClient();
 
+    // Spec: a caregiver sees/records ASSIGNED CHILDREN ONLY.
+    const { assignedIds } = await caregiverAssignmentScope(
+      adminSupabase,
+      supabase as unknown as SupabaseClient,
+      ctx,
+    );
+    const requestedChildId = parsed.data.child_id || undefined;
+    if (assignedIds && requestedChildId && !assignedIds.includes(requestedChildId)) {
+      return NextResponse.json({ error: "Child not found" }, { status: 404 });
+    }
+
     if (searchParams.get("summary") === "true" && searchParams.get("date")) {
       const summary = await getDailyPresenceSummary(
         adminSupabase,
         ctx.centre.id,
         searchParams.get("date")!,
+        assignedIds ?? undefined,
       );
       return NextResponse.json({ data: summary });
     }
 
     const { data, count } = await listPresenceRecords(adminSupabase, {
       centre_id: ctx.centre.id,
-      child_id: parsed.data.child_id || undefined,
+      child_id: requestedChildId,
+      child_ids: assignedIds ?? undefined,
       presence_date: parsed.data.presence_date || undefined,
       status: parsed.data.status,
       date_from: parsed.data.date_from || undefined,
@@ -108,6 +122,17 @@ export async function POST(request: NextRequest) {
     }
 
     const adminSupabase = createAdminClient();
+
+    // Spec: a caregiver records ASSIGNED CHILDREN ONLY.
+    const { assignedIds: writeIds } = await caregiverAssignmentScope(
+      adminSupabase,
+      supabase as unknown as SupabaseClient,
+      ctx,
+    );
+    if (writeIds && !writeIds.includes(data.child_id)) {
+      return NextResponse.json({ error: "Child not found" }, { status: 404 });
+    }
+
     const presence = await createPresenceRecord(
       adminSupabase,
       data as CreatePresenceInput,

@@ -133,6 +133,10 @@ export async function listEducationSupportNeeds(
     .order("identified_date", { ascending: false, nullsFirst: false });
 
   if (filters.child_id) query = query.eq("child_id", filters.child_id);
+  if (filters.child_ids) {
+    if (filters.child_ids.length === 0) return { data: [], count: 0 };
+    query = query.in("child_id", filters.child_ids);
+  }
   if (filters.status) query = query.eq("status", filters.status);
   if (filters.priority) query = query.eq("priority", filters.priority);
 
@@ -232,6 +236,10 @@ export async function listEducationGoals(
     .order("created_at", { ascending: false });
 
   if (filters.child_id) query = query.eq("child_id", filters.child_id);
+  if (filters.child_ids) {
+    if (filters.child_ids.length === 0) return { data: [], count: 0 };
+    query = query.in("child_id", filters.child_ids);
+  }
   if (filters.status) query = query.eq("status", filters.status);
 
   const limit = filters.limit ?? 50;
@@ -343,6 +351,10 @@ export async function listEducationProgress(
     .order("progress_date", { ascending: false });
 
   if (filters.child_id) query = query.eq("child_id", filters.child_id);
+  if (filters.child_ids) {
+    if (filters.child_ids.length === 0) return { data: [], count: 0 };
+    query = query.in("child_id", filters.child_ids);
+  }
   if (filters.goal_id) query = query.eq("goal_id", filters.goal_id);
 
   const limit = filters.limit ?? 50;
@@ -423,6 +435,10 @@ export async function listEducationAchievements(
     .order("achievement_date", { ascending: false, nullsFirst: false });
 
   if (filters.child_id) query = query.eq("child_id", filters.child_id);
+  if (filters.child_ids) {
+    if (filters.child_ids.length === 0) return { data: [], count: 0 };
+    query = query.in("child_id", filters.child_ids);
+  }
   if (filters.category) query = query.eq("category", filters.category);
 
   const limit = filters.limit ?? 50;
