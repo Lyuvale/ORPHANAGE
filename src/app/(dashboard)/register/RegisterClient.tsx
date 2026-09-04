@@ -103,7 +103,9 @@ export default function RegisterClient({
     if (caps.child) s.push("child");
     if (caps.guardian) s.push("guardian");
     if (caps.admission && caps.referral) s.push("admission");
-    if (caps.placement) s.push("placement");
+    // Placement records an existing child: offered only when the child step
+    // is present (ownership chain: no child record => nothing to place).
+    if (caps.placement && caps.child) s.push("placement");
     return s;
   }, [caps]);
 

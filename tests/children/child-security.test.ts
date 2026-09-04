@@ -49,16 +49,10 @@ describe("Role Access to Children", () => {
       expect(ROLE_PERMISSIONS.CENTRE_MANAGER).not.toContain("children.create");
     });
 
-    it("has children.update", () => {
-      expect(ROLE_PERMISSIONS.CENTRE_MANAGER).toContain("children.update");
-    });
-
-    it("has children.status.update", () => {
-      expect(ROLE_PERMISSIONS.CENTRE_MANAGER).toContain("children.status.update");
-    });
-
-    it("has children.archive", () => {
-      expect(ROLE_PERMISSIONS.CENTRE_MANAGER).toContain("children.archive");
+    it("does NOT edit child records (records officer maintains them)", () => {
+      expect(ROLE_PERMISSIONS.CENTRE_MANAGER).not.toContain("children.update");
+      expect(ROLE_PERMISSIONS.CENTRE_MANAGER).not.toContain("children.status.update");
+      expect(ROLE_PERMISSIONS.CENTRE_MANAGER).not.toContain("children.archive");
     });
   });
 
@@ -67,16 +61,10 @@ describe("Role Access to Children", () => {
       expect(ROLE_PERMISSIONS.SOCIAL_WORKER).toContain("children.view");
     });
 
-    it("has children.create", () => {
-      expect(ROLE_PERMISSIONS.SOCIAL_WORKER).toContain("children.create");
-    });
-
-    it("has children.update", () => {
-      expect(ROLE_PERMISSIONS.SOCIAL_WORKER).toContain("children.update");
-    });
-
-    it("has children.status.update", () => {
-      expect(ROLE_PERMISSIONS.SOCIAL_WORKER).toContain("children.status.update");
+    it("does NOT own official child registration", () => {
+      expect(ROLE_PERMISSIONS.SOCIAL_WORKER).not.toContain("children.create");
+      expect(ROLE_PERMISSIONS.SOCIAL_WORKER).not.toContain("children.update");
+      expect(ROLE_PERMISSIONS.SOCIAL_WORKER).not.toContain("children.status.update");
     });
 
     it("does NOT have children.archive", () => {

@@ -43,6 +43,37 @@ describe("Manager static permissions (spec duties)", () => {
     }
   });
 
+  it("reviews child records and assessments without routinely creating them", () => {
+    expect(perms).toContain("children.view");
+    expect(perms).not.toContain("children.update");
+    expect(perms).not.toContain("children.status.update");
+    expect(perms).not.toContain("children.archive");
+    expect(perms).toContain("cases.assessments.view");
+    expect(perms).not.toContain("cases.assessments.create");
+    expect(perms).not.toContain("cases.assessments.update");
+  });
+
+  it("views/monitors education and resources without managing them", () => {
+    expect(perms).toContain("education_development.view");
+    expect(perms).toContain("resources.view");
+    expect(perms).toContain("resources.assets.view");
+    for (const p of [
+      "education_development.education.manage",
+      "education_development.support_needs.manage",
+      "education_development.goals.manage",
+      "education_development.progress.manage",
+      "education_development.achievements.manage",
+      "resources.manage",
+      "resources.assets.manage",
+      "resources.assets.costs",
+      "resources.assets.status",
+      "resources.assets.dispose",
+      "resources.documents.upload",
+    ]) {
+      expect(perms).not.toContain(p);
+    }
+  });
+
   it("views (never creates) finance; approves under approval rules", () => {
     expect(perms).toContain("finance.view");
     expect(perms).toContain("finance.approve");

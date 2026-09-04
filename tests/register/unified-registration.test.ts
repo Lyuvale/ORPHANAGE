@@ -74,6 +74,10 @@ describe("Registration wizard chains records with tenant scoping", () => {
       expect(client).toContain(cap);
     }
   });
+
+  it("offers placement only when the child step is present (ownership chain)", () => {
+    expect(client).toContain("caps.placement && caps.child");
+  });
 });
 
 describe("Creation POST routes default missing centre_id to the own centre", () => {

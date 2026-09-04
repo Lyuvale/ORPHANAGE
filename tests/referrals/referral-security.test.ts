@@ -79,18 +79,18 @@ describe("Referrals, Admissions & Placements Permissions", () => {
       expect(perms).toContain("referrals.reject");
     });
 
-    it("SOCIAL_WORKER has admission permissions", () => {
+    it("SOCIAL_WORKER submits admissions but never approves them", () => {
       const perms = ROLE_PERMISSIONS.SOCIAL_WORKER;
       expect(perms).toContain("admissions.view");
       expect(perms).toContain("admissions.create");
-      expect(perms).toContain("admissions.review");
+      expect(perms).not.toContain("admissions.review");
     });
 
-    it("SOCIAL_WORKER has placement permissions", () => {
+    it("SOCIAL_WORKER recommends placements without maintaining records", () => {
       const perms = ROLE_PERMISSIONS.SOCIAL_WORKER;
       expect(perms).toContain("placements.view");
       expect(perms).toContain("placements.create");
-      expect(perms).toContain("placements.update");
+      expect(perms).not.toContain("placements.update");
     });
 
     it("CAREGIVER has placements.view only", () => {

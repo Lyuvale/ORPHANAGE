@@ -46,6 +46,44 @@ describe("Social worker static permissions (spec duties)", () => {
     }
   });
 
+  it("submits referrals/assessments/admissions but never approves them", () => {
+    for (const p of [
+      "referrals.create",
+      "cases.assessments.create",
+      "admissions.create",
+    ]) {
+      expect(perms).toContain(p);
+    }
+    expect(perms).not.toContain("admissions.review");
+  });
+
+  it("does not own official child registration or placement records", () => {
+    for (const p of [
+      "children.create",
+      "children.update",
+      "children.status.update",
+      "placements.update",
+    ]) {
+      expect(perms).not.toContain(p);
+    }
+    expect(perms).toContain("children.view");
+    expect(perms).toContain("placements.view");
+    expect(perms).toContain("placements.create");
+  });
+
+  it("views/follows up education without managing it", () => {
+    expect(perms).toContain("education_development.view");
+    for (const p of [
+      "education_development.education.manage",
+      "education_development.support_needs.manage",
+      "education_development.goals.manage",
+      "education_development.progress.manage",
+      "education_development.achievements.manage",
+    ]) {
+      expect(perms).not.toContain(p);
+    }
+  });
+
   it("cannot manage users, finance, assets or platform", () => {
     for (const p of [
       "staff.create",

@@ -240,15 +240,20 @@ describe("Assets (Resources & Support)", () => {
       expect(PERMISSIONS.RESOURCES_ASSETS_DISPOSE).toBe("resources.assets.dispose");
     });
 
-    it("grants full asset permission set to manager and bursar", () => {
-      for (const role of ["CENTRE_MANAGER", "ACCOUNTANT_BURSAR"] as CentreRole[]) {
-        const perms = ROLE_PERMISSIONS[role];
-        expect(perms).toContain("resources.assets.view");
-        expect(perms).toContain("resources.assets.manage");
-        expect(perms).toContain("resources.assets.costs");
-        expect(perms).toContain("resources.assets.status");
-        expect(perms).toContain("resources.assets.dispose");
-      }
+    it("grants full asset permission set to the bursar; view-only to the manager", () => {
+      const bursar = ROLE_PERMISSIONS.ACCOUNTANT_BURSAR;
+      expect(bursar).toContain("resources.assets.view");
+      expect(bursar).toContain("resources.assets.manage");
+      expect(bursar).toContain("resources.assets.costs");
+      expect(bursar).toContain("resources.assets.status");
+      expect(bursar).toContain("resources.assets.dispose");
+
+      const manager = ROLE_PERMISSIONS.CENTRE_MANAGER;
+      expect(manager).toContain("resources.assets.view");
+      expect(manager).not.toContain("resources.assets.manage");
+      expect(manager).not.toContain("resources.assets.costs");
+      expect(manager).not.toContain("resources.assets.status");
+      expect(manager).not.toContain("resources.assets.dispose");
     });
 
     it("grants asset view-only to social worker and records officer", () => {

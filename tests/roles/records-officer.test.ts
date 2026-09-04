@@ -21,21 +21,19 @@ function src(rel: string): string {
 describe("Records officer static permissions (official registrar)", () => {
   const perms = ROLE_PERMISSIONS.RECORDS_OFFICER;
 
-  it("holds the full intake creation chain", () => {
+  it("registers the child AFTER admission approval (no referral/admission creation)", () => {
     for (const p of [
-      "referrals.view",
-      "referrals.create",
-      "children.view",
       "children.create",
-      "guardians.view",
       "guardians.create",
-      "admissions.view",
-      "admissions.create",
-      "placements.view",
       "placements.create",
     ]) {
       expect(perms).toContain(p);
     }
+    for (const p of ["referrals.create", "admissions.create"]) {
+      expect(perms).not.toContain(p);
+    }
+    expect(perms).toContain("referrals.view");
+    expect(perms).toContain("admissions.view");
   });
 
   it("manages records, documents, education and history", () => {
@@ -76,14 +74,19 @@ describe("Records officer static permissions (official registrar)", () => {
 });
 
 describe("Records officer migration aligns the database", () => {
-  const mig = src("supabase/migrations/20260917000000_role_access_limits.sql");
+  const mig = src("supabase/migrations/20260918000000_correct_role_ownership.sql");
+  const prev = src("supabase/migrations/20260917000000_role_access_limits.sql");
 
-  it("grants registrar rights and revokes user management", () => {
+  it("revokes referral/admission creation (registers after approval)", () => {
     expect(mig).toContain("RECORDS_OFFICER");
     expect(mig).toContain("('referrals', 'create')");
     expect(mig).toContain("('admissions', 'create')");
-    expect(mig).toContain("('staff', 'create')");
-    expect(mig).toContain("('staff', 'update')");
+  });
+
+  it("revoked user management in the earlier alignment", () => {
+    expect(prev).toContain("RECORDS_OFFICER");
+    expect(prev).toContain("('staff', 'create')");
+    expect(prev).toContain("('staff', 'update')");
   });
 });
 

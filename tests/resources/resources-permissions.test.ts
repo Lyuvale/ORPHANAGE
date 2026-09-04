@@ -25,9 +25,12 @@ describe("Resources & Support Permissions", () => {
   });
 
   describe("role mappings", () => {
-    it("CENTRE_MANAGER has full resources access", () => {
+    it("CENTRE_MANAGER views/approves resources without routinely creating them", () => {
       const perms = ROLE_PERMISSIONS.CENTRE_MANAGER;
-      for (const p of RESOURCES_PERMS) expect(perms).toContain(p);
+      expect(perms).toContain("resources.view");
+      expect(perms).toContain("resources.approve");
+      expect(perms).toContain("resources.reports");
+      expect(perms).not.toContain("resources.manage");
     });
 
     it("ACCOUNTANT_BURSAR has full resources access (authorised records + approval)", () => {

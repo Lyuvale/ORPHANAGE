@@ -24,24 +24,24 @@ describe("Education & Development Permissions", () => {
   });
 
   describe("Role-Permission Mappings", () => {
-    it("CENTRE_MANAGER has all six education permissions", () => {
+    it("CENTRE_MANAGER views/monitors education without managing it", () => {
       const perms = ROLE_PERMISSIONS.CENTRE_MANAGER;
       expect(perms).toContain("education_development.view");
-      expect(perms).toContain("education_development.education.manage");
-      expect(perms).toContain("education_development.support_needs.manage");
-      expect(perms).toContain("education_development.goals.manage");
-      expect(perms).toContain("education_development.progress.manage");
-      expect(perms).toContain("education_development.achievements.manage");
+      expect(perms).not.toContain("education_development.education.manage");
+      expect(perms).not.toContain("education_development.support_needs.manage");
+      expect(perms).not.toContain("education_development.goals.manage");
+      expect(perms).not.toContain("education_development.progress.manage");
+      expect(perms).not.toContain("education_development.achievements.manage");
     });
 
-    it("SOCIAL_WORKER has all six education permissions", () => {
+    it("SOCIAL_WORKER views/follows up education without managing it", () => {
       const perms = ROLE_PERMISSIONS.SOCIAL_WORKER;
       expect(perms).toContain("education_development.view");
-      expect(perms).toContain("education_development.education.manage");
-      expect(perms).toContain("education_development.support_needs.manage");
-      expect(perms).toContain("education_development.goals.manage");
-      expect(perms).toContain("education_development.progress.manage");
-      expect(perms).toContain("education_development.achievements.manage");
+      expect(perms).not.toContain("education_development.education.manage");
+      expect(perms).not.toContain("education_development.support_needs.manage");
+      expect(perms).not.toContain("education_development.goals.manage");
+      expect(perms).not.toContain("education_development.progress.manage");
+      expect(perms).not.toContain("education_development.achievements.manage");
     });
 
     it("RECORDS_OFFICER has all six education permissions", () => {

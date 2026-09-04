@@ -79,8 +79,8 @@ describe("Case & Safeguarding Permissions", () => {
       expect(perms).toContain("cases.status.update");
       expect(perms).toContain("cases.close");
       expect(perms).toContain("cases.assessments.view");
-      expect(perms).toContain("cases.assessments.create");
-      expect(perms).toContain("cases.assessments.update");
+      expect(perms).not.toContain("cases.assessments.create");
+      expect(perms).not.toContain("cases.assessments.update");
       expect(perms).toContain("cases.plans.view");
       expect(perms).toContain("cases.plans.create");
       expect(perms).toContain("cases.plans.update");
