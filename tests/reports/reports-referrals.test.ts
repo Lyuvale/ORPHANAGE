@@ -6,6 +6,7 @@ describe("Referrals report row builders", () => {
   const referral: Referral = {
     id: "1",
     centre_id: "c1",
+    child_id: null,
     reference_number: "REF-1",
     child_first_name: "Jane",
     child_middle_name: "K",

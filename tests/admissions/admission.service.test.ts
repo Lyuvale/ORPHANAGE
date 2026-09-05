@@ -30,6 +30,7 @@ function insertAdmission(data: Partial<Admission>): Admission {
     id: generateId(),
     centre_id: "centre-a",
     referral_id: "ref-1",
+    child_id: null,
     reference_number: `ADM-${String(idCounter).padStart(6, "0")}`,
     status: "pending",
     decision: null,

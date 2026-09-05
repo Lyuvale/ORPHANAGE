@@ -34,6 +34,7 @@ function insertReferral(data: Partial<Referral>): Referral {
   const referral: Referral = {
     id: generateId(),
     centre_id: "centre-a",
+    child_id: null,
     reference_number: `REF-${String(idCounter).padStart(6, "0")}`,
     child_first_name: "Test",
     child_middle_name: null,

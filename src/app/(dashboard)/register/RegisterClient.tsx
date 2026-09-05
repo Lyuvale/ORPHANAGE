@@ -126,14 +126,14 @@ export default function RegisterClient({
   const [linkLoading, setLinkLoading] = useState(false);
 
   useEffect(() => {
-    if (step !== "link") return;
+    if (steps[stepIndex] !== "link") return;
     setLinkLoading(true);
     fetch("/api/admissions?status=approved&limit=50", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : { data: [] }))
       .then((j) => setApprovedAdmissions(j.data ?? []))
       .catch(() => setApprovedAdmissions([]))
       .finally(() => setLinkLoading(false));
-  }, [step]);
+  }, [steps, stepIndex]);
 
   async function pickAdmission(id: string) {
     setLinkAdmissionId(id);
