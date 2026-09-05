@@ -112,12 +112,24 @@ describe("Manager static permissions (spec duties)", () => {
   });
 });
 
-describe("Manager team management is manager-only", () => {
+describe("Manager team hub (accounts + directory merged, sections by permission)", () => {
   const team = src("src/app/(dashboard)/team/page.tsx");
 
-  it("redirects non-managers away from user management", () => {
-    expect(team).toContain("CENTRE_MANAGER");
-    expect(team).toContain("redirect");
+  it("reserves account management for staff.create holders", () => {
+    expect(team).toContain("staff.create");
+    expect(team).toContain("TeamForm");
+  });
+
+  it("opens the directory to staff.view holders, others are redirected", () => {
+    expect(team).toContain("staff.view");
+    expect(team).toContain("StaffDirectory");
+    expect(team).toContain('redirect("/children")');
+  });
+
+  it("has no standalone staff list page (merged; /staff redirects to /team)", () => {
+    const { existsSync, readFileSync: read } = require("node:fs") as typeof import("node:fs");
+    expect(existsSync(join(process.cwd(), "src/app/(dashboard)/staff/page.tsx"))).toBe(false);
+    expect(read(join(process.cwd(), "next.config.ts"), "utf-8")).toContain('"/staff"');
   });
 });
 
@@ -128,16 +140,16 @@ describe("Manager navigation (permission-driven menu)", () => {
     expect(layout).toContain("getUserPermissions");
   });
 
-  it("shows management areas (Team, Staff, Resources, Audit, Register)", () => {
+  it("shows management areas (Team hub, Resources, Audit) and no separate Staff page", () => {
     for (const href of [
       'href="/team"',
-      'href="/staff"',
       'href="/resources"',
       'href="/audit"',
       'href="/register"',
     ]) {
       expect(layout).toContain(href);
     }
+    expect(layout).not.toContain('href="/staff"');
   });
 });
 

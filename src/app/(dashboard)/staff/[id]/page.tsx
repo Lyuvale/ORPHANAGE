@@ -293,8 +293,8 @@ export default function StaffProfilePage() {
     return (
       <div className="py-12 text-center">
         <p className="text-sm text-red-600">{loadError ?? "Staff profile not found."}</p>
-        <Link href="/staff" className="mt-4 inline-block text-sm font-semibold text-indigo-600 hover:text-indigo-500">
-          Back to Staff
+        <Link href="/team" className="mt-4 inline-block text-sm font-semibold text-indigo-600 hover:text-indigo-500">
+          Back to Team
         </Link>
       </div>
     );
@@ -303,8 +303,8 @@ export default function StaffProfilePage() {
   return (
     <div>
       <div className="mb-6">
-        <Link href="/staff" className="text-sm font-semibold text-gray-900 hover:text-indigo-600">
-          &larr; Back to Staff
+        <Link href="/team" className="text-sm font-semibold text-gray-900 hover:text-indigo-600">
+          &larr; Back to Team
         </Link>
       </div>
 

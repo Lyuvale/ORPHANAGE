@@ -43,7 +43,7 @@ async function getStaff(searchParams: Record<string, string | undefined>) {
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
     ACTIVE: "bg-green-100 text-green-800",
-    ON_LEAVE: "bg-amber-100 text-amber-800",
+    ON_LEAVE: "bg-amber-100 text-green-800",
     SUSPENDED: "bg-orange-100 text-orange-800",
     INACTIVE: "bg-gray-100 text-gray-800",
     ENDED: "bg-red-100 text-red-800",
@@ -58,22 +58,23 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-export default async function StaffDirectoryPage({
+export default async function StaffDirectory({
   searchParams,
+  canCreate,
 }: {
-  searchParams: Promise<Record<string, string | undefined>>;
+  searchParams: Record<string, string | undefined>;
+  canCreate: boolean;
 }) {
-  const params = await searchParams;
   const [overview, { data: staff, count }] = await Promise.all([
     getOverview(),
-    getStaff(params),
+    getStaff(searchParams),
   ]);
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Staff</h1>
+          <h2 className="text-xl font-bold text-gray-900">Staff Directory</h2>
           <p className="mt-1 text-sm text-gray-500">
             Workforce &amp; staff operations for the centre
           </p>
@@ -85,12 +86,14 @@ export default async function StaffDirectoryPage({
             options={REPORT_OPTIONS}
             fileName="staff"
           />
-          <Link
-            href="/staff/new"
-            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
-            Add Staff
-          </Link>
+          {canCreate && (
+            <Link
+              href="/staff/new"
+              className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            >
+              Add Staff
+            </Link>
+          )}
         </div>
       </div>
 
@@ -149,12 +152,12 @@ export default async function StaffDirectoryPage({
           type="text"
           name="search"
           placeholder="Search by job title, department or identifier..."
-          defaultValue={params.search ?? ""}
+          defaultValue={searchParams.search ?? ""}
           className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 md:flex-1"
         />
         <select
           name="employment_status"
-          defaultValue={params.employment_status ?? ""}
+          defaultValue={searchParams.employment_status ?? ""}
           className="block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
         >
           <option value="">All Statuses</option>
@@ -166,7 +169,7 @@ export default async function StaffDirectoryPage({
         </select>
         <select
           name="operational_role"
-          defaultValue={params.operational_role ?? ""}
+          defaultValue={searchParams.operational_role ?? ""}
           className="block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
         >
           <option value="">All Roles</option>
@@ -188,12 +191,14 @@ export default async function StaffDirectoryPage({
       {staff.length === 0 ? (
         <div className="py-12 text-center">
           <p className="text-sm text-gray-500">No staff members found.</p>
-          <Link
-            href="/staff/new"
-            className="mt-4 inline-block text-sm font-semibold text-indigo-600 hover:text-indigo-500"
-          >
-            Add the first staff member
-          </Link>
+          {canCreate && (
+            <Link
+              href="/staff/new"
+              className="mt-4 inline-block text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+            >
+              Add the first staff member
+            </Link>
+          )}
         </div>
       ) : (
         <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">

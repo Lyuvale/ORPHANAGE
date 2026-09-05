@@ -30,7 +30,19 @@ export default function NewStaffPage() {
   }, []);
 
   useEffect(() => {
+    // Staff profiles are created by the Centre Manager (staff.create).
+    // Anyone without it is sent back to the Team hub (API enforces too).
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { permissions: [] }))
+      .then((j) => {
+        const perms: string[] = Array.isArray(j.permissions) ? j.permissions : [];
+        if (!perms.includes("staff.create")) {
+          router.replace("/team");
+        }
+      })
+      .catch(() => {});
     loadUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadUsers]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {

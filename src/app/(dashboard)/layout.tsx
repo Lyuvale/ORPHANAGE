@@ -150,13 +150,12 @@ export default async function DashboardLayout({
                     <NavLink href="/safeguarding">Safeguarding</NavLink>
                   )}
                   {perms.has("visits.view") && <NavLink href="/visits">Visits</NavLink>}
-                  {perms.has("staff.view") && <NavLink href="/staff">Staff</NavLink>}
+                  {perms.has("staff.view") && <NavLink href="/team">Team</NavLink>}
                   {perms.has("health.view") && <NavLink href="/health">Health</NavLink>}
                   {perms.has("education_development.view") && (
                     <NavLink href="/education">Education</NavLink>
                   )}
                   {perms.has("resources.view") && <NavLink href="/resources">Resources</NavLink>}
-                  {perms.has("staff.assign_roles") && <NavLink href="/team">Team</NavLink>}
                   {isManager && <NavLink href="/subscriptions">Subscriptions</NavLink>}
                   {perms.has("audit.view") && <NavLink href="/audit">Audit</NavLink>}
                 </>
