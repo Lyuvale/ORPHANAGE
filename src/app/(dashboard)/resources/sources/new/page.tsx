@@ -1,12 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { SUPPORT_SOURCE_TYPES, getSourceTypeDisplay } from "@/types/resources";
 
 export default function NewSourceForm() {
   const router = useRouter();
+
+  useEffect(() => {
+    // Source creation is the Accountant's duty. Anyone without
+    // resources.manage is sent back (the API enforces the same rule).
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { permissions: [] }))
+      .then((j) => {
+        const perms: string[] = Array.isArray(j.permissions) ? j.permissions : [];
+        if (!perms.includes("resources.manage")) {
+          router.replace("/resources/sources");
+        }
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [sourceType, setSourceType] = useState(SUPPORT_SOURCE_TYPES[0]);
   const [sourceName, setSourceName] = useState("");
   const [amount, setAmount] = useState("");

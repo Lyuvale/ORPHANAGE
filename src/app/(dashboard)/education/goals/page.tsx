@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
+import { useCaps } from "@/app/(dashboard)/_components/use-caps";
 import type { EducationGoal, EducationGoalStatus } from "@/types/education";
 import {
   EDUCATION_GOAL_STATUSES,
@@ -28,6 +29,10 @@ export default function EducationGoalsPage() {
   const [showForm, setShowForm] = useState(false);
   const [page, setPage] = useState(0);
   const limit = 20;
+
+  // Goal management is the Records Officer's duty.
+  const caps = useCaps();
+  const canManageGoals = caps.includes("education_development.goals.manage");
 
   const [form, setForm] = useState({
     title: "",
@@ -151,7 +156,7 @@ export default function EducationGoalsPage() {
             Create simple personal-development goals for the child
           </p>
         </div>
-        {childId && (
+        {childId && canManageGoals && (
           <button
             onClick={() => setShowForm((s) => !s)}
             className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
@@ -182,7 +187,7 @@ export default function EducationGoalsPage() {
         </select>
       </div>
 
-      {showForm && childId && (
+      {showForm && childId && canManageGoals && (
         <div className="mb-6 rounded-lg border p-4">
           <h2 className="mb-3 text-lg font-semibold">New Development Goal</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -264,7 +269,7 @@ export default function EducationGoalsPage() {
                   >
                     {getEducationGoalStatusDisplay(g.status)}
                   </span>
-                  {g.status !== "COMPLETED" && (
+                  {g.status !== "COMPLETED" && canManageGoals && (
                     <select
                       value={g.status}
                       onChange={(e) =>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useCaps } from "@/app/(dashboard)/_components/use-caps";
 import { useSearchParams } from "next/navigation";
 import type { EducationProfile, EducationStatus } from "@/types/education";
 import {
@@ -25,6 +26,10 @@ export default function EducationProfilePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+
+  // Education record management is the Records Officer's duty.
+  const caps = useCaps();
+  const canManageEducation = caps.includes("education_development.education.manage");
 
   const [form, setForm] = useState({
     education_status: "" as EducationStatus | "",
@@ -131,7 +136,7 @@ export default function EducationProfilePage() {
             Record whether the child is attending school, and where
           </p>
         </div>
-        {childId && (
+        {childId && canManageEducation && (
           <button
             onClick={() => {
               setForm({
@@ -168,7 +173,7 @@ export default function EducationProfilePage() {
         </select>
       </div>
 
-      {showForm && childId && (
+      {showForm && childId && canManageEducation && (
         <div className="mb-6 rounded-lg border p-4">
           <h2 className="mb-3 text-lg font-semibold">
             {profile ? "Edit Education Information" : "Add Education Information"}

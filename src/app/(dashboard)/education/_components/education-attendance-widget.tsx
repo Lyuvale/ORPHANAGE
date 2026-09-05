@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useCaps } from "@/app/(dashboard)/_components/use-caps";
 
 interface AttendanceRecord {
   id: string;
@@ -39,6 +40,11 @@ export default function EducationAttendanceWidget({
   const [children, setChildren] = useState<ChildOption[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Attendance recording stays open to caregivers (attendance duty) and the
+  // records officer; viewers without progress.manage see records only.
+  const caps = useCaps();
+  const canRecordAttendance = caps.includes("education_development.progress.manage");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -129,13 +135,15 @@ export default function EducationAttendanceWidget({
     <div className="rounded-lg border bg-white p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-gray-900">School Attendance</h3>
-        <button
-          type="button"
-          onClick={() => setShowForm(!showForm)}
-          className="text-sm font-semibold text-indigo-600 hover:text-indigo-500"
-        >
-          {showForm ? "Cancel" : "Record Attendance"}
-        </button>
+        {canRecordAttendance && (
+          <button
+            type="button"
+            onClick={() => setShowForm(!showForm)}
+            className="text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+          >
+            {showForm ? "Cancel" : "Record Attendance"}
+          </button>
+        )}
       </div>
 
       {error && (
@@ -145,7 +153,7 @@ export default function EducationAttendanceWidget({
         <div className="mb-3 rounded-md bg-green-50 p-2 text-sm text-green-700">{success}</div>
       )}
 
-      {showForm && (
+      {showForm && canRecordAttendance && (
         <form onSubmit={handleSubmit} className="mb-4 space-y-3 rounded-md bg-gray-50 p-3">
           {mode === "list" && !childId && (
             <div>

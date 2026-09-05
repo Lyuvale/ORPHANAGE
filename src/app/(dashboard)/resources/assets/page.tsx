@@ -7,6 +7,9 @@ import {
   formatTsh,
 } from "@/types/resources";
 import { serverFetch } from "@/lib/server-fetch";
+import { createClient } from "@/lib/supabase/server";
+import { requireAppAccess } from "@/lib/auth/app-user-context";
+import { can } from "@/lib/auth/authorization.service";
 
 async function getAssets(searchParams: Record<string, string | undefined>) {
   const params = new URLSearchParams();
@@ -29,6 +32,18 @@ export default async function AssetsPage({
   const params = await searchParams;
   const assets = await getAssets(params);
 
+  // Asset creation is the Accountant's duty (resources.assets.manage).
+  let canCreate = false;
+  try {
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as never, {
+      allowInactiveSubscription: true,
+    });
+    canCreate = await can(supabase as never, ctx, "resources.assets.manage");
+  } catch {
+    canCreate = false;
+  }
+
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between">
@@ -38,21 +53,25 @@ export default async function AssetsPage({
             Physical items owned/used by the centre, with costs and status tracking.
           </p>
         </div>
-        <Link
-          href="/resources/assets/new"
-          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-        >
-          Add Asset
-        </Link>
+        {canCreate && (
+          <Link
+            href="/resources/assets/new"
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+          >
+            Add Asset
+          </Link>
+        )}
       </div>
 
       {assets.length === 0 ? (
         <div className="rounded-lg border border-dashed bg-white p-12 text-center">
           <p className="text-sm text-gray-500">
             No assets found.{" "}
-            <Link href="/resources/assets/new" className="font-semibold text-indigo-600">
-              Add the first asset
-            </Link>
+            {canCreate && (
+              <Link href="/resources/assets/new" className="font-semibold text-indigo-600">
+                Add the first asset
+              </Link>
+            )}
             .
           </p>
         </div>

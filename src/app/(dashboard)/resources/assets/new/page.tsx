@@ -53,6 +53,17 @@ export default function NewAssetForm() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    // Asset creation is the Accountant's duty. Anyone without
+    // resources.assets.manage is sent back (the API enforces the same rule).
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { permissions: [] }))
+      .then((j) => {
+        const perms: string[] = Array.isArray(j.permissions) ? j.permissions : [];
+        if (!perms.includes("resources.assets.manage")) {
+          router.replace("/resources/assets");
+        }
+      })
+      .catch(() => {});
     Promise.all([
       fetch("/api/resources/sources").then((r) => r.json()),
       fetch("/api/resources/funds").then((r) => r.json()),

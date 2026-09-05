@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { formatTsh } from "@/types/resources";
 import { serverFetch } from "@/lib/server-fetch";
+import { createClient } from "@/lib/supabase/server";
+import { requireAppAccess } from "@/lib/auth/app-user-context";
+import { can } from "@/lib/auth/authorization.service";
 
 async function getFunds(searchParams: Record<string, string | undefined>) {
   const params = new URLSearchParams();
@@ -21,6 +24,18 @@ export default async function FundsPage({
   const params = await searchParams;
   const { data: funds } = await getFunds(params);
 
+  // Creation is the Accountant's duty (resources.manage).
+  let canCreate = false;
+  try {
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as never, {
+      allowInactiveSubscription: true,
+    });
+    canCreate = await can(supabase as never, ctx, "resources.manage");
+  } catch {
+    canCreate = false;
+  }
+
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
@@ -28,21 +43,25 @@ export default async function FundsPage({
           <h2 className="text-lg font-medium text-gray-900">Funds</h2>
           <p className="text-sm text-gray-500">Money allocated from Sources for a specific purpose</p>
         </div>
-        <Link
-          href="/resources/funds/new"
-          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-        >
-          Add Fund
-        </Link>
+        {canCreate && (
+          <Link
+            href="/resources/funds/new"
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+          >
+            Add Fund
+          </Link>
+        )}
       </div>
 
       {funds.length === 0 ? (
         <div className="rounded-lg border border-dashed bg-white p-12 text-center">
           <p className="text-sm text-gray-500">
             No funds found.{" "}
-            <Link href="/resources/funds/new" className="font-semibold text-indigo-600">
-              Add the first fund
-            </Link>
+            {canCreate && (
+              <Link href="/resources/funds/new" className="font-semibold text-indigo-600">
+                Add the first fund
+              </Link>
+            )}
             .
           </p>
         </div>

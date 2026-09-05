@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useCaps } from "@/app/(dashboard)/_components/use-caps";
 import { useSearchParams } from "next/navigation";
 import type { EducationProgress, EducationGoal, EducationProgressStatus } from "@/types/education";
 import {
@@ -27,6 +28,10 @@ export default function EducationProgressPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+
+  // Progress recording stays open to caregivers (attendance duty).
+  const caps = useCaps();
+  const canManageProgress = caps.includes("education_development.progress.manage");
   const [page, setPage] = useState(0);
   const limit = 20;
 
@@ -135,7 +140,7 @@ export default function EducationProgressPage() {
             Record the child&apos;s progress towards a development goal
           </p>
         </div>
-        {childId && (
+        {childId && canManageProgress && (
           <button
             onClick={() => setShowForm((s) => !s)}
             className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
@@ -166,7 +171,7 @@ export default function EducationProgressPage() {
         </select>
       </div>
 
-      {showForm && childId && (
+      {showForm && childId && canManageProgress && (
         <div className="mb-6 rounded-lg border p-4">
           <h2 className="mb-3 text-lg font-semibold">New Progress Update</h2>
           {goals.length === 0 ? (

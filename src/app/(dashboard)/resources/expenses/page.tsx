@@ -27,15 +27,19 @@ export default async function ExpensesPage({
   const { data: expenses } = await getExpenses(params);
 
   // Approval buttons are visible only to roles holding resources.approve.
+  // Creation is the Accountant's duty (resources.manage).
   let canApproveExp = false;
+  let canCreateExp = false;
   try {
     const supabase = await createClient();
     const ctx = await requireAppAccess(supabase as never, {
       allowInactiveSubscription: true,
     });
     canApproveExp = await can(supabase as never, ctx, "resources.approve");
+    canCreateExp = await can(supabase as never, ctx, "resources.manage");
   } catch {
     canApproveExp = false;
+    canCreateExp = false;
   }
 
   return (
@@ -47,12 +51,14 @@ export default async function ExpensesPage({
             Spending against Funds — approval needed before counting toward balances
           </p>
         </div>
-        <Link
-          href="/resources/expenses/new"
-          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-        >
-          Add Expense
-        </Link>
+        {canCreateExp && (
+          <Link
+            href="/resources/expenses/new"
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+          >
+            Add Expense
+          </Link>
+        )}
       </div>
 
       <form className="mb-4 flex items-center gap-3">
@@ -78,9 +84,11 @@ export default async function ExpensesPage({
         <div className="rounded-lg border border-dashed bg-white p-12 text-center">
           <p className="text-sm text-gray-500">
             No expenses found.{" "}
-            <Link href="/resources/expenses/new" className="font-semibold text-indigo-600">
-              Add the first expense
-            </Link>
+            {canCreateExp && (
+              <Link href="/resources/expenses/new" className="font-semibold text-indigo-600">
+                Add the first expense
+              </Link>
+            )}
             .
           </p>
         </div>

@@ -19,6 +19,17 @@ export default function NewExpenseForm() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    // Expense creation is the Accountant's duty. Anyone without
+    // resources.manage is sent back (the API enforces the same rule).
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { permissions: [] }))
+      .then((j) => {
+        const perms: string[] = Array.isArray(j.permissions) ? j.permissions : [];
+        if (!perms.includes("resources.manage")) {
+          router.replace("/resources/expenses");
+        }
+      })
+      .catch(() => {});
     fetch("/api/resources/funds")
       .then((r) => r.json())
       .then((json) => {

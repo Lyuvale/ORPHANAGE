@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useCaps } from "@/app/(dashboard)/_components/use-caps";
 import { useSearchParams } from "next/navigation";
 import type {
   EducationSupportNeed,
@@ -35,6 +36,10 @@ export default function EducationSupportNeedsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+
+  // Support-need management is the Records Officer's duty.
+  const caps = useCaps();
+  const canManageNeeds = caps.includes("education_development.support_needs.manage");
   const [page, setPage] = useState(0);
   const limit = 20;
 
@@ -163,7 +168,7 @@ export default function EducationSupportNeedsPage() {
             Record the supports a child needs for their education
           </p>
         </div>
-        {childId && (
+        {childId && canManageNeeds && (
           <button
             onClick={() => setShowForm((s) => !s)}
             className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
@@ -194,7 +199,7 @@ export default function EducationSupportNeedsPage() {
         </select>
       </div>
 
-      {showForm && childId && (
+      {showForm && childId && canManageNeeds && (
         <div className="mb-6 rounded-lg border p-4">
           <h2 className="mb-3 text-lg font-semibold">New Support Need</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

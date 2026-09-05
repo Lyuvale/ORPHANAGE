@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useCaps } from "@/app/(dashboard)/_components/use-caps";
 import { useSearchParams } from "next/navigation";
 import type { EducationAchievement, EducationAchievementCategory } from "@/types/education";
 import {
@@ -26,6 +27,10 @@ export default function EducationAchievementsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+
+  // Achievement management is the Records Officer's duty.
+  const caps = useCaps();
+  const canManageAchievements = caps.includes("education_development.achievements.manage");
   const [page, setPage] = useState(0);
   const limit = 20;
 
@@ -133,7 +138,7 @@ export default function EducationAchievementsPage() {
             Record notable milestones the child has reached
           </p>
         </div>
-        {childId && (
+        {childId && canManageAchievements && (
           <button
             onClick={() => setShowForm((s) => !s)}
             className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
@@ -164,7 +169,7 @@ export default function EducationAchievementsPage() {
         </select>
       </div>
 
-      {showForm && childId && (
+      {showForm && childId && canManageAchievements && (
         <div className="mb-6 rounded-lg border p-4">
           <h2 className="mb-3 text-lg font-semibold">New Achievement</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

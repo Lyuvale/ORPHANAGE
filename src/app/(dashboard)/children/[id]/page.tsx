@@ -76,15 +76,19 @@ export default async function ChildProfilePage({
   // Assignment management (manager assigning child -> caregiver) is visible
   // only to roles holding staff.assignments.manage. This also keeps the
   // centre staff list out of reach for caregivers.
+  // Child editing is the Records Officer's duty (children.update).
   let canManageAssignments = false;
+  let canEditChild = false;
   try {
     const supabase = await createClient();
     const actx = await requireAppAccess(supabase as never, {
       allowInactiveSubscription: true,
     });
     canManageAssignments = await can(supabase as never, actx, "staff.assignments.manage");
+    canEditChild = await can(supabase as never, actx, "children.update");
   } catch {
     canManageAssignments = false;
+    canEditChild = false;
   }
 
   return (
@@ -111,12 +115,14 @@ export default async function ChildProfilePage({
         </div>
         <div className="flex items-center gap-3">
           <StatusBadge status={child.status} />
-          <Link
-            href={`/children/${child.id}/edit`}
-            className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-          >
-            Edit
-          </Link>
+          {canEditChild && (
+            <Link
+              href={`/children/${child.id}/edit`}
+              className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+            >
+              Edit
+            </Link>
+          )}
         </div>
       </div>
 

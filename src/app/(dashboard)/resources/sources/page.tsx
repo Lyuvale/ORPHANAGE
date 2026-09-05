@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { SUPPORT_SOURCE_TYPES, getSourceTypeDisplay, formatTsh } from "@/types/resources";
 import { serverFetch } from "@/lib/server-fetch";
+import { createClient } from "@/lib/supabase/server";
+import { requireAppAccess } from "@/lib/auth/app-user-context";
+import { can } from "@/lib/auth/authorization.service";
 
 async function getSources(searchParams: Record<string, string | undefined>) {
   const params = new URLSearchParams();
@@ -21,6 +24,18 @@ export default async function SourcesPage({
   const params = await searchParams;
   const { data: sources, count } = await getSources(params);
 
+  // Creation is the Accountant's duty (resources.manage).
+  let canCreate = false;
+  try {
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as never, {
+      allowInactiveSubscription: true,
+    });
+    canCreate = await can(supabase as never, ctx, "resources.manage");
+  } catch {
+    canCreate = false;
+  }
+
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
@@ -28,12 +43,14 @@ export default async function SourcesPage({
           <h2 className="text-lg font-medium text-gray-900">Sources</h2>
           <p className="text-sm text-gray-500">Where support / financial resources come from</p>
         </div>
-        <Link
-          href="/resources/sources/new"
-          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-        >
-          Add Source
-        </Link>
+        {canCreate && (
+          <Link
+            href="/resources/sources/new"
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+          >
+            Add Source
+          </Link>
+        )}
       </div>
 
       <form className="mb-4 flex items-center gap-3">
@@ -60,12 +77,14 @@ export default async function SourcesPage({
       {sources.length === 0 ? (
         <div className="py-12 text-center">
           <p className="text-sm text-gray-500">No sources found.</p>
-          <Link
-            href="/resources/sources/new"
-            className="mt-4 inline-block text-sm font-semibold text-indigo-600 hover:text-indigo-500"
-          >
-            Add the first source
-          </Link>
+          {canCreate && (
+            <Link
+              href="/resources/sources/new"
+              className="mt-4 inline-block text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+            >
+              Add the first source
+            </Link>
+          )}
         </div>
       ) : (
         <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">

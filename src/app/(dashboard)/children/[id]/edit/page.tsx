@@ -26,6 +26,17 @@ export default function EditChildPage() {
   const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
+    // Child editing is the Records Officer's duty. Anyone without
+    // children.update is sent back (the API enforces the same rule).
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { permissions: [] }))
+      .then((j) => {
+        const perms: string[] = Array.isArray(j.permissions) ? j.permissions : [];
+        if (!perms.includes("children.update")) {
+          router.replace(`/children/${childId}`);
+        }
+      })
+      .catch(() => {});
     async function fetchChild() {
       try {
         const res = await fetch(`/api/children/${childId}`);
