@@ -7,6 +7,50 @@ import { createClient } from "@/lib/supabase/server";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { can } from "@/lib/auth/authorization.service";
 import CaregiverAssignment from "./_components/caregiver-assignment";
+import AddPlacementForm from "./_components/add-placement-form";
+import LinkGuardianForm from "./_components/link-guardian-form";
+
+function HealthSummary({ health }: { health: Record<string, unknown> }) {
+  const blood = health.blood_group as string | null;
+  const allergies = (health.critical_allergies ?? []) as { name: string; severity?: string }[];
+  const conditions = (health.important_conditions ?? []) as { name: string }[];
+  const meds = (health.active_medications ?? []) as {
+    medication_name: string;
+    dosage: string | null;
+    frequency: string | null;
+  }[];
+
+  return (
+    <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div>
+        <dt className="text-xs font-medium text-gray-500 uppercase">Blood group</dt>
+        <dd className="mt-1 text-sm text-gray-900">{blood ?? "—"}</dd>
+      </div>
+      <div>
+        <dt className="text-xs font-medium text-gray-500 uppercase">Critical allergies</dt>
+        <dd className="mt-1 text-sm text-gray-900">
+          {allergies.length === 0
+            ? "None recorded"
+            : allergies.map((a) => `${a.name}${a.severity ? ` (${a.severity})` : ""}`).join(", ")}
+        </dd>
+      </div>
+      <div>
+        <dt className="text-xs font-medium text-gray-500 uppercase">Important conditions</dt>
+        <dd className="mt-1 text-sm text-gray-900">
+          {conditions.length === 0 ? "None recorded" : conditions.map((c) => c.name).join(", ")}
+        </dd>
+      </div>
+      <div>
+        <dt className="text-xs font-medium text-gray-500 uppercase">Active medications</dt>
+        <dd className="mt-1 text-sm text-gray-900">
+          {meds.length === 0
+            ? "None"
+            : meds.map((m) => `${m.medication_name}${m.dosage ? ` ${m.dosage}` : ""}`).join(", ")}
+        </dd>
+      </div>
+    </dl>
+  );
+}
 
 async function getChild(id: string) {
   const res = await serverFetch(
@@ -33,7 +77,7 @@ async function getChildGuardians(childId: string) {
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/guardians/relationships?child_id=${childId}&is_active=true`,
     { cache: "no-store" },
   );
-  if (!res.ok) return [];
+  if (!res.ok) return null;
   const json = await res.json();
   return json.data ?? [];
 }
@@ -43,7 +87,7 @@ async function getChildReferrals(childId: string) {
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/referrals?child_id=${childId}&limit=20`,
     { cache: "no-store" },
   );
-  if (!res.ok) return [];
+  if (!res.ok) return null;
   const json = await res.json();
   return json.data ?? [];
 }
@@ -53,7 +97,7 @@ async function getChildAdmissions(childId: string) {
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/admissions?child_id=${childId}&limit=20`,
     { cache: "no-store" },
   );
-  if (!res.ok) return [];
+  if (!res.ok) return null;
   const json = await res.json();
   return json.data ?? [];
 }
@@ -63,9 +107,19 @@ async function getChildPlacements(childId: string) {
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/placements?child_id=${childId}&limit=20`,
     { cache: "no-store" },
   );
-  if (!res.ok) return [];
+  if (!res.ok) return null;
   const json = await res.json();
   return json.data ?? [];
+}
+
+async function getChildHealth(childId: string) {
+  const res = await serverFetch(
+    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/health/emergency?child_id=${childId}`,
+    { cache: "no-store" },
+  );
+  if (!res.ok) return null;
+  const json = await res.json();
+  return json.data ?? null;
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -105,13 +159,20 @@ export default async function ChildProfilePage({
   const referrals = await getChildReferrals(id);
   const admissions = await getChildAdmissions(id);
   const placements = await getChildPlacements(id);
+  const health = await getChildHealth(id);
 
   // Assignment management (manager assigning child -> caregiver) is visible
   // only to roles holding staff.assignments.manage. This also keeps the
   // centre staff list out of reach for caregivers.
   // Child editing is the Records Officer's duty (children.update).
+  // Section visibility below additionally follows each view permission:
+  // a null fetch result means "no access" and hides the section, while an
+  // empty list renders an empty state.
   let canManageAssignments = false;
   let canEditChild = false;
+  let canAddPlacement = false;
+  let canLinkGuardian = false;
+  let canViewHealthModule = false;
   try {
     const supabase = await createClient();
     const actx = await requireAppAccess(supabase as never, {
@@ -119,9 +180,15 @@ export default async function ChildProfilePage({
     });
     canManageAssignments = await can(supabase as never, actx, "staff.assignments.manage");
     canEditChild = await can(supabase as never, actx, "children.update");
+    canAddPlacement = await can(supabase as never, actx, "placements.create");
+    canLinkGuardian = await can(supabase as never, actx, "guardians.relationship.manage");
+    canViewHealthModule = await can(supabase as never, actx, "health.view");
   } catch {
     canManageAssignments = false;
     canEditChild = false;
+    canAddPlacement = false;
+    canLinkGuardian = false;
+    canViewHealthModule = false;
   }
 
   return (
@@ -235,11 +302,16 @@ export default async function ChildProfilePage({
       </div>
 
       {/* Referral — linked intake record */}
-      {referrals.length > 0 && (
+      {referrals !== null && (
         <div className="bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-6">
           <div className="px-4 py-5 sm:px-6">
             <h2 className="text-lg font-medium text-gray-900">Referral</h2>
           </div>
+          {referrals.length === 0 ? (
+            <p className="border-t border-gray-200 px-4 py-5 sm:px-6 text-sm text-gray-500">
+              No referral linked to this child yet.
+            </p>
+          ) : (
           <ul className="border-t border-gray-200 divide-y divide-gray-200">
             {referrals.map(
               (r: {
@@ -269,15 +341,21 @@ export default async function ChildProfilePage({
               ),
             )}
           </ul>
+          )}
         </div>
       )}
 
       {/* Admission — linked intake record */}
-      {admissions.length > 0 && (
+      {admissions !== null && (
         <div className="bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-6">
           <div className="px-4 py-5 sm:px-6">
             <h2 className="text-lg font-medium text-gray-900">Admission</h2>
           </div>
+          {admissions.length === 0 ? (
+            <p className="border-t border-gray-200 px-4 py-5 sm:px-6 text-sm text-gray-500">
+              No admission linked to this child yet.
+            </p>
+          ) : (
           <ul className="border-t border-gray-200 divide-y divide-gray-200">
             {admissions.map(
               (a: {
@@ -309,15 +387,21 @@ export default async function ChildProfilePage({
               ),
             )}
           </ul>
+          )}
         </div>
       )}
 
       {/* Placement — linked intake record */}
-      {placements.length > 0 && (
+      {placements !== null && (
         <div className="bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-6">
-          <div className="px-4 py-5 sm:px-6">
+          <div className="px-4 py-5 sm:px-6 flex items-center justify-between">
             <h2 className="text-lg font-medium text-gray-900">Placement</h2>
           </div>
+          {placements.length === 0 ? (
+            <p className="border-t border-gray-200 px-4 py-5 sm:px-6 text-sm text-gray-500">
+              No placement recorded for this child yet.
+            </p>
+          ) : (
           <ul className="border-t border-gray-200 divide-y divide-gray-200">
             {placements.map(
               (p: {
@@ -343,26 +427,25 @@ export default async function ChildProfilePage({
               ),
             )}
           </ul>
+          )}
+          {canAddPlacement && (
+            <div className="border-t border-gray-200">
+              <AddPlacementForm childId={child.id} />
+            </div>
+          )}
         </div>
       )}
 
       {/* Guardians / Family */}
+      {guardians !== null && (
       <div className="bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-6">
-        <div className="px-4 py-5 sm:px-6 flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-medium text-gray-900">
-              Guardians & Family
-            </h2>
-            <p className="mt-1 text-sm text-gray-500">
-              People linked to this child (relationship, primary contact, phone)
-            </p>
-          </div>
-          <Link
-            href="/guardians"
-            className="text-sm font-semibold text-indigo-600 hover:text-indigo-500"
-          >
-            Manage
-          </Link>
+        <div className="px-4 py-5 sm:px-6">
+          <h2 className="text-lg font-medium text-gray-900">
+            Guardians & Family
+          </h2>
+          <p className="mt-1 text-sm text-gray-500">
+            People linked to this child (relationship, primary contact, phone)
+          </p>
         </div>
         <div className="border-t border-gray-200">
           {guardians.length === 0 ? (
@@ -413,8 +496,39 @@ export default async function ChildProfilePage({
               )}
             </ul>
           )}
+          {canLinkGuardian && (
+            <div className="border-t border-gray-200">
+              <LinkGuardianForm childId={child.id} />
+            </div>
+          )}
         </div>
       </div>
+      )}
+
+      {/* Health — emergency info scoped to the role */}
+      {health !== null && (
+        <div className="bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-6">
+          <div className="px-4 py-5 sm:px-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-medium text-gray-900">Health</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Emergency information necessary for care
+              </p>
+            </div>
+            {canViewHealthModule && (
+              <Link
+                href={`/health?child_id=${child.id}`}
+                className="text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+              >
+                Full health records
+              </Link>
+            )}
+          </div>
+          <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
+            <HealthSummary health={health} />
+          </div>
+        </div>
+      )}
 
       {/* Status History */}
       {history.length > 0 && (

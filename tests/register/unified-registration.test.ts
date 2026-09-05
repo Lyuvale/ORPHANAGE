@@ -151,14 +151,23 @@ describe("Intake sections live together on the child; standalone lists removed",
     expect(layout).toContain('href="/register"');
   });
 
-  it("child profile shows referral, admission, placement and guardians together", () => {
+  it("child profile shows referral, admission, placement, guardians and health together", () => {
     const page = src("src/app/(dashboard)/children/[id]/page.tsx");
-    for (const h of ["Referral", "Admission", "Placement", "Guardians"]) {
+    for (const h of ["Referral", "Admission", "Placement", "Guardians", "Health"]) {
       expect(page).toContain(h);
     }
     expect(page).toContain("/api/referrals?child_id=");
     expect(page).toContain("/api/admissions?child_id=");
     expect(page).toContain("/api/placements?child_id=");
+    expect(page).toContain("/api/health/emergency?child_id=");
+  });
+
+  it("child profile offers in-place placement recording and guardian linking by permission", () => {
+    const page = src("src/app/(dashboard)/children/[id]/page.tsx");
+    expect(page).toContain("AddPlacementForm");
+    expect(page).toContain("LinkGuardianForm");
+    expect(page).toContain("placements.create");
+    expect(page).toContain("guardians.relationship.manage");
   });
 
   it("no references to the removed single-record pages remain", () => {
