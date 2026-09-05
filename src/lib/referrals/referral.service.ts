@@ -36,6 +36,10 @@ export async function listReferrals(
     query = query.eq("priority", filters.priority);
   }
 
+  if (filters.child_id) {
+    query = query.eq("child_id", filters.child_id);
+  }
+
   if (filters.search) {
     const term = filters.search.trim();
     query = query.or(

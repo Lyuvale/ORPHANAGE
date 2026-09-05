@@ -38,12 +38,9 @@ describe("Resources & Support Permissions", () => {
       for (const p of RESOURCES_PERMS) expect(perms).toContain(p);
     });
 
-    it("SOCIAL_WORKER is view-only (authorised child-benefit info)", () => {
+    it("SOCIAL_WORKER has no resources module at all", () => {
       const perms = ROLE_PERMISSIONS.SOCIAL_WORKER;
-      expect(perms).toContain("resources.view");
-      expect(perms).not.toContain("resources.manage");
-      expect(perms).not.toContain("resources.approve");
-      expect(perms).not.toContain("resources.reports");
+      expect(perms.some((p) => p.startsWith("resources."))).toBe(false);
     });
 
     it("RECORDS_OFFICER is view-only (no financial management)", () => {

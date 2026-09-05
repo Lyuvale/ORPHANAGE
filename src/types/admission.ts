@@ -33,6 +33,7 @@ export interface Admission {
   id: string;
   centre_id: string;
   referral_id: string;
+  child_id: string | null;
   reference_number: string;
   status: AdmissionStatus;
   decision: string | null;
@@ -92,6 +93,7 @@ export interface AdmissionSearchFilters {
   centre_id: string;
   status?: AdmissionStatus;
   referral_id?: string;
+  child_id?: string;
   search?: string;
   limit?: number;
   offset?: number;

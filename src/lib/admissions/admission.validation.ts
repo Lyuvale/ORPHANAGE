@@ -94,6 +94,7 @@ export const updateAdmissionStatusSchema = z.object({
 export const admissionSearchSchema = z.object({
   status: z.enum(ADMISSION_STATUSES).optional(),
   referral_id: z.string().uuid().optional(),
+  child_id: z.string().uuid().optional(),
   search: z
     .string()
     .max(200, "Search term must be 200 characters or fewer")

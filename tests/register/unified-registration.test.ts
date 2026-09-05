@@ -109,23 +109,57 @@ describe("Register navigation", () => {
   });
 });
 
-describe("Old single-record creation pages are removed; lists point to /register", () => {
-  const lists: [string, string][] = [
-    ["src/app/(dashboard)/children/page.tsx", "children.create"],
-    ["src/app/(dashboard)/referrals/page.tsx", "referrals.create"],
-    ["src/app/(dashboard)/admissions/page.tsx", "admissions.create"],
-    ["src/app/(dashboard)/placements/page.tsx", "placements.create"],
-    ["src/app/(dashboard)/guardians/page.tsx", "guardians.create"],
-  ];
+describe("Intake sections live together on the child; standalone lists removed", () => {
+  it("children list gates its registration entry and links /register", () => {
+    const code = src("src/app/(dashboard)/children/page.tsx");
+    expect(code).toContain("children.create");
+    expect(code).toContain('href="/register"');
+    expect(code).toContain("showRegister");
+  });
 
-  for (const [rel, perm] of lists) {
-    it(`${rel} gates the registration entry by ${perm} and links /register`, () => {
-      const code = src(rel);
-      expect(code).toContain(perm);
-      expect(code).toContain('href="/register"');
-      expect(code).toContain("showRegister");
-    });
-  }
+  it("referral/admission/placement/guardian list pages are deleted", () => {
+    const { existsSync } = require("node:fs") as typeof import("node:fs");
+    for (const rel of [
+      "src/app/(dashboard)/referrals/page.tsx",
+      "src/app/(dashboard)/admissions/page.tsx",
+      "src/app/(dashboard)/placements/page.tsx",
+      "src/app/(dashboard)/guardians/page.tsx",
+    ]) {
+      expect(existsSync(join(process.cwd(), rel))).toBe(false);
+    }
+  });
+
+  it("exact list paths redirect to the children hub", () => {
+    const config = src("next.config.ts");
+    for (const p of ['"/referrals"', '"/admissions"', '"/placements"', '"/guardians"']) {
+      expect(config).toContain(p);
+    }
+    expect(config).toContain('"/children"');
+  });
+
+  it("navigation has no standalone intake sections", () => {
+    const layout = src("src/app/(dashboard)/layout.tsx");
+    for (const href of [
+      'href="/referrals"',
+      'href="/admissions"',
+      'href="/placements"',
+      'href="/guardians"',
+    ]) {
+      expect(layout).not.toContain(href);
+    }
+    expect(layout).toContain('href="/children"');
+    expect(layout).toContain('href="/register"');
+  });
+
+  it("child profile shows referral, admission, placement and guardians together", () => {
+    const page = src("src/app/(dashboard)/children/[id]/page.tsx");
+    for (const h of ["Referral", "Admission", "Placement", "Guardians"]) {
+      expect(page).toContain(h);
+    }
+    expect(page).toContain("/api/referrals?child_id=");
+    expect(page).toContain("/api/admissions?child_id=");
+    expect(page).toContain("/api/placements?child_id=");
+  });
 
   it("no references to the removed single-record pages remain", () => {
     const { readdirSync, statSync, readFileSync } = require("node:fs") as typeof import("node:fs");

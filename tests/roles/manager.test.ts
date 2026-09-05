@@ -164,9 +164,8 @@ describe("Manager dashboard", () => {
   });
 });
 
-describe("Manager Approve / Reject inside each module (no standalone page)", () => {
-  const referrals = src("src/app/(dashboard)/referrals/page.tsx");
-  const admissions = src("src/app/(dashboard)/admissions/page.tsx");
+describe("Manager Approve / Reject where the work lives (no standalone page)", () => {
+  const dash = src("src/app/(dashboard)/dashboard/page.tsx");
   const visits = src("src/app/(dashboard)/visits/page.tsx");
   const expenses = src("src/app/(dashboard)/resources/expenses/page.tsx");
   const buttons = src("src/app/(dashboard)/_components/approve-reject-buttons.tsx");
@@ -176,15 +175,11 @@ describe("Manager Approve / Reject inside each module (no standalone page)", () 
     expect(existsSync(join(process.cwd(), "src/app/(dashboard)/approvals"))).toBe(false);
   });
 
-  it("referrals list shows Approve/Reject for pending items to reviewers", () => {
-    expect(referrals).toContain("referrals.review");
-    expect(referrals).toContain("ApproveRejectButtons");
-    expect(referrals).toContain("admitted");
-  });
-
-  it("admissions list shows Approve/Reject for pending items to reviewers", () => {
-    expect(admissions).toContain("admissions.review");
-    expect(admissions).toContain("ApproveRejectButtons");
+  it("dashboard shows pending referrals/admissions with Approve/Reject inline", () => {
+    expect(dash).toContain("PendingReviews");
+    expect(dash).toContain("/api/referrals/");
+    expect(dash).toContain("/api/admissions/");
+    expect(dash).toContain("ApproveRejectButtons");
   });
 
   it("visits list shows Approve/Reject to approvers (via own caps)", () => {

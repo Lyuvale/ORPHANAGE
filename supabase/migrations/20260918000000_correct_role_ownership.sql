@@ -49,12 +49,13 @@ WHERE rp.role_id = r.id
 
 -- SOCIAL_WORKER: submit + recommend, never approve own work; view/follow-up
 -- education without managing it; no official registration ownership.
+-- No resources module at all (finance/resource work is not welfare work).
 DELETE FROM role_permissions rp
 USING roles r, permissions p
 WHERE rp.role_id = r.id
   AND rp.permission_id = p.id
   AND r.name = 'SOCIAL_WORKER'
-  AND (p.module, p.action) IN (
+  AND (p.module IN ('resources') OR (p.module, p.action) IN (
     ('admissions', 'review'),
     ('children', 'create'),
     ('children', 'update'),
@@ -65,7 +66,7 @@ WHERE rp.role_id = r.id
     ('education_development', 'goals.manage'),
     ('education_development', 'progress.manage'),
     ('education_development', 'achievements.manage')
-  );
+  ));
 
 -- RECORDS_OFFICER: registers AFTER admission approval — sees approved
 -- referrals/admissions but creates neither; owns child/guardian/placement

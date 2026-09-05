@@ -38,6 +38,36 @@ async function getChildGuardians(childId: string) {
   return json.data ?? [];
 }
 
+async function getChildReferrals(childId: string) {
+  const res = await serverFetch(
+    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/referrals?child_id=${childId}&limit=20`,
+    { cache: "no-store" },
+  );
+  if (!res.ok) return [];
+  const json = await res.json();
+  return json.data ?? [];
+}
+
+async function getChildAdmissions(childId: string) {
+  const res = await serverFetch(
+    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/admissions?child_id=${childId}&limit=20`,
+    { cache: "no-store" },
+  );
+  if (!res.ok) return [];
+  const json = await res.json();
+  return json.data ?? [];
+}
+
+async function getChildPlacements(childId: string) {
+  const res = await serverFetch(
+    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/placements?child_id=${childId}&limit=20`,
+    { cache: "no-store" },
+  );
+  if (!res.ok) return [];
+  const json = await res.json();
+  return json.data ?? [];
+}
+
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
     active: "bg-green-100 text-green-800",
@@ -72,6 +102,9 @@ export default async function ChildProfilePage({
   const history = child.status_history ?? [];
   const benefits = await getChildBenefits(id);
   const guardians = await getChildGuardians(id);
+  const referrals = await getChildReferrals(id);
+  const admissions = await getChildAdmissions(id);
+  const placements = await getChildPlacements(id);
 
   // Assignment management (manager assigning child -> caregiver) is visible
   // only to roles holding staff.assignments.manage. This also keeps the
@@ -200,6 +233,118 @@ export default async function ChildProfilePage({
           </dl>
         </div>
       </div>
+
+      {/* Referral — linked intake record */}
+      {referrals.length > 0 && (
+        <div className="bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-6">
+          <div className="px-4 py-5 sm:px-6">
+            <h2 className="text-lg font-medium text-gray-900">Referral</h2>
+          </div>
+          <ul className="border-t border-gray-200 divide-y divide-gray-200">
+            {referrals.map(
+              (r: {
+                id: string;
+                reference_number: string;
+                source: string;
+                status: string;
+                reason: string | null;
+              }) => (
+                <li key={r.id} className="px-4 py-4 sm:px-6">
+                  <div className="flex items-center justify-between">
+                    <Link
+                      href={`/referrals/${r.id}`}
+                      className="text-sm font-semibold text-indigo-600 hover:text-indigo-500 font-mono"
+                    >
+                      {r.reference_number}
+                    </Link>
+                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                      {r.status.replace(/_/g, " ")}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Source: {r.source.replace(/_/g, " ")}
+                    {r.reason ? ` · ${r.reason.slice(0, 100)}` : ""}
+                  </p>
+                </li>
+              ),
+            )}
+          </ul>
+        </div>
+      )}
+
+      {/* Admission — linked intake record */}
+      {admissions.length > 0 && (
+        <div className="bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-6">
+          <div className="px-4 py-5 sm:px-6">
+            <h2 className="text-lg font-medium text-gray-900">Admission</h2>
+          </div>
+          <ul className="border-t border-gray-200 divide-y divide-gray-200">
+            {admissions.map(
+              (a: {
+                id: string;
+                reference_number: string;
+                status: string;
+                decision: string | null;
+                admitted_date: string | null;
+              }) => (
+                <li key={a.id} className="px-4 py-4 sm:px-6">
+                  <div className="flex items-center justify-between">
+                    <Link
+                      href={`/admissions/${a.id}`}
+                      className="text-sm font-semibold text-indigo-600 hover:text-indigo-500 font-mono"
+                    >
+                      {a.reference_number}
+                    </Link>
+                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                      {a.status}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {a.decision ? `${a.decision.slice(0, 100)}` : "Awaiting review"}
+                    {a.admitted_date
+                      ? ` · Admitted ${new Date(a.admitted_date).toLocaleDateString()}`
+                      : ""}
+                  </p>
+                </li>
+              ),
+            )}
+          </ul>
+        </div>
+      )}
+
+      {/* Placement — linked intake record */}
+      {placements.length > 0 && (
+        <div className="bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-6">
+          <div className="px-4 py-5 sm:px-6">
+            <h2 className="text-lg font-medium text-gray-900">Placement</h2>
+          </div>
+          <ul className="border-t border-gray-200 divide-y divide-gray-200">
+            {placements.map(
+              (p: {
+                id: string;
+                reference_number: string;
+                status: string;
+                placement_type: string;
+                start_date: string;
+              }) => (
+                <li key={p.id} className="px-4 py-4 sm:px-6">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-gray-900 font-mono">
+                      {p.reference_number}
+                    </span>
+                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                      {p.status}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {p.placement_type} · from {new Date(p.start_date).toLocaleDateString()}
+                  </p>
+                </li>
+              ),
+            )}
+          </ul>
+        </div>
+      )}
 
       {/* Guardians / Family */}
       <div className="bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-6">

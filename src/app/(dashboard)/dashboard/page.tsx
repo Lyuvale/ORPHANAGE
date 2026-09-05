@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { getUserRoleName } from "@/lib/auth/authorization.service";
 import { listCaregiverChildren } from "@/lib/caregivers/caregiver.service";
+import ApproveRejectButtons from "@/app/(dashboard)/_components/approve-reject-buttons";
 import { serverFetch } from "@/lib/server-fetch";
 
 function baseUrl() {
@@ -35,6 +36,72 @@ async function fetchSubscriptionStatus(): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+async function fetchList(path: string): Promise<Record<string, unknown>[]> {
+  try {
+    const res = await serverFetch(`${baseUrl()}${path}`, { cache: "no-store" });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return Array.isArray(json.data) ? json.data : [];
+  } catch {
+    return [];
+  }
+}
+
+function PendingReviews({
+  title,
+  empty,
+  items,
+  approveUrl,
+  approveBody,
+  rejectBody,
+  showApprove,
+  showReject,
+}: {
+  title: string;
+  empty: string;
+  items: { id: string; title: string; subtitle: string; href: string }[];
+  approveUrl: (id: string) => string;
+  approveBody: Record<string, unknown>;
+  rejectBody: Record<string, unknown>;
+  showApprove: boolean;
+  showReject: boolean;
+}) {
+  return (
+    <div className="bg-white rounded-lg border overflow-hidden md:col-span-2">
+      <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+        <h3 className="text-sm font-semibold text-gray-900">
+          {title} ({items.length})
+        </h3>
+      </div>
+      {items.length === 0 ? (
+        <p className="px-4 py-5 text-sm text-gray-500">{empty}</p>
+      ) : (
+        <ul className="divide-y divide-gray-200">
+          {items.map((item) => (
+            <li key={item.id} className="px-4 py-3 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <Link href={item.href} className="text-sm font-semibold text-indigo-600 hover:text-indigo-500">
+                  {item.title}
+                </Link>
+                <p className="text-xs text-gray-500 truncate">{item.subtitle}</p>
+              </div>
+              <div className="shrink-0">
+                <ApproveRejectButtons
+                  url={approveUrl(item.id)}
+                  approveBody={approveBody}
+                  rejectBody={rejectBody}
+                  showApprove={showApprove}
+                  showReject={showReject}
+                />
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 function Card({
@@ -117,9 +184,10 @@ export default async function DashboardPage() {
 }
 
 async function SocialWorkerSection({ restricted }: { restricted: boolean }) {
-  const [pendingReferrals, openCases, openSafeguarding, upcomingVisits] =
+  const [refSubmitted, refUnderReview, openCases, openSafeguarding, upcomingVisits] =
     await Promise.all([
-      fetchCount("/api/referrals?status=submitted&limit=1"),
+      fetchList("/api/referrals?status=submitted&limit=20"),
+      fetchList("/api/referrals?status=under_review&limit=20"),
       fetchCount("/api/cases?status=open&limit=1"),
       fetchCount("/api/safeguarding?status=open&limit=1"),
       fetchCount("/api/visits?status=scheduled&limit=1"),
@@ -127,13 +195,24 @@ async function SocialWorkerSection({ restricted }: { restricted: boolean }) {
 
   void restricted;
 
+  const pendingReferrals = [...refSubmitted, ...refUnderReview].map((r) => ({
+    id: String(r.id),
+    title: `${String(r.child_first_name ?? "")} ${String(r.child_last_name ?? "")}`.trim() || "Unnamed referral",
+    subtitle: `${String(r.source ?? "").replace(/_/g, " ")} · ${String(r.status ?? "")}`,
+    href: `/referrals/${String(r.id)}`,
+  }));
+
   return (
     <div className="mt-6 grid gap-6 md:grid-cols-2 max-w-4xl">
-      <Card
-        title="Pending referrals"
-        value={pendingReferrals === null ? "—" : String(pendingReferrals)}
-        href="/referrals?status=submitted"
-        linkText="Review referrals"
+      <PendingReviews
+        title="Referrals awaiting review"
+        empty="No referrals awaiting review."
+        items={pendingReferrals}
+        approveUrl={(id) => `/api/referrals/${id}`}
+        approveBody={{ new_status: "admitted" }}
+        rejectBody={{ new_status: "rejected" }}
+        showApprove
+        showReject
       />
       <Card
         title="Open cases"
@@ -160,7 +239,7 @@ async function SocialWorkerSection({ restricted }: { restricted: boolean }) {
         <div className="mt-3 flex flex-wrap gap-3">
           {[
             ["/register", "New Registration"],
-            ["/guardians", "Guardians"],
+            ["/children", "Children"],
             ["/health", "Health"],
             ["/education", "Education"],
           ].map(([href, text]) => (
@@ -179,13 +258,28 @@ async function SocialWorkerSection({ restricted }: { restricted: boolean }) {
 }
 
 async function ManagerSection({ restricted }: { restricted: boolean }) {
-  const [childrenCount, staffCount, pendingReferrals, subStatus] =
+  const [childrenCount, staffCount, subStatus, refSubmitted, refUnderReview, admPending] =
     await Promise.all([
       fetchCount("/api/children?limit=1"),
       fetchCount("/api/staff?limit=1"),
-      fetchCount("/api/referrals?status=submitted&limit=1"),
       fetchSubscriptionStatus(),
+      fetchList("/api/referrals?status=submitted&limit=20"),
+      fetchList("/api/referrals?status=under_review&limit=20"),
+      fetchList("/api/admissions?status=pending&limit=20"),
     ]);
+
+  const pendingReferrals = [...refSubmitted, ...refUnderReview].map((r) => ({
+    id: String(r.id),
+    title: `${String(r.child_first_name ?? "")} ${String(r.child_last_name ?? "")}`.trim() || "Unnamed referral",
+    subtitle: `${String(r.source ?? "").replace(/_/g, " ")} · ${String(r.status ?? "")}`,
+    href: `/referrals/${String(r.id)}`,
+  }));
+  const pendingAdmissions = admPending.map((a) => ({
+    id: String(a.id),
+    title: String(a.reference_number ?? "Admission"),
+    subtitle: String((a.decision as string) ?? "awaiting review").slice(0, 80),
+    href: `/admissions/${String(a.id)}`,
+  }));
 
   return (
     <div className="mt-6 grid gap-6 md:grid-cols-2 max-w-4xl">
@@ -202,16 +296,30 @@ async function ManagerSection({ restricted }: { restricted: boolean }) {
         linkText="Manage Team"
       />
       <Card
-        title="Pending referrals"
-        value={pendingReferrals === null ? "—" : String(pendingReferrals)}
-        href="/referrals?status=submitted"
-        linkText="Review referrals"
-      />
-      <Card
         title="Subscription"
         value={restricted ? "Inactive" : (subStatus ?? "Active")}
         href="/subscriptions"
         linkText="Open Subscriptions"
+      />
+      <PendingReviews
+        title="Referrals awaiting review"
+        empty="No referrals awaiting review."
+        items={pendingReferrals}
+        approveUrl={(id) => `/api/referrals/${id}`}
+        approveBody={{ new_status: "admitted" }}
+        rejectBody={{ new_status: "rejected" }}
+        showApprove
+        showReject
+      />
+      <PendingReviews
+        title="Admissions awaiting review"
+        empty="No admissions awaiting review."
+        items={pendingAdmissions}
+        approveUrl={(id) => `/api/admissions/${id}`}
+        approveBody={{ new_status: "approved" }}
+        rejectBody={{ new_status: "denied" }}
+        showApprove
+        showReject
       />
       <div className="bg-white rounded-lg border p-6 md:col-span-2">
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
@@ -219,7 +327,6 @@ async function ManagerSection({ restricted }: { restricted: boolean }) {
         </h3>
         <div className="mt-3 flex flex-wrap gap-3">
           {[
-            ["/team", "Team"],
             ["/team", "Team & Staff"],
             ["/audit", "Audit Trail"],
             ["/resources", "Resources"],
@@ -239,13 +346,14 @@ async function ManagerSection({ restricted }: { restricted: boolean }) {
 }
 
 async function RecordsSection({ restricted }: { restricted: boolean }) {
-  const [childrenCount, pendingAdmissions, pendingReferrals] = await Promise.all([
+  const [childrenCount, approvedAdmissions] = await Promise.all([
     fetchCount("/api/children?limit=1"),
-    fetchCount("/api/admissions?status=pending&limit=1"),
-    fetchCount("/api/referrals?status=submitted&limit=1"),
+    fetchList("/api/admissions?status=approved&limit=50"),
   ]);
 
   void restricted;
+
+  const awaiting = approvedAdmissions.filter((a) => !(a.child_id as string | null));
 
   return (
     <div className="mt-6 grid gap-6 md:grid-cols-2 max-w-4xl">
@@ -256,23 +364,17 @@ async function RecordsSection({ restricted }: { restricted: boolean }) {
         linkText="Open Children"
       />
       <Card
-        title="Admissions pending review"
-        value={pendingAdmissions === null ? "—" : String(pendingAdmissions)}
-        href="/admissions?status=pending"
-        linkText="Open Admissions"
-      />
-      <Card
-        title="Referrals submitted"
-        value={pendingReferrals === null ? "—" : String(pendingReferrals)}
-        href="/referrals?status=submitted"
-        linkText="Open Referrals"
+        title="Approved admissions awaiting registration"
+        value={String(awaiting.length)}
+        href="/register"
+        linkText="Register now"
       />
       <div className="bg-white rounded-lg border p-6">
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
           Registration
         </h3>
         <p className="mt-2 text-sm text-gray-500">
-          Register a child: referral, child, guardian, admission and placement in one flow.
+          Register a child from an approved admission: child, guardian and placement in one flow.
         </p>
         <Link
           href="/register"

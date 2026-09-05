@@ -103,6 +103,22 @@ describe("Social worker static permissions (spec duties)", () => {
       expect(p.startsWith("platform.")).toBe(false);
     }
   });
+
+  it("has no resources module at all", () => {
+    expect(ROLE_PERMISSIONS.SOCIAL_WORKER.some((p) => p.startsWith("resources."))).toBe(false);
+  });
+});
+
+describe("Social worker migration aligns the database", () => {
+  const mig = src("supabase/migrations/20260918000000_correct_role_ownership.sql");
+
+  it("strips submit-approval, registration and education/resource management", () => {
+    expect(mig).toContain("SOCIAL_WORKER");
+    expect(mig).toContain("('admissions', 'review')");
+    expect(mig).toContain("('children', 'create')");
+    expect(mig).toContain("('placements', 'update')");
+    expect(mig).toContain("p.module IN ('resources')");
+  });
 });
 
 describe("Social worker dashboard", () => {

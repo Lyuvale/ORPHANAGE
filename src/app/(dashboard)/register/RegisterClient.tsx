@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 type Caps = {
@@ -12,9 +12,10 @@ type Caps = {
   placement: boolean;
 };
 
-type StepKey = "referral" | "child" | "guardian" | "admission" | "placement";
+type StepKey = "link" | "referral" | "child" | "guardian" | "admission" | "placement";
 
 const STEP_TITLES: Record<StepKey, string> = {
+  link: "Admission",
   referral: "Referral",
   child: "Child",
   guardian: "Guardian",
@@ -97,14 +98,15 @@ export default function RegisterClient({
 }) {
   // Steps follow the intake chain; admission needs the referral created just
   // before it, so it is only offered together with the referral step.
+  // Registrars without referral rights (Records Officer registers AFTER
+  // approval) start by picking the approved admission to register from.
   const steps = useMemo<StepKey[]>(() => {
     const s: StepKey[] = [];
+    if (caps.child && !caps.referral) s.push("link");
     if (caps.referral) s.push("referral");
     if (caps.child) s.push("child");
     if (caps.guardian) s.push("guardian");
     if (caps.admission && caps.referral) s.push("admission");
-    // Placement records an existing child: offered only when the child step
-    // is present (ownership chain: no child record => nothing to place).
     if (caps.placement && caps.child) s.push("placement");
     return s;
   }, [caps]);
@@ -115,6 +117,46 @@ export default function RegisterClient({
   const [error, setError] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
   const [created, setCreated] = useState<{ label: string; href: string }[]>([]);
+
+  // ── Admission linkage (records registers from an approved admission) ──
+  const [linkAdmissionId, setLinkAdmissionId] = useState("");
+  const [approvedAdmissions, setApprovedAdmissions] = useState<
+    { id: string; reference_number: string; decision: string | null; referral_id: string }[]
+  >([]);
+  const [linkLoading, setLinkLoading] = useState(false);
+
+  useEffect(() => {
+    if (step !== "link") return;
+    setLinkLoading(true);
+    fetch("/api/admissions?status=approved&limit=50", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { data: [] }))
+      .then((j) => setApprovedAdmissions(j.data ?? []))
+      .catch(() => setApprovedAdmissions([]))
+      .finally(() => setLinkLoading(false));
+  }, [step]);
+
+  async function pickAdmission(id: string) {
+    setLinkAdmissionId(id);
+    if (!id) return;
+    const picked = approvedAdmissions.find((a) => a.id === id);
+    if (!picked) return;
+    try {
+      const res = await fetch(`/api/referrals/${picked.referral_id}`, { cache: "no-store" });
+      if (!res.ok) return;
+      const json = await res.json();
+      const ref = json.data;
+      if (!ref) return;
+      // Prefill the child step from the referral (still editable).
+      setFirstName(ref.child_first_name ?? "");
+      setMiddleName(ref.child_middle_name ?? "");
+      setLastName(ref.child_last_name ?? "");
+      if (ref.child_date_of_birth) setDob(ref.child_date_of_birth.slice(0, 10));
+      if (ref.child_gender) setGender(ref.child_gender);
+      if (ref.child_nationality) setNationality(ref.child_nationality);
+    } catch {
+      /* keep manual entry */
+    }
+  }
 
   // ── Referral ──
   const [refSource, setRefSource] = useState("community");
@@ -291,6 +333,10 @@ export default function RegisterClient({
         });
         admissionId = admission.id;
         done.push({ label: "Admission", href: `/admissions/${admission.id}` });
+      } else if (linkAdmissionId) {
+        // Records registers from the picked approved admission.
+        admissionId = linkAdmissionId;
+        done.push({ label: "Admission", href: `/admissions/${linkAdmissionId}` });
       }
 
       if (caps.placement && childId) {
@@ -306,6 +352,13 @@ export default function RegisterClient({
           notes: placementNotes.trim() || undefined,
         });
         done.push({ label: "Placement", href: `/placements/${placement.id}` });
+      }
+
+      if (linkAdmissionId && childId) {
+        setProgress("Linking admission to the child…");
+        await postJson(`/api/admissions/${linkAdmissionId}/link`, {
+          child_id: childId,
+        });
       }
 
       setCreated(done);
@@ -418,6 +471,36 @@ export default function RegisterClient({
       {progress && <p className="mb-4 text-sm text-indigo-700">{progress}</p>}
 
       {/* ── Step bodies ── */}
+      {step === "link" && (
+        <section className="bg-white rounded-lg border p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-gray-900">Approved Admission</h2>
+          <p className="text-sm text-gray-500">
+            Registering after approval: pick the approved admission to register the
+            child from, or continue without one for a walk-in.
+          </p>
+          {linkLoading ? (
+            <p className="text-sm text-gray-500">Loading approved admissions…</p>
+          ) : (
+            <div>
+              {label("Admission")}
+              <select
+                value={linkAdmissionId}
+                onChange={(e) => pickAdmission(e.target.value)}
+                className={inputClass()}
+              >
+                <option value="">Walk-in (no admission)</option>
+                {approvedAdmissions.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.reference_number}
+                    {a.decision ? ` — ${a.decision.slice(0, 40)}` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </section>
+      )}
+
       {step === "referral" && (
         <section className="bg-white rounded-lg border p-6 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">Referral</h2>

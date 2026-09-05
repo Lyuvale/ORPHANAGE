@@ -61,6 +61,7 @@ export type ReferralPriority = (typeof REFERRAL_PRIORITIES)[number];
 export interface Referral {
   id: string;
   centre_id: string;
+  child_id: string | null;
   reference_number: string;
   child_first_name: string;
   child_middle_name: string | null;
@@ -138,6 +139,7 @@ export interface ReferralSearchFilters {
   status?: ReferralStatus;
   source?: ReferralSource;
   priority?: ReferralPriority;
+  child_id?: string;
   search?: string;
   limit?: number;
   offset?: number;

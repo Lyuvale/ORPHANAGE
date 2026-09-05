@@ -35,6 +35,10 @@ export async function listAdmissions(
     query = query.eq("referral_id", filters.referral_id);
   }
 
+  if (filters.child_id) {
+    query = query.eq("child_id", filters.child_id);
+  }
+
   if (filters.search) {
     const term = filters.search.trim();
     query = query.or(

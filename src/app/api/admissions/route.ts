@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
     const parsed = admissionSearchSchema.safeParse({
       status: searchParams.get("status") ?? undefined,
       referral_id: searchParams.get("referral_id") ?? undefined,
+      child_id: searchParams.get("child_id") ?? undefined,
       search: searchParams.get("search") ?? undefined,
       limit: searchParams.get("limit") ?? undefined,
       offset: searchParams.get("offset") ?? undefined,
@@ -45,6 +46,7 @@ export async function GET(request: NextRequest) {
       centre_id: ctx.centre.id,
       status: parsed.data.status,
       referral_id: parsed.data.referral_id,
+      child_id: parsed.data.child_id,
       search: parsed.data.search,
       limit: parsed.data.limit,
       offset: parsed.data.offset,

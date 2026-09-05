@@ -211,6 +211,7 @@ export const referralSearchSchema = z.object({
   status: z.enum(REFERRAL_STATUSES).optional(),
   source: z.enum(REFERRAL_SOURCES).optional(),
   priority: z.enum(REFERRAL_PRIORITIES).optional(),
+  child_id: z.string().uuid().optional(),
   search: z
     .string()
     .max(200, "Search term must be 200 characters or fewer")

@@ -146,10 +146,6 @@ export default async function DashboardLayout({
                   <NavLink href="/dashboard">Dashboard</NavLink>
                   {perms.has("children.view") && <NavLink href="/children">Children</NavLink>}
                   {canRegister && <NavLink href="/register">Register</NavLink>}
-                  {perms.has("admissions.view") && <NavLink href="/admissions">Admissions</NavLink>}
-                  {perms.has("placements.view") && <NavLink href="/placements">Placements</NavLink>}
-                  {perms.has("referrals.view") && <NavLink href="/referrals">Referrals</NavLink>}
-                  {perms.has("guardians.view") && <NavLink href="/guardians">Guardians</NavLink>}
                   {perms.has("cases.view") && <NavLink href="/cases">Cases</NavLink>}
                   {perms.has("safeguarding.view") && (
                     <NavLink href="/safeguarding">Safeguarding</NavLink>

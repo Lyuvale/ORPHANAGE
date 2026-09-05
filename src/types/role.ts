@@ -375,8 +375,6 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "health.emergency.view",
     "education_development.view",
     "staff.view",
-    "resources.view",
-    "resources.assets.view",
     "notifications.view",
     "subscriptions.view_own",
   ],

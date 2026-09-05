@@ -256,9 +256,8 @@ describe("Assets (Resources & Support)", () => {
       expect(manager).not.toContain("resources.assets.dispose");
     });
 
-    it("grants asset view-only to social worker and records officer", () => {
-      expect(ROLE_PERMISSIONS.SOCIAL_WORKER).toContain("resources.assets.view");
-      expect(ROLE_PERMISSIONS.SOCIAL_WORKER).not.toContain("resources.assets.manage");
+    it("grants asset view-only to the records officer; none to social worker", () => {
+      expect(ROLE_PERMISSIONS.SOCIAL_WORKER.some((p) => p.startsWith("resources."))).toBe(false);
       expect(ROLE_PERMISSIONS.RECORDS_OFFICER).toContain("resources.assets.view");
       expect(ROLE_PERMISSIONS.CAREGIVER).not.toContain("resources.assets.view");
     });
