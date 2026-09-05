@@ -36,7 +36,7 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
   return (
     <Link
       href={href}
-      className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium whitespace-nowrap"
+      className="text-gray-600 hover:text-gray-900 px-2 py-2 text-[13px] font-medium whitespace-nowrap shrink-0"
     >
       {children}
     </Link>
@@ -110,23 +110,28 @@ export default async function DashboardLayout({
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <h1 className="text-xl font-semibold text-gray-900">
+          <div className="flex items-center justify-between h-14">
+            <div className="flex items-center gap-3 min-w-0">
+              <h1 className="text-lg font-semibold text-gray-900 truncate">
                 Children&apos;s Care Platform
               </h1>
               {isPlatformAdmin && (
-                <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
+                <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700 shrink-0">
                   PLATFORM ADMIN
                 </span>
               )}
               {isManager && centreName && (
-                <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 shrink-0 truncate max-w-48">
                   {centreName}
                 </span>
               )}
             </div>
-            <nav className="flex items-center">
+            <div className="flex items-center gap-1 shrink-0">
+              <NotificationBell />
+              <SignOutButton />
+            </div>
+          </div>
+          <nav className="flex items-center gap-0.5 overflow-x-auto pb-1 -mb-px">
               {isPlatformAdmin ? (
                 <>
                   <NavLink href="/admin">Overview</NavLink>
@@ -161,10 +166,7 @@ export default async function DashboardLayout({
                 </>
               )}
               <NavLink href="/notifications">Notifications</NavLink>
-              <NotificationBell />
-              <SignOutButton />
-            </nav>
-          </div>
+          </nav>
         </div>
       </header>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>
