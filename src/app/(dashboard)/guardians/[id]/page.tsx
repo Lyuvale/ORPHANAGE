@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { serverFetch } from "@/lib/server-fetch";
+import { createClient } from "@/lib/supabase/server";
+import { requireAppAccess } from "@/lib/auth/app-user-context";
+import { can } from "@/lib/auth/authorization.service";
+import ApproveRejectButtons from "@/app/(dashboard)/_components/approve-reject-buttons";
 
 async function getGuardian(id: string) {
   const res = await serverFetch(
@@ -66,12 +70,24 @@ export default async function GuardianDetailPage({
 
   const relationships = await getGuardianRelationships(id);
 
+  // Guardian deactivation is manager-only (guardians.deactivate).
+  let canDeactivate = false;
+  try {
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as never, {
+      allowInactiveSubscription: true,
+    });
+    canDeactivate = await can(supabase as never, ctx, "guardians.deactivate");
+  } catch {
+    canDeactivate = false;
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <Link href="/guardians" className="text-sm text-gray-500 hover:text-gray-700">
-            &larr; Back to guardians
+          <Link href="/children" className="text-sm text-gray-500 hover:text-gray-700">
+            &larr; Back to children
           </Link>
           <h1 className="text-2xl font-bold text-gray-900 mt-2">
             {guardian.preferred_name || guardian.first_name}
@@ -79,7 +95,20 @@ export default async function GuardianDetailPage({
             {guardian.last_name}
           </h1>
         </div>
-        <StatusBadge status={guardian.status} />
+        <div className="flex items-center gap-3">
+          <StatusBadge status={guardian.status} />
+          {canDeactivate && guardian.status === "active" && (
+            <ApproveRejectButtons
+              url={`/api/guardians/${guardian.id}`}
+              approveBody={{ new_status: "inactive" }}
+              rejectBody={{}}
+              showApprove
+              showReject={false}
+              approveLabel="Deactivate"
+              confirmMessage="Deactivate this guardian?"
+            />
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">

@@ -31,6 +31,10 @@ describe("Manager static permissions (spec duties)", () => {
     }
   });
 
+  it("is the only role that deletes (child archive)", () => {
+    expect(perms).toContain("children.archive");
+  });
+
   it("is NOT involved in registration: no intake creation rights", () => {
     for (const p of [
       "children.create",
@@ -47,7 +51,6 @@ describe("Manager static permissions (spec duties)", () => {
     expect(perms).toContain("children.view");
     expect(perms).not.toContain("children.update");
     expect(perms).not.toContain("children.status.update");
-    expect(perms).not.toContain("children.archive");
     expect(perms).toContain("cases.assessments.view");
     expect(perms).not.toContain("cases.assessments.create");
     expect(perms).not.toContain("cases.assessments.update");

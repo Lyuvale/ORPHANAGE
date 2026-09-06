@@ -232,11 +232,11 @@ describe("Permission Definitions", () => {
 });
 
 describe("Role → Permission Assignments", () => {
-  it("CENTRE_MANAGER views children but does NOT register or edit records", () => {
+  it("CENTRE_MANAGER views children, archives only, never registers/edits", () => {
     expect(ROLE_PERMISSIONS.CENTRE_MANAGER).toContain("children.view");
+    expect(ROLE_PERMISSIONS.CENTRE_MANAGER).toContain("children.archive");
     expect(ROLE_PERMISSIONS.CENTRE_MANAGER).not.toContain("children.create");
     expect(ROLE_PERMISSIONS.CENTRE_MANAGER).not.toContain("children.update");
-    expect(ROLE_PERMISSIONS.CENTRE_MANAGER).not.toContain("children.archive");
   });
 
   it("CENTRE_MANAGER has finance.view and finance.approve but NOT finance.create", () => {

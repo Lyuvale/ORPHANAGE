@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
-import { requirePermission } from "@/lib/auth/authorization.service";
+import { getUserRoleName, requirePermission } from "@/lib/auth/authorization.service";
 import { auditUpdate } from "@/lib/audit/audit.service";
 import {
   getPlacementById,
@@ -71,6 +71,13 @@ export async function PATCH(
     const body = await request.json();
 
     if ("new_status" in body) {
+      // Placement status transitions (discharge/complete/transfer) end or
+      // redirect care: CENTRE_MANAGER only. Field edits below stay open to
+      // placements.update holders (records maintenance).
+      const actorRole = await getUserRoleName(supabase as unknown as SupabaseClient, ctx);
+      if (actorRole !== "CENTRE_MANAGER") {
+        return NextResponse.json({ error: "Access denied." }, { status: 403 });
+      }
       const parsed = updatePlacementStatusSchema.safeParse(body);
       if (!parsed.success) {
         return NextResponse.json(

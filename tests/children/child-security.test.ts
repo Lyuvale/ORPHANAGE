@@ -52,7 +52,10 @@ describe("Role Access to Children", () => {
     it("does NOT edit child records (records officer maintains them)", () => {
       expect(ROLE_PERMISSIONS.CENTRE_MANAGER).not.toContain("children.update");
       expect(ROLE_PERMISSIONS.CENTRE_MANAGER).not.toContain("children.status.update");
-      expect(ROLE_PERMISSIONS.CENTRE_MANAGER).not.toContain("children.archive");
+    });
+
+    it("is the only role that archives (deletes) child records", () => {
+      expect(ROLE_PERMISSIONS.CENTRE_MANAGER).toContain("children.archive");
     });
   });
 
@@ -111,8 +114,8 @@ describe("Role Access to Children", () => {
       expect(ROLE_PERMISSIONS.RECORDS_OFFICER).toContain("children.status.update");
     });
 
-    it("has children.archive", () => {
-      expect(ROLE_PERMISSIONS.RECORDS_OFFICER).toContain("children.archive");
+    it("does NOT archive (delete is manager-only)", () => {
+      expect(ROLE_PERMISSIONS.RECORDS_OFFICER).not.toContain("children.archive");
     });
   });
 

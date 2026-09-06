@@ -278,7 +278,7 @@ export const ALL_PERMISSIONS: PermissionString[] = Object.values(PERMISSIONS);
  */
 export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> = {
   CENTRE_MANAGER: [
-    "children.view",
+    "children.view", "children.archive",
     "centres.view", "centres.manage",
     "subscriptions.view", "subscriptions.manage", "subscriptions.view_own",
     "cases.view", "cases.create", "cases.update", "cases.status.update", "cases.close",
@@ -398,7 +398,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "subscriptions.view_own",
   ],
   RECORDS_OFFICER: [
-    "children.view", "children.create", "children.update", "children.status.update", "children.archive",
+    "children.view", "children.create", "children.update", "children.status.update",
     "cases.view", "cases.documents.view", "cases.documents.upload", "cases.documents.download",
     "documents.view", "documents.upload", "documents.download", "documents.delete",
     "reports.view", "reports.export",

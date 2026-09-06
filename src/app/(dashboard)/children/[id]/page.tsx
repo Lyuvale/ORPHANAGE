@@ -5,10 +5,11 @@ import AuditHistory from "../../_components/audit-history";
 import { serverFetch } from "@/lib/server-fetch";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
-import { can } from "@/lib/auth/authorization.service";
+import { can, getUserRoleName } from "@/lib/auth/authorization.service";
 import CaregiverAssignment from "./_components/caregiver-assignment";
 import AddPlacementForm from "./_components/add-placement-form";
 import LinkGuardianForm from "./_components/link-guardian-form";
+import DeleteChildButton from "./_components/delete-child-button";
 import ApproveRejectButtons from "@/app/(dashboard)/_components/approve-reject-buttons";
 
 function HealthSummary({ health }: { health: Record<string, unknown> }) {
@@ -177,6 +178,8 @@ export default async function ChildProfilePage({
   let canReviewReferral = false;
   let canRejectReferral = false;
   let canReviewAdmission = false;
+  let canArchiveChild = false;
+  let isManager = false;
   try {
     const supabase = await createClient();
     const actx = await requireAppAccess(supabase as never, {
@@ -190,6 +193,8 @@ export default async function ChildProfilePage({
     canReviewReferral = await can(supabase as never, actx, "referrals.review");
     canRejectReferral = await can(supabase as never, actx, "referrals.reject");
     canReviewAdmission = await can(supabase as never, actx, "admissions.review");
+    canArchiveChild = await can(supabase as never, actx, "children.archive");
+    isManager = (await getUserRoleName(supabase as never, actx)) === "CENTRE_MANAGER";
   } catch {
     canManageAssignments = false;
     canEditChild = false;
@@ -199,6 +204,8 @@ export default async function ChildProfilePage({
     canReviewReferral = false;
     canRejectReferral = false;
     canReviewAdmission = false;
+    canArchiveChild = false;
+    isManager = false;
   }
 
   return (
@@ -232,6 +239,12 @@ export default async function ChildProfilePage({
             >
               Edit
             </Link>
+          )}
+          {canArchiveChild && (
+            <DeleteChildButton
+              childId={child.id}
+              childName={`${child.first_name} ${child.last_name}`}
+            />
           )}
         </div>
       </div>
@@ -447,17 +460,32 @@ export default async function ChildProfilePage({
                 start_date: string;
               }) => (
                 <li key={p.id} className="px-4 py-4 sm:px-6">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-gray-900 font-mono">
-                      {p.reference_number}
-                    </span>
-                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
-                      {p.status}
-                    </span>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <span className="text-sm font-semibold text-gray-900 font-mono">
+                        {p.reference_number}
+                      </span>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {p.placement_type} · from {new Date(p.start_date).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                        {p.status}
+                      </span>
+                      {isManager && p.status === "active" && (
+                        <ApproveRejectButtons
+                          url={`/api/placements/${p.id}`}
+                          approveBody={{ new_status: "discharged" }}
+                          rejectBody={{}}
+                          showApprove
+                          showReject={false}
+                          approveLabel="End"
+                          confirmMessage="End (discharge) this placement?"
+                        />
+                      )}
+                    </div>
                   </div>
-                  <p className="mt-1 text-sm text-gray-500">
-                    {p.placement_type} · from {new Date(p.start_date).toLocaleDateString()}
-                  </p>
                 </li>
               ),
             )}
