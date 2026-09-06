@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
 import { auditUpdate } from "@/lib/audit/audit.service";
+import { notifyRole } from "@/lib/notifications/notifications.service";
 import {
   getAdmissionById,
   updateAdmission,
@@ -108,6 +109,30 @@ export async function PATCH(
         status: updated.status,
         reason: parsed.data.reason ?? null,
       });
+
+      // Handoff: an approved admission goes to the Records Officer for
+      // official registration + placement (never back to the submitter).
+      if (updated.status === "approved") {
+        try {
+          await notifyRole(
+            adminSupabase,
+            ctx.centre.id,
+            ["RECORDS_OFFICER"],
+            {
+              title: "Admission approved — ready to register",
+              message: `Admission ${existing.reference_number} was approved. Please register the child and arrange placement.`,
+              type: "ACTION_REQUIRED",
+              event_type: "ADMISSION_APPROVED",
+              entity_type: "ADMISSION",
+              entity_id: existing.id,
+              route: "/register",
+            },
+            ctx.authUserId,
+          );
+        } catch {
+          // Notification failure must not break the approval.
+        }
+      }
 
       return NextResponse.json({ data: updated });
     }

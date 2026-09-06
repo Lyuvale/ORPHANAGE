@@ -79,14 +79,14 @@ describe("Visit Permissions", () => {
       expect(mgrPerms).toContain("visits.contact_attempts.create");
     });
 
-    it("SOCIAL_WORKER has all visit permissions", () => {
+    it("SOCIAL_WORKER requests and approves visits; rejection stays managerial", () => {
       const swPerms = ROLE_PERMISSIONS.SOCIAL_WORKER;
       expect(swPerms).toContain("visits.view");
       expect(swPerms).toContain("visits.create");
       expect(swPerms).toContain("visits.update");
       expect(swPerms).toContain("visits.request");
       expect(swPerms).toContain("visits.approve");
-      expect(swPerms).toContain("visits.reject");
+      expect(swPerms).not.toContain("visits.reject");
       expect(swPerms).toContain("visits.checkin");
       expect(swPerms).toContain("visits.checkout");
       expect(swPerms).toContain("visits.complete");

@@ -170,6 +170,17 @@ describe("Intake sections live together on the child; standalone lists removed",
     expect(page).toContain("guardians.relationship.manage");
   });
 
+  it("child hub carries manager Approve/Reject for referral, admission and guardian together", () => {
+    const page = src("src/app/(dashboard)/children/[id]/page.tsx");
+    expect(page).toContain("referrals.review");
+    expect(page).toContain("referrals.reject");
+    expect(page).toContain("admissions.review");
+    expect(page).toContain("ApproveRejectButtons");
+    expect(page).toContain("End link");
+    // Visits keep their own in-module approval (untouched here).
+    expect(page).not.toContain("/api/visits/");
+  });
+
   it("no references to the removed single-record pages remain", () => {
     const { readdirSync, statSync, readFileSync } = require("node:fs") as typeof import("node:fs");
     const { join: joinPath } = require("node:path") as typeof import("node:path");

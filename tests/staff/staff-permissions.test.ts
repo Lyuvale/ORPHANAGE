@@ -45,11 +45,13 @@ describe("Staff Management Permissions", () => {
       }
     });
 
-    it("SOCIAL_WORKER is view-only for staff", () => {
+    it("SOCIAL_WORKER views staff and assigns caregivers, but manages no users", () => {
       const perms = ROLE_PERMISSIONS.SOCIAL_WORKER;
       expect(perms).toContain("staff.view");
+      expect(perms).toContain("staff.assignments.manage");
       expect(perms).not.toContain("staff.create");
       expect(perms).not.toContain("staff.update");
+      expect(perms).not.toContain("staff.assign_roles");
       expect(perms).not.toContain("staff.status.manage");
       expect(perms).not.toContain("staff.emergency.view");
     });

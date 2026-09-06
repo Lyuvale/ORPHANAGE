@@ -9,6 +9,7 @@ import { can } from "@/lib/auth/authorization.service";
 import CaregiverAssignment from "./_components/caregiver-assignment";
 import AddPlacementForm from "./_components/add-placement-form";
 import LinkGuardianForm from "./_components/link-guardian-form";
+import ApproveRejectButtons from "@/app/(dashboard)/_components/approve-reject-buttons";
 
 function HealthSummary({ health }: { health: Record<string, unknown> }) {
   const blood = health.blood_group as string | null;
@@ -173,6 +174,9 @@ export default async function ChildProfilePage({
   let canAddPlacement = false;
   let canLinkGuardian = false;
   let canViewHealthModule = false;
+  let canReviewReferral = false;
+  let canRejectReferral = false;
+  let canReviewAdmission = false;
   try {
     const supabase = await createClient();
     const actx = await requireAppAccess(supabase as never, {
@@ -183,12 +187,18 @@ export default async function ChildProfilePage({
     canAddPlacement = await can(supabase as never, actx, "placements.create");
     canLinkGuardian = await can(supabase as never, actx, "guardians.relationship.manage");
     canViewHealthModule = await can(supabase as never, actx, "health.view");
+    canReviewReferral = await can(supabase as never, actx, "referrals.review");
+    canRejectReferral = await can(supabase as never, actx, "referrals.reject");
+    canReviewAdmission = await can(supabase as never, actx, "admissions.review");
   } catch {
     canManageAssignments = false;
     canEditChild = false;
     canAddPlacement = false;
     canLinkGuardian = false;
     canViewHealthModule = false;
+    canReviewReferral = false;
+    canRejectReferral = false;
+    canReviewAdmission = false;
   }
 
   return (
@@ -322,21 +332,35 @@ export default async function ChildProfilePage({
                 reason: string | null;
               }) => (
                 <li key={r.id} className="px-4 py-4 sm:px-6">
-                  <div className="flex items-center justify-between">
-                    <Link
-                      href={`/referrals/${r.id}`}
-                      className="text-sm font-semibold text-indigo-600 hover:text-indigo-500 font-mono"
-                    >
-                      {r.reference_number}
-                    </Link>
-                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
-                      {r.status.replace(/_/g, " ")}
-                    </span>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <Link
+                        href={`/referrals/${r.id}`}
+                        className="text-sm font-semibold text-indigo-600 hover:text-indigo-500 font-mono"
+                      >
+                        {r.reference_number}
+                      </Link>
+                      <p className="mt-1 text-sm text-gray-500">
+                        Source: {r.source.replace(/_/g, " ")}
+                        {r.reason ? ` · ${r.reason.slice(0, 100)}` : ""}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                        {r.status.replace(/_/g, " ")}
+                      </span>
+                      {(r.status === "submitted" || r.status === "under_review") &&
+                        (canReviewReferral || canRejectReferral) && (
+                          <ApproveRejectButtons
+                            url={`/api/referrals/${r.id}`}
+                            approveBody={{ new_status: "admitted" }}
+                            rejectBody={{ new_status: "rejected" }}
+                            showApprove={canReviewReferral}
+                            showReject={canRejectReferral}
+                          />
+                        )}
+                    </div>
                   </div>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Source: {r.source.replace(/_/g, " ")}
-                    {r.reason ? ` · ${r.reason.slice(0, 100)}` : ""}
-                  </p>
                 </li>
               ),
             )}
@@ -366,23 +390,34 @@ export default async function ChildProfilePage({
                 admitted_date: string | null;
               }) => (
                 <li key={a.id} className="px-4 py-4 sm:px-6">
-                  <div className="flex items-center justify-between">
-                    <Link
-                      href={`/admissions/${a.id}`}
-                      className="text-sm font-semibold text-indigo-600 hover:text-indigo-500 font-mono"
-                    >
-                      {a.reference_number}
-                    </Link>
-                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
-                      {a.status}
-                    </span>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <Link
+                        href={`/admissions/${a.id}`}
+                        className="text-sm font-semibold text-indigo-600 hover:text-indigo-500 font-mono"
+                      >
+                        {a.reference_number}
+                      </Link>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {a.decision ? `${a.decision.slice(0, 100)}` : "Awaiting review"}
+                        {a.admitted_date
+                          ? ` · Admitted ${new Date(a.admitted_date).toLocaleDateString()}`
+                          : ""}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                        {a.status}
+                      </span>
+                      {a.status === "pending" && canReviewAdmission && (
+                        <ApproveRejectButtons
+                          url={`/api/admissions/${a.id}`}
+                          approveBody={{ new_status: "approved" }}
+                          rejectBody={{ new_status: "denied" }}
+                        />
+                      )}
+                    </div>
                   </div>
-                  <p className="mt-1 text-sm text-gray-500">
-                    {a.decision ? `${a.decision.slice(0, 100)}` : "Awaiting review"}
-                    {a.admitted_date
-                      ? ` · Admitted ${new Date(a.admitted_date).toLocaleDateString()}`
-                      : ""}
-                  </p>
                 </li>
               ),
             )}
@@ -460,6 +495,7 @@ export default async function ChildProfilePage({
                   guardian_id: string;
                   relationship_type: string;
                   is_primary: boolean;
+                  is_active: boolean;
                   guardian?: {
                     first_name: string;
                     middle_name: string | null;
@@ -473,22 +509,37 @@ export default async function ChildProfilePage({
                     : "Unknown guardian";
                   return (
                     <li key={rel.id} className="px-4 py-4 sm:px-6">
-                      <div className="flex items-center justify-between">
-                        <Link
-                          href={`/guardians/${rel.guardian_id}`}
-                          className="text-sm font-semibold text-indigo-600 hover:text-indigo-500"
-                        >
-                          {name}
-                        </Link>
-                        {rel.is_primary && (
-                          <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                            Primary
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-1 text-sm text-gray-500">
-                        {rel.relationship_type.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
-                        {g?.phone ? ` · ${g.phone}` : ""}
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <Link
+                            href={`/guardians/${rel.guardian_id}`}
+                            className="text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+                          >
+                            {name}
+                          </Link>
+                          <div className="mt-1 text-sm text-gray-500">
+                            {rel.relationship_type.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
+                            {g?.phone ? ` · ${g.phone}` : ""}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {rel.is_primary && (
+                            <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                              Primary
+                            </span>
+                          )}
+                          {canLinkGuardian && rel.is_active !== false && (
+                            <ApproveRejectButtons
+                              url={`/api/guardians/relationships/${rel.id}`}
+                              approveBody={{ is_active: false }}
+                              rejectBody={{}}
+                              showApprove
+                              showReject={false}
+                              approveLabel="End link"
+                              confirmMessage="End this guardian link?"
+                            />
+                          )}
+                        </div>
                       </div>
                     </li>
                   );

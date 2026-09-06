@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
-import { getUserRoleName } from "@/lib/auth/authorization.service";
+import { getUserRoleName, can } from "@/lib/auth/authorization.service";
 import { listCaregiverChildren } from "@/lib/caregivers/caregiver.service";
 import ApproveRejectButtons from "@/app/(dashboard)/_components/approve-reject-buttons";
 import { serverFetch } from "@/lib/server-fetch";
@@ -184,13 +184,19 @@ export default async function DashboardPage() {
 }
 
 async function SocialWorkerSection({ restricted }: { restricted: boolean }) {
-  const [refSubmitted, refUnderReview, openCases, openSafeguarding, upcomingVisits] =
+  const supabase = await createClient();
+  const ctx = await requireAppAccess(supabase as never, {
+    allowInactiveSubscription: true,
+  });
+  const [refSubmitted, refUnderReview, openCases, openSafeguarding, upcomingVisits, swCanReview, swCanReject] =
     await Promise.all([
       fetchList("/api/referrals?status=submitted&limit=20"),
       fetchList("/api/referrals?status=under_review&limit=20"),
       fetchCount("/api/cases?status=open&limit=1"),
       fetchCount("/api/safeguarding?status=open&limit=1"),
       fetchCount("/api/visits?status=scheduled&limit=1"),
+      can(supabase as never, ctx, "referrals.review").catch(() => false),
+      can(supabase as never, ctx, "referrals.reject").catch(() => false),
     ]);
 
   void restricted;
@@ -211,8 +217,8 @@ async function SocialWorkerSection({ restricted }: { restricted: boolean }) {
         approveUrl={(id) => `/api/referrals/${id}`}
         approveBody={{ new_status: "admitted" }}
         rejectBody={{ new_status: "rejected" }}
-        showApprove
-        showReject
+        showApprove={swCanReview}
+        showReject={swCanReject}
       />
       <Card
         title="Open cases"

@@ -16,6 +16,9 @@ export default function ApproveRejectButtons({
   showApprove = true,
   showReject = true,
   small = true,
+  approveLabel = "Approve",
+  rejectLabel = "Reject",
+  confirmMessage,
 }: {
   url: string;
   method?: "PATCH" | "POST";
@@ -24,6 +27,9 @@ export default function ApproveRejectButtons({
   showApprove?: boolean;
   showReject?: boolean;
   small?: boolean;
+  approveLabel?: string;
+  rejectLabel?: string;
+  confirmMessage?: string;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
@@ -31,6 +37,9 @@ export default function ApproveRejectButtons({
 
   async function act(kind: "approve" | "reject") {
     setError(null);
+    if (confirmMessage && typeof window !== "undefined") {
+      if (!window.confirm(confirmMessage)) return;
+    }
     setBusy(kind);
     try {
       const res = await fetch(url, {
@@ -60,7 +69,7 @@ export default function ApproveRejectButtons({
             disabled={busy !== null}
             className={`rounded-md bg-emerald-600 font-semibold text-white hover:bg-emerald-500 disabled:opacity-50 ${size}`}
           >
-            {busy === "approve" ? "…" : "Approve"}
+            {busy === "approve" ? "…" : approveLabel}
           </button>
         )}
         {showReject && (
@@ -69,7 +78,7 @@ export default function ApproveRejectButtons({
             disabled={busy !== null}
             className={`rounded-md bg-rose-600 font-semibold text-white hover:bg-rose-500 disabled:opacity-50 ${size}`}
           >
-            {busy === "reject" ? "…" : "Reject"}
+            {busy === "reject" ? "…" : rejectLabel}
           </button>
         )}
       </div>

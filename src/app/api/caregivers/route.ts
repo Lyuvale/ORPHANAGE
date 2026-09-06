@@ -53,13 +53,14 @@ export async function GET(request: NextRequest) {
 }
 
 // ─── POST /api/caregivers ──────────────────────────────────
-// Create a caregiver-to-child assignment (Centre Manager only).
+// Assign a child to a caregiver (Centre Manager + Social Worker).
+// User-role assignment stays manager-only; this is care assignment.
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
     const ctx = await requireAppAccess(supabase as unknown as SupabaseClient);
-    await requirePermission(supabase as unknown as SupabaseClient, ctx, "staff.assign_roles");
+    await requirePermission(supabase as unknown as SupabaseClient, ctx, "staff.assignments.manage");
 
     const body = (await request.json()) as {
       child_id?: string;

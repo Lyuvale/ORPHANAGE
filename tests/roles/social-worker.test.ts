@@ -23,7 +23,6 @@ describe("Social worker static permissions (spec duties)", () => {
     for (const p of [
       "referrals.view",
       "referrals.create",
-      "referrals.review",
       "cases.view",
       "cases.create",
       "cases.notes.create",
@@ -38,23 +37,36 @@ describe("Social worker static permissions (spec duties)", () => {
       "guardians.relationship.manage",
       "visits.view",
       "visits.create",
+      "visits.request",
       "health.view",
       "education_development.view",
       "documents.upload",
+      "staff.assignments.manage",
     ]) {
       expect(perms).toContain(p);
     }
   });
 
-  it("submits referrals/assessments/admissions but never approves them", () => {
+  it("submits referrals/assessments/admissions but never reviews or approves", () => {
     for (const p of [
       "referrals.create",
+      "referrals.update",
       "cases.assessments.create",
       "admissions.create",
     ]) {
       expect(perms).toContain(p);
     }
-    expect(perms).not.toContain("admissions.review");
+    for (const p of [
+      "referrals.review",
+      "referrals.approve",
+      "referrals.reject",
+      "visits.reject",
+      "admissions.review",
+    ]) {
+      expect(perms).not.toContain(p);
+    }
+    // Visit approval stays with the social worker managing family contact.
+    expect(perms).toContain("visits.approve");
   });
 
   it("does not own official child registration or placement records", () => {
@@ -110,14 +122,24 @@ describe("Social worker static permissions (spec duties)", () => {
 });
 
 describe("Social worker migration aligns the database", () => {
-  const mig = src("supabase/migrations/20260918000000_correct_role_ownership.sql");
+  const mig18 = src("supabase/migrations/20260918000000_correct_role_ownership.sql");
+  const mig20 = src("supabase/migrations/20260920000000_submit_review_separation.sql");
 
   it("strips submit-approval, registration and education/resource management", () => {
-    expect(mig).toContain("SOCIAL_WORKER");
-    expect(mig).toContain("('admissions', 'review')");
-    expect(mig).toContain("('children', 'create')");
-    expect(mig).toContain("('placements', 'update')");
-    expect(mig).toContain("p.module IN ('resources')");
+    expect(mig18).toContain("SOCIAL_WORKER");
+    expect(mig18).toContain("('admissions', 'review')");
+    expect(mig18).toContain("('children', 'create')");
+    expect(mig18).toContain("('placements', 'update')");
+    expect(mig18).toContain("p.module IN ('resources')");
+  });
+
+  it("separates submit from review and grants caregiver assignment", () => {
+    expect(mig20).toContain("SOCIAL_WORKER");
+    expect(mig20).toContain("('referrals', 'review')");
+    expect(mig20).toContain("('referrals', 'approve')");
+    expect(mig20).toContain("('visits', 'reject')");
+    expect(mig20).not.toContain("('visits', 'approve')");
+    expect(mig20).toContain("assignments.manage");
   });
 });
 

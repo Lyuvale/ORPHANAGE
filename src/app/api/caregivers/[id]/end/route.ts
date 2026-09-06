@@ -24,7 +24,7 @@ export async function PATCH(
     const { id } = await params;
     const supabase = await createClient();
     const ctx = await requireAppAccess(supabase as unknown as SupabaseClient);
-    await requirePermission(supabase as unknown as SupabaseClient, ctx, "staff.assign_roles");
+    await requirePermission(supabase as unknown as SupabaseClient, ctx, "staff.assignments.manage");
 
     const admin = createAdminClient();
     const updated = await endCaregiverAssignment(admin, id, ctx.centre.id);

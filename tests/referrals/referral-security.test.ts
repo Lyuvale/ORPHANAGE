@@ -69,14 +69,14 @@ describe("Referrals, Admissions & Placements Permissions", () => {
       expect(perms).toContain("placements.update");
     });
 
-    it("SOCIAL_WORKER has referral review permissions", () => {
+    it("SOCIAL_WORKER submits referrals for manager review (no approve rights)", () => {
       const perms = ROLE_PERMISSIONS.SOCIAL_WORKER;
       expect(perms).toContain("referrals.view");
       expect(perms).toContain("referrals.create");
       expect(perms).toContain("referrals.update");
-      expect(perms).toContain("referrals.review");
-      expect(perms).toContain("referrals.approve");
-      expect(perms).toContain("referrals.reject");
+      expect(perms).not.toContain("referrals.review");
+      expect(perms).not.toContain("referrals.approve");
+      expect(perms).not.toContain("referrals.reject");
     });
 
     it("SOCIAL_WORKER submits admissions but never approves them", () => {
