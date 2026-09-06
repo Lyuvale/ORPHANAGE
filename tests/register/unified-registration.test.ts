@@ -153,6 +153,7 @@ describe("Intake sections live together on the child; standalone lists removed",
 
   it("child profile shows referral, admission, placement, guardians and health together", () => {
     const page = src("src/app/(dashboard)/children/[id]/page.tsx");
+    expect(page).toContain("Child File");
     for (const h of ["Referral", "Admission", "Placement", "Guardians", "Health"]) {
       expect(page).toContain(h);
     }

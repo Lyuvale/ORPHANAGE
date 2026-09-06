@@ -324,12 +324,19 @@ export default async function ChildProfilePage({
         </div>
       </div>
 
-      {/* Referral — linked intake record */}
-      {referrals !== null && (
+      {/* Child File — referral, admission, placement and guardians together.
+          A block appears only when the role may see it (null = no access). */}
+      {(referrals !== null || admissions !== null || placements !== null || guardians !== null) && (
         <div className="bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-6">
           <div className="px-4 py-5 sm:px-6">
-            <h2 className="text-lg font-medium text-gray-900">Referral</h2>
+            <h2 className="text-lg font-medium text-gray-900">Child File</h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Referral, admission, placement and guardians together
+            </p>
           </div>
+      {referrals !== null && (
+        <div className="border-t border-gray-200 px-4 py-4 sm:px-6">
+          <h3 className="text-sm font-semibold text-gray-900 mb-2">Referral</h3>
           {referrals.length === 0 ? (
             <p className="border-t border-gray-200 px-4 py-5 sm:px-6 text-sm text-gray-500">
               No referral linked to this child yet.
@@ -381,13 +388,9 @@ export default async function ChildProfilePage({
           )}
         </div>
       )}
-
-      {/* Admission — linked intake record */}
       {admissions !== null && (
-        <div className="bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-6">
-          <div className="px-4 py-5 sm:px-6">
-            <h2 className="text-lg font-medium text-gray-900">Admission</h2>
-          </div>
+        <div className="border-t border-gray-200 px-4 py-4 sm:px-6">
+          <h3 className="text-sm font-semibold text-gray-900 mb-2">Admission</h3>
           {admissions.length === 0 ? (
             <p className="border-t border-gray-200 px-4 py-5 sm:px-6 text-sm text-gray-500">
               No admission linked to this child yet.
@@ -438,13 +441,9 @@ export default async function ChildProfilePage({
           )}
         </div>
       )}
-
-      {/* Placement — linked intake record */}
       {placements !== null && (
-        <div className="bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-6">
-          <div className="px-4 py-5 sm:px-6 flex items-center justify-between">
-            <h2 className="text-lg font-medium text-gray-900">Placement</h2>
-          </div>
+        <div className="border-t border-gray-200 px-4 py-4 sm:px-6">
+          <h3 className="text-sm font-semibold text-gray-900 mb-2">Placement</h3>
           {placements.length === 0 ? (
             <p className="border-t border-gray-200 px-4 py-5 sm:px-6 text-sm text-gray-500">
               No placement recorded for this child yet.
@@ -498,18 +497,12 @@ export default async function ChildProfilePage({
           )}
         </div>
       )}
-
-      {/* Guardians / Family */}
       {guardians !== null && (
-      <div className="bg-white shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg mb-6">
-        <div className="px-4 py-5 sm:px-6">
-          <h2 className="text-lg font-medium text-gray-900">
-            Guardians & Family
-          </h2>
-          <p className="mt-1 text-sm text-gray-500">
+        <div className="border-t border-gray-200 px-4 py-4 sm:px-6">
+          <h3 className="text-sm font-semibold text-gray-900">Guardians & Family</h3>
+          <p className="mt-1 mb-2 text-sm text-gray-500">
             People linked to this child (relationship, primary contact, phone)
           </p>
-        </div>
         <div className="border-t border-gray-200">
           {guardians.length === 0 ? (
             <p className="px-4 py-5 sm:px-6 text-sm text-gray-500">
@@ -581,7 +574,9 @@ export default async function ChildProfilePage({
             </div>
           )}
         </div>
-      </div>
+        </div>
+      )}
+        </div>
       )}
 
       {/* Health — emergency info scoped to the role */}

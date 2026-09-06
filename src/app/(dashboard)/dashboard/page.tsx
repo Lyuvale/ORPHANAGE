@@ -49,24 +49,27 @@ async function fetchList(path: string): Promise<Record<string, unknown>[]> {
   }
 }
 
-function PendingReviews({
-  title,
-  empty,
-  items,
-  approveUrl,
-  approveBody,
-  rejectBody,
-  showApprove,
-  showReject,
-}: {
+export type PendingItem = {
+  id: string;
+  kind: string;
   title: string;
-  empty: string;
-  items: { id: string; title: string; subtitle: string; href: string }[];
-  approveUrl: (id: string) => string;
+  subtitle: string;
+  href: string;
+  url: string;
   approveBody: Record<string, unknown>;
   rejectBody: Record<string, unknown>;
   showApprove: boolean;
   showReject: boolean;
+};
+
+function PendingReviews({
+  title,
+  empty,
+  items,
+}: {
+  title: string;
+  empty: string;
+  items: PendingItem[];
 }) {
   return (
     <div className="bg-white rounded-lg border overflow-hidden md:col-span-2">
@@ -80,20 +83,25 @@ function PendingReviews({
       ) : (
         <ul className="divide-y divide-gray-200">
           {items.map((item) => (
-            <li key={item.id} className="px-4 py-3 flex items-center justify-between gap-3">
+            <li key={`${item.kind}-${item.id}`} className="px-4 py-3 flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <Link href={item.href} className="text-sm font-semibold text-indigo-600 hover:text-indigo-500">
-                  {item.title}
-                </Link>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-700">
+                    {item.kind}
+                  </span>
+                  <Link href={item.href} className="text-sm font-semibold text-indigo-600 hover:text-indigo-500 truncate">
+                    {item.title}
+                  </Link>
+                </div>
                 <p className="text-xs text-gray-500 truncate">{item.subtitle}</p>
               </div>
               <div className="shrink-0">
                 <ApproveRejectButtons
-                  url={approveUrl(item.id)}
-                  approveBody={approveBody}
-                  rejectBody={rejectBody}
-                  showApprove={showApprove}
-                  showReject={showReject}
+                  url={item.url}
+                  approveBody={item.approveBody}
+                  rejectBody={item.rejectBody}
+                  showApprove={item.showApprove}
+                  showReject={item.showReject}
                 />
               </div>
             </li>
@@ -201,11 +209,17 @@ async function SocialWorkerSection({ restricted }: { restricted: boolean }) {
 
   void restricted;
 
-  const pendingReferrals = [...refSubmitted, ...refUnderReview].map((r) => ({
+  const pendingReferrals: PendingItem[] = [...refSubmitted, ...refUnderReview].map((r) => ({
     id: String(r.id),
+    kind: "Referral",
     title: `${String(r.child_first_name ?? "")} ${String(r.child_last_name ?? "")}`.trim() || "Unnamed referral",
     subtitle: `${String(r.source ?? "").replace(/_/g, " ")} · ${String(r.status ?? "")}`,
     href: `/referrals/${String(r.id)}`,
+    url: `/api/referrals/${String(r.id)}`,
+    approveBody: { new_status: "admitted" },
+    rejectBody: { new_status: "rejected" },
+    showApprove: swCanReview,
+    showReject: swCanReject,
   }));
 
   return (
@@ -214,11 +228,6 @@ async function SocialWorkerSection({ restricted }: { restricted: boolean }) {
         title="Referrals awaiting review"
         empty="No referrals awaiting review."
         items={pendingReferrals}
-        approveUrl={(id) => `/api/referrals/${id}`}
-        approveBody={{ new_status: "admitted" }}
-        rejectBody={{ new_status: "rejected" }}
-        showApprove={swCanReview}
-        showReject={swCanReject}
       />
       <Card
         title="Open cases"
@@ -274,17 +283,29 @@ async function ManagerSection({ restricted }: { restricted: boolean }) {
       fetchList("/api/admissions?status=pending&limit=20"),
     ]);
 
-  const pendingReferrals = [...refSubmitted, ...refUnderReview].map((r) => ({
+  const pendingReferrals: PendingItem[] = [...refSubmitted, ...refUnderReview].map((r) => ({
     id: String(r.id),
+    kind: "Referral",
     title: `${String(r.child_first_name ?? "")} ${String(r.child_last_name ?? "")}`.trim() || "Unnamed referral",
     subtitle: `${String(r.source ?? "").replace(/_/g, " ")} · ${String(r.status ?? "")}`,
     href: `/referrals/${String(r.id)}`,
+    url: `/api/referrals/${String(r.id)}`,
+    approveBody: { new_status: "admitted" },
+    rejectBody: { new_status: "rejected" },
+    showApprove: true,
+    showReject: true,
   }));
-  const pendingAdmissions = admPending.map((a) => ({
+  const pendingAdmissions: PendingItem[] = admPending.map((a) => ({
     id: String(a.id),
+    kind: "Admission",
     title: String(a.reference_number ?? "Admission"),
     subtitle: String((a.decision as string) ?? "awaiting review").slice(0, 80),
     href: `/admissions/${String(a.id)}`,
+    url: `/api/admissions/${String(a.id)}`,
+    approveBody: { new_status: "approved" },
+    rejectBody: { new_status: "denied" },
+    showApprove: true,
+    showReject: true,
   }));
 
   return (
@@ -308,24 +329,9 @@ async function ManagerSection({ restricted }: { restricted: boolean }) {
         linkText="Open Subscriptions"
       />
       <PendingReviews
-        title="Referrals awaiting review"
-        empty="No referrals awaiting review."
-        items={pendingReferrals}
-        approveUrl={(id) => `/api/referrals/${id}`}
-        approveBody={{ new_status: "admitted" }}
-        rejectBody={{ new_status: "rejected" }}
-        showApprove
-        showReject
-      />
-      <PendingReviews
-        title="Admissions awaiting review"
-        empty="No admissions awaiting review."
-        items={pendingAdmissions}
-        approveUrl={(id) => `/api/admissions/${id}`}
-        approveBody={{ new_status: "approved" }}
-        rejectBody={{ new_status: "denied" }}
-        showApprove
-        showReject
+        title="Pending intake reviews"
+        empty="No referrals or admissions awaiting review."
+        items={[...pendingReferrals, ...pendingAdmissions]}
       />
       <div className="bg-white rounded-lg border p-6 md:col-span-2">
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
