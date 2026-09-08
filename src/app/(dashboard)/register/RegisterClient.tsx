@@ -121,17 +121,31 @@ export default function RegisterClient({
   // ── Admission linkage (records registers from an approved admission) ──
   const [linkAdmissionId, setLinkAdmissionId] = useState("");
   const [approvedAdmissions, setApprovedAdmissions] = useState<
-    { id: string; reference_number: string; decision: string | null; referral_id: string }[]
+    { id: string; reference_number: string; decision: string | null; referral_id: string; admitted_date: string | null; child_id: string | null }[]
   >([]);
   const [linkLoading, setLinkLoading] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
 
   useEffect(() => {
     if (steps[stepIndex] !== "link") return;
     setLinkLoading(true);
+    setLinkError(null);
     fetch("/api/admissions?status=approved&limit=50", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : { data: [] }))
-      .then((j) => setApprovedAdmissions(j.data ?? []))
-      .catch(() => setApprovedAdmissions([]))
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to load approved admissions.");
+        return r.json();
+      })
+      .then((j) => {
+        // Show only admissions not yet linked to a registered child, so
+        // nothing already done is filled in a second time.
+        setApprovedAdmissions(
+          (j.data ?? []).filter((a: { child_id: string | null }) => !a.child_id),
+        );
+      })
+      .catch((e) => {
+        setApprovedAdmissions([]);
+        setLinkError(e instanceof Error ? e.message : "Failed to load.");
+      })
       .finally(() => setLinkLoading(false));
   }, [steps, stepIndex]);
 
@@ -140,6 +154,8 @@ export default function RegisterClient({
     if (!id) return;
     const picked = approvedAdmissions.find((a) => a.id === id);
     if (!picked) return;
+    // Admission date comes from the approval itself — never re-typed.
+    if (picked.admitted_date) setAdmissionDate(picked.admitted_date.slice(0, 10));
     try {
       const res = await fetch(`/api/referrals/${picked.referral_id}`, { cache: "no-store" });
       if (!res.ok) return;
@@ -480,6 +496,17 @@ export default function RegisterClient({
           </p>
           {linkLoading ? (
             <p className="text-sm text-gray-500">Loading approved admissions…</p>
+          ) : linkError ? (
+            <p className="text-sm text-red-600">
+              Could not load approved admissions: {linkError} Please ask the
+              administrator to check your access, or continue as walk-in.
+            </p>
+          ) : approvedAdmissions.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              No approved admissions are waiting for registration right now. If
+              the manager has just approved one, ask them to confirm it shows as
+              approved — or continue as walk-in.
+            </p>
           ) : (
             <div>
               {label("Admission")}
@@ -496,6 +523,12 @@ export default function RegisterClient({
                   </option>
                 ))}
               </select>
+              {linkAdmissionId !== "" && (
+                <p className="mt-2 text-xs text-green-700">
+                  Child details are filled in from the referral automatically — review
+                  them on the next step instead of re-typing.
+                </p>
+              )}
             </div>
           )}
         </section>

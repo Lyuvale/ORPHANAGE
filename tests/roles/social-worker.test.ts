@@ -39,11 +39,27 @@ describe("Social worker static permissions (spec duties)", () => {
       "visits.create",
       "visits.request",
       "health.view",
+      "health.emergency.view",
       "education_development.view",
       "documents.upload",
       "staff.assignments.manage",
     ]) {
       expect(perms).toContain(p);
+    }
+  });
+
+  it("views health without managing records", () => {
+    for (const p of [
+      "health.create",
+      "health.medical_records.create",
+      "health.medications.manage",
+      "health.medications.administer",
+      "health.appointments.manage",
+      "health.screenings.manage",
+      "health.immunizations.manage",
+      "health.documents.upload",
+    ]) {
+      expect(perms).not.toContain(p);
     }
   });
 

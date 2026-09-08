@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useCaps } from "@/app/(dashboard)/_components/use-caps";
 import type { MedicalRecord, MedicalRecordType } from "@/types/health";
 import { getMedicalRecordTypeDisplay } from "@/types/health";
 
@@ -18,6 +19,8 @@ export default function MedicalRecordsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const caps = useCaps();
+  const canManage = caps.includes("health.medical_records.create");
   const [page, setPage] = useState(0);
   const limit = 20;
 
@@ -128,12 +131,14 @@ export default function MedicalRecordsPage() {
           <h1 className="text-2xl font-bold">Medical Records</h1>
           <p className="text-muted-foreground mt-1">Append-only, traceable medical history per child</p>
         </div>
-        <button
-          onClick={() => setShowForm((s) => !s)}
-          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
-        >
-          {showForm ? "Cancel" : "Add Record"}
-        </button>
+        {canManage && (
+          <button
+            onClick={() => setShowForm((s) => !s)}
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
+          >
+            {showForm ? "Cancel" : "Add Record"}
+          </button>
+        )}
       </div>
 
       {error && <div className="mb-4 rounded-md bg-red-50 p-4 text-red-800">{error}</div>}
@@ -157,7 +162,7 @@ export default function MedicalRecordsPage() {
         </select>
       </div>
 
-      {showForm && childId && (
+      {showForm && childId && canManage && (
         <div className="mb-6 rounded-lg border p-4">
           <h2 className="mb-3 text-lg font-semibold">New Medical Record</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

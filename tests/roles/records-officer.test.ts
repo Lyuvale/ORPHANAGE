@@ -36,6 +36,12 @@ describe("Records officer static permissions (official registrar)", () => {
     expect(perms).toContain("admissions.view");
   });
 
+  it("owns official health records but never administers medication", () => {
+    expect(perms).toContain("health.medical_records.create");
+    expect(perms).toContain("health.medications.manage");
+    expect(perms).not.toContain("health.medications.administer");
+  });
+
   it("manages records, documents, education and history", () => {
     for (const p of [
       "children.update",

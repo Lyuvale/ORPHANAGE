@@ -48,38 +48,40 @@ describe("Health & Medical Permissions", () => {
   });
 
   describe("Role-Permission Mappings", () => {
-    it("CENTRE_MANAGER has all health permissions", () => {
+    it("CENTRE_MANAGER views/monitors health without managing records", () => {
       const perms = ROLE_PERMISSIONS.CENTRE_MANAGER;
       expect(perms).toContain("health.view");
-      expect(perms).toContain("health.create");
-      expect(perms).toContain("health.update");
+      expect(perms).not.toContain("health.create");
+      expect(perms).not.toContain("health.update");
       expect(perms).toContain("health.medical_records.view");
-      expect(perms).toContain("health.medical_records.create");
-      expect(perms).toContain("health.medical_records.update");
+      expect(perms).not.toContain("health.medical_records.create");
+      expect(perms).not.toContain("health.medical_records.update");
       expect(perms).toContain("health.medications.view");
-      expect(perms).toContain("health.medications.manage");
-      expect(perms).toContain("health.medications.administer");
+      expect(perms).not.toContain("health.medications.manage");
+      expect(perms).not.toContain("health.medications.administer");
       expect(perms).toContain("health.appointments.view");
-      expect(perms).toContain("health.appointments.manage");
+      expect(perms).not.toContain("health.appointments.manage");
       expect(perms).toContain("health.screenings.view");
-      expect(perms).toContain("health.screenings.manage");
+      expect(perms).not.toContain("health.screenings.manage");
       expect(perms).toContain("health.immunizations.view");
-      expect(perms).toContain("health.immunizations.manage");
+      expect(perms).not.toContain("health.immunizations.manage");
       expect(perms).toContain("health.documents.view");
-      expect(perms).toContain("health.documents.upload");
+      expect(perms).not.toContain("health.documents.upload");
       expect(perms).toContain("health.documents.download");
       expect(perms).toContain("health.emergency.view");
     });
 
-    it("SOCIAL_WORKER has all health permissions", () => {
+    it("SOCIAL_WORKER views relevant health without managing records", () => {
       const perms = ROLE_PERMISSIONS.SOCIAL_WORKER;
       expect(perms).toContain("health.view");
-      expect(perms).toContain("health.medical_records.create");
-      expect(perms).toContain("health.medications.manage");
-      expect(perms).toContain("health.appointments.manage");
-      expect(perms).toContain("health.screenings.manage");
-      expect(perms).toContain("health.immunizations.manage");
-      expect(perms).toContain("health.documents.upload");
+      expect(perms).not.toContain("health.create");
+      expect(perms).not.toContain("health.medical_records.create");
+      expect(perms).not.toContain("health.medications.manage");
+      expect(perms).not.toContain("health.medications.administer");
+      expect(perms).not.toContain("health.appointments.manage");
+      expect(perms).not.toContain("health.screenings.manage");
+      expect(perms).not.toContain("health.immunizations.manage");
+      expect(perms).not.toContain("health.documents.upload");
       expect(perms).toContain("health.documents.download");
       expect(perms).toContain("health.emergency.view");
     });

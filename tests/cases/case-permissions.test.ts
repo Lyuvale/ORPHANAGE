@@ -71,45 +71,45 @@ describe("Case & Safeguarding Permissions", () => {
   });
 
   describe("Role-Permission Mappings", () => {
-    it("CENTRE_MANAGER has all case permissions", () => {
+    it("CENTRE_MANAGER reviews/closes cases without casework", () => {
       const perms = ROLE_PERMISSIONS.CENTRE_MANAGER;
       expect(perms).toContain("cases.view");
-      expect(perms).toContain("cases.create");
-      expect(perms).toContain("cases.update");
-      expect(perms).toContain("cases.status.update");
+      expect(perms).not.toContain("cases.create");
+      expect(perms).not.toContain("cases.update");
+      expect(perms).not.toContain("cases.status.update");
       expect(perms).toContain("cases.close");
       expect(perms).toContain("cases.assessments.view");
       expect(perms).not.toContain("cases.assessments.create");
       expect(perms).not.toContain("cases.assessments.update");
       expect(perms).toContain("cases.plans.view");
-      expect(perms).toContain("cases.plans.create");
-      expect(perms).toContain("cases.plans.update");
+      expect(perms).not.toContain("cases.plans.create");
+      expect(perms).not.toContain("cases.plans.update");
       expect(perms).toContain("cases.plans.approve");
       expect(perms).toContain("cases.notes.view");
-      expect(perms).toContain("cases.notes.create");
+      expect(perms).not.toContain("cases.notes.create");
       expect(perms).toContain("cases.interventions.view");
-      expect(perms).toContain("cases.interventions.create");
-      expect(perms).toContain("cases.interventions.update");
+      expect(perms).not.toContain("cases.interventions.create");
+      expect(perms).not.toContain("cases.interventions.update");
       expect(perms).toContain("cases.documents.view");
-      expect(perms).toContain("cases.documents.upload");
+      expect(perms).not.toContain("cases.documents.upload");
       expect(perms).toContain("cases.documents.download");
-      expect(perms).toContain("cases.documents.delete");
+      expect(perms).not.toContain("cases.documents.delete");
     });
 
-    it("CENTRE_MANAGER has all safeguarding permissions", () => {
+    it("CENTRE_MANAGER monitors safeguarding and resolves escalations only", () => {
       const perms = ROLE_PERMISSIONS.CENTRE_MANAGER;
       expect(perms).toContain("safeguarding.view");
-      expect(perms).toContain("safeguarding.create");
-      expect(perms).toContain("safeguarding.update");
-      expect(perms).toContain("safeguarding.status.update");
-      expect(perms).toContain("safeguarding.escalate");
+      expect(perms).not.toContain("safeguarding.create");
+      expect(perms).not.toContain("safeguarding.update");
+      expect(perms).not.toContain("safeguarding.status.update");
+      expect(perms).not.toContain("safeguarding.escalate");
       expect(perms).toContain("safeguarding.actions.view");
-      expect(perms).toContain("safeguarding.actions.create");
-      expect(perms).toContain("safeguarding.actions.update");
+      expect(perms).not.toContain("safeguarding.actions.create");
+      expect(perms).not.toContain("safeguarding.actions.update");
       expect(perms).toContain("safeguarding.documents.view");
-      expect(perms).toContain("safeguarding.documents.upload");
+      expect(perms).not.toContain("safeguarding.documents.upload");
       expect(perms).toContain("safeguarding.documents.download");
-      expect(perms).toContain("safeguarding.documents.delete");
+      expect(perms).not.toContain("safeguarding.documents.delete");
       expect(perms).toContain("safeguarding.escalations.view");
       expect(perms).toContain("safeguarding.escalations.acknowledge");
       expect(perms).toContain("safeguarding.escalations.resolve");

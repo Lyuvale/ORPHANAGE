@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useCaps } from "@/app/(dashboard)/_components/use-caps";
 import type { Immunization, ImmunizationStatus } from "@/types/health";
 import { getImmunizationStatusDisplay } from "@/types/health";
 
@@ -18,6 +19,8 @@ export default function ImmunizationsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const caps = useCaps();
+  const canManage = caps.includes("health.immunizations.manage");
   const [page, setPage] = useState(0);
   const [centreId, setCentreId] = useState<string | null>(null);
   const limit = 20;
@@ -128,12 +131,14 @@ export default function ImmunizationsPage() {
           <h1 className="text-2xl font-bold">Immunizations</h1>
           <p className="text-muted-foreground mt-1">Track vaccinations and due/overdue doses per child</p>
         </div>
-        <button
-          onClick={() => setShowForm((s) => !s)}
-          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
-        >
-          {showForm ? "Cancel" : "Add Immunization"}
-        </button>
+        {canManage && (
+          <button
+            onClick={() => setShowForm((s) => !s)}
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
+          >
+            {showForm ? "Cancel" : "Add Immunization"}
+          </button>
+        )}
       </div>
 
       {error && <div className="mb-4 rounded-md bg-red-50 p-4 text-red-800">{error}</div>}
@@ -157,7 +162,7 @@ export default function ImmunizationsPage() {
         </select>
       </div>
 
-      {showForm && childId && (
+      {showForm && childId && canManage && (
         <div className="mb-6 rounded-lg border p-4">
           <h2 className="mb-3 text-lg font-semibold">New Immunization</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

@@ -89,6 +89,20 @@ describe("Manager static permissions (spec duties)", () => {
     expect(perms).toContain("visits.approve");
   });
 
+  it("owns cases/safeguarding/health oversight without casework or record management", () => {
+    for (const p of ["cases.view", "cases.close", "safeguarding.view", "health.view"]) {
+      expect(perms).toContain(p);
+    }
+    for (const p of [
+      "cases.create",
+      "safeguarding.create",
+      "health.create",
+      "health.medications.manage",
+    ]) {
+      expect(perms).not.toContain(p);
+    }
+  });
+
   it("may read (never modify) the audit trail", () => {
     expect(perms).toContain("audit.view");
     expect(perms).not.toContain("audit.update");

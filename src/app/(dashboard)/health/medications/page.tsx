@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useCaps } from "@/app/(dashboard)/_components/use-caps";
 import type { Medication, MedicationAdminStatus } from "@/types/health";
 import { getMedicationStatusDisplay, getMedicationAdminStatusDisplay } from "@/types/health";
 
@@ -18,6 +19,8 @@ export default function MedicationsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const caps = useCaps();
+  const canManage = caps.includes("health.medications.manage");
   const [page, setPage] = useState(0);
   const [centreId, setCentreId] = useState<string | null>(null);
   const limit = 20;
@@ -162,12 +165,14 @@ export default function MedicationsPage() {
           <h1 className="text-2xl font-bold">Medications</h1>
           <p className="text-muted-foreground mt-1">Track prescriptions and administrations per child</p>
         </div>
-        <button
-          onClick={() => setShowForm((s) => !s)}
-          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
-        >
-          {showForm ? "Cancel" : "Add Medication"}
-        </button>
+        {canManage && (
+          <button
+            onClick={() => setShowForm((s) => !s)}
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
+          >
+            {showForm ? "Cancel" : "Add Medication"}
+          </button>
+        )}
       </div>
 
       {error && <div className="mb-4 rounded-md bg-red-50 p-4 text-red-800">{error}</div>}
@@ -191,7 +196,7 @@ export default function MedicationsPage() {
         </select>
       </div>
 
-      {showForm && childId && (
+      {showForm && childId && canManage && (
         <div className="mb-6 rounded-lg border p-4">
           <h2 className="mb-3 text-lg font-semibold">New Medication</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

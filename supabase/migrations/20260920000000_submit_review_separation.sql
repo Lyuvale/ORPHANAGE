@@ -36,6 +36,13 @@ ALTER TYPE notification_entity ADD VALUE IF NOT EXISTS 'ADMISSION';
 
 -- Delete authority is manager-only: archiving a child record moves to the
 -- manager (removed from records, which keeps status updates for maintenance).
+-- Medication administration stays caregiver-only (daily care duty).
+DELETE FROM role_permissions rp
+USING roles r, permissions p
+WHERE rp.role_id = r.id
+  AND rp.permission_id = p.id
+  AND r.name = 'RECORDS_OFFICER'
+  AND (p.module, p.action) IN (('health', 'medications.administer'));
 INSERT INTO permissions (module, action, description) VALUES
   ('children', 'archive', 'Archive (deactivate) a child record')
 ON CONFLICT (module, action) DO NOTHING;
@@ -54,6 +61,64 @@ WHERE rp.role_id = r.id
   AND rp.permission_id = p.id
   AND r.name = 'RECORDS_OFFICER'
   AND (p.module, p.action) IN (('children', 'archive'));
+
+-- Case ownership: SOCIAL WORKER caseworks; CENTRE MANAGER reviews + closes.
+DELETE FROM role_permissions rp
+USING roles r, permissions p
+WHERE rp.role_id = r.id
+  AND rp.permission_id = p.id
+  AND r.name = 'CENTRE_MANAGER'
+  AND (p.module, p.action) IN (
+    ('cases', 'create'),
+    ('cases', 'update'),
+    ('cases', 'status.update'),
+    ('cases', 'plans.create'),
+    ('cases', 'plans.update'),
+    ('cases', 'notes.create'),
+    ('cases', 'interventions.create'),
+    ('cases', 'interventions.update'),
+    ('cases', 'documents.upload'),
+    ('cases', 'documents.delete')
+  );
+
+-- Safeguarding ownership: SOCIAL WORKER records/follows/escalates;
+-- CENTRE MANAGER monitors and resolves escalations.
+DELETE FROM role_permissions rp
+USING roles r, permissions p
+WHERE rp.role_id = r.id
+  AND rp.permission_id = p.id
+  AND r.name = 'CENTRE_MANAGER'
+  AND (p.module, p.action) IN (
+    ('safeguarding', 'create'),
+    ('safeguarding', 'update'),
+    ('safeguarding', 'status.update'),
+    ('safeguarding', 'escalate'),
+    ('safeguarding', 'actions.create'),
+    ('safeguarding', 'actions.update'),
+    ('safeguarding', 'documents.upload'),
+    ('safeguarding', 'documents.delete')
+  );
+
+-- Health records ownership: RECORDS OFFICER manages official records;
+-- CENTRE MANAGER and SOCIAL WORKER view/monitor; CAREGIVER uses emergency
+-- info + administers medication during daily care.
+DELETE FROM role_permissions rp
+USING roles r, permissions p
+WHERE rp.role_id = r.id
+  AND rp.permission_id = p.id
+  AND r.name IN ('CENTRE_MANAGER', 'SOCIAL_WORKER')
+  AND (p.module, p.action) IN (
+    ('health', 'create'),
+    ('health', 'update'),
+    ('health', 'medical_records.create'),
+    ('health', 'medical_records.update'),
+    ('health', 'medications.manage'),
+    ('health', 'medications.administer'),
+    ('health', 'appointments.manage'),
+    ('health', 'screenings.manage'),
+    ('health', 'immunizations.manage'),
+    ('health', 'documents.upload')
+  );
 
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
