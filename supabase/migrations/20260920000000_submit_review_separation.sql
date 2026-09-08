@@ -33,6 +33,9 @@ ON CONFLICT (module, action) DO NOTHING;
 -- records officer registration).
 ALTER TYPE notification_event ADD VALUE IF NOT EXISTS 'ADMISSION_APPROVED';
 ALTER TYPE notification_entity ADD VALUE IF NOT EXISTS 'ADMISSION';
+ALTER TYPE notification_event ADD VALUE IF NOT EXISTS 'REFERRAL_SUBMITTED';
+ALTER TYPE notification_event ADD VALUE IF NOT EXISTS 'ADMISSION_SUBMITTED';
+ALTER TYPE notification_entity ADD VALUE IF NOT EXISTS 'REFERRAL';
 
 -- RECORDS_OFFICER: links guardians during official registration (otherwise
 -- created guardians stay orphaned and invisible — the standalone guardians

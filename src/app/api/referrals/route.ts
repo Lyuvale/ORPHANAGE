@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
 import { auditCreate } from "@/lib/audit/audit.service";
+import { notifyRole } from "@/lib/notifications/notifications.service";
 import {
   listReferrals,
   createReferral,
@@ -113,6 +114,27 @@ export async function POST(request: NextRequest) {
       priority: referral.priority,
       status: referral.status,
     });
+
+    // Handoff: a submitted referral goes to the Centre Manager for review.
+    try {
+      await notifyRole(
+        adminSupabase,
+        ctx.centre.id,
+        ["CENTRE_MANAGER"],
+        {
+          title: "New referral submitted",
+          message: `Referral ${referral.reference_number} for ${referral.child_first_name} ${referral.child_last_name} needs review.`,
+          type: "ACTION_REQUIRED",
+          event_type: "REFERRAL_SUBMITTED",
+          entity_type: "REFERRAL",
+          entity_id: referral.id,
+          route: "/dashboard",
+        },
+        ctx.authUserId,
+      );
+    } catch {
+      // Notification failure must not break the submission.
+    }
 
     return NextResponse.json({ data: referral }, { status: 201 });
   } catch (error) {

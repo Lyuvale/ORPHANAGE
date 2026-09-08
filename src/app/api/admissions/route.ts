@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
 import { auditCreate } from "@/lib/audit/audit.service";
+import { notifyRole } from "@/lib/notifications/notifications.service";
 import {
   listAdmissions,
   createAdmission,
@@ -108,6 +109,27 @@ export async function POST(request: NextRequest) {
       referral_id: admission.referral_id,
       status: admission.status,
     });
+
+    // Handoff: a submitted admission recommendation goes to the manager.
+    try {
+      await notifyRole(
+        adminSupabase,
+        ctx.centre.id,
+        ["CENTRE_MANAGER"],
+        {
+          title: "Admission recommendation submitted",
+          message: `Admission ${admission.reference_number} needs review (approve/reject).`,
+          type: "ACTION_REQUIRED",
+          event_type: "ADMISSION_SUBMITTED",
+          entity_type: "ADMISSION",
+          entity_id: admission.id,
+          route: "/dashboard",
+        },
+        ctx.authUserId,
+      );
+    } catch {
+      // Notification failure must not break the submission.
+    }
 
     return NextResponse.json({ data: admission }, { status: 201 });
   } catch (error) {

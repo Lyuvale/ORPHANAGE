@@ -53,6 +53,8 @@ export const NOTIFICATION_EVENTS = [
   "CONTRIBUTION_RECEIVED",
   "PAYMENT_FAILED",
   "ADMISSION_APPROVED",
+  "REFERRAL_SUBMITTED",
+  "ADMISSION_SUBMITTED",
   "PLATFORM_ALERT",
 ] as const;
 export type NotificationEvent = (typeof NOTIFICATION_EVENTS)[number];
@@ -74,6 +76,7 @@ export const NOTIFICATION_ENTITIES = [
   "PAYMENT",
   "CONTRIBUTION",
   "ADMISSION",
+  "REFERRAL",
   "PLATFORM",
 ] as const;
 export type NotificationEntity = (typeof NOTIFICATION_ENTITIES)[number];
@@ -110,6 +113,8 @@ export const CRITICAL_NOTIFICATION_EVENTS: NotificationEvent[] = [
   "SUBSCRIPTION_SUSPENDED",
   "PAYMENT_FAILED",
   "ADMISSION_APPROVED",
+  "REFERRAL_SUBMITTED",
+  "ADMISSION_SUBMITTED",
   "PLATFORM_ALERT",
 ];
 
@@ -193,6 +198,7 @@ export function getNotificationEntityDisplay(e: NotificationEntity | null | unde
     PAYMENT: "Payment",
     CONTRIBUTION: "Contribution",
     ADMISSION: "Admission",
+    REFERRAL: "Referral",
     PLATFORM: "Platform",
   };
   return map[e];
