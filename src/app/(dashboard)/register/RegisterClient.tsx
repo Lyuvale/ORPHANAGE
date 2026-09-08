@@ -120,6 +120,10 @@ export default function RegisterClient({
 
   // ── Admission linkage (records registers from an approved admission) ──
   const [linkAdmissionId, setLinkAdmissionId] = useState("");
+  const [linkReferralId, setLinkReferralId] = useState<string | null>(null);
+  const [incomingGuardians, setIncomingGuardians] = useState<
+    { id: string; first_name: string; middle_name: string | null; last_name: string }[]
+  >([]);
   const [approvedAdmissions, setApprovedAdmissions] = useState<
     { id: string; reference_number: string; decision: string | null; referral_id: string; admitted_date: string | null; child_id: string | null }[]
   >([]);
@@ -151,9 +155,25 @@ export default function RegisterClient({
 
   async function pickAdmission(id: string) {
     setLinkAdmissionId(id);
+    setLinkReferralId(null);
+    setIncomingGuardians([]);
     if (!id) return;
     const picked = approvedAdmissions.find((a) => a.id === id);
     if (!picked) return;
+    setLinkReferralId(picked.referral_id);
+    // Guardians already submitted with this referral come along automatically —
+    // the records officer reviews them instead of re-typing.
+    try {
+      const gRes = await fetch(`/api/guardians?referral_id=${picked.referral_id}&limit=50`, {
+        cache: "no-store",
+      });
+      if (gRes.ok) {
+        const gJson = await gRes.json();
+        setIncomingGuardians(gJson.data ?? []);
+      }
+    } catch {
+      /* manual entry remains available */
+    }
     // Admission date comes from the approval itself — never re-typed.
     if (picked.admitted_date) setAdmissionDate(picked.admitted_date.slice(0, 10));
     try {
@@ -230,7 +250,11 @@ export default function RegisterClient({
       if (!admissionDate) return "Admission date is required.";
     }
     if (key === "guardian") {
-      if (!gFirst.trim() || !gLast.trim()) return "Guardian first and last name are required.";
+      // Incoming guardians from the referral are linked automatically, so
+      // names are only required when adding a new one (or when none exist).
+      const hasIncoming = linkAdmissionId !== "" && incomingGuardians.length > 0;
+      if (!hasIncoming && (!gFirst.trim() || !gLast.trim()))
+        return "Guardian first and last name are required.";
     }
     if (key === "placement") {
       if (!placementStart) return "Placement start date is required.";
@@ -304,10 +328,14 @@ export default function RegisterClient({
         });
       }
 
-      if (caps.guardian) {
+      if (caps.guardian && (gFirst.trim() || gLast.trim() || incomingGuardians.length === 0)) {
+        if (!gFirst.trim() || !gLast.trim()) {
+          throw new Error("Guardian first and last name are required to add a new guardian.");
+        }
         setProgress("Creating guardian…");
         const guardian = await postJson("/api/guardians", {
           centre_id: centreId,
+          referral_id: referralId ?? linkReferralId ?? undefined,
           first_name: gFirst.trim(),
           middle_name: gMiddle.trim() || undefined,
           last_name: gLast.trim(),
@@ -637,6 +665,24 @@ export default function RegisterClient({
       {step === "guardian" && (
         <section className="bg-white rounded-lg border p-6 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">Guardian</h2>
+          {incomingGuardians.length > 0 && (
+            <div className="rounded-md bg-green-50 border border-green-200 p-3">
+              <p className="text-sm text-green-800 font-medium">
+                Already submitted with this referral — will be linked automatically:
+              </p>
+              <ul className="mt-1 text-sm text-green-800 list-disc list-inside">
+                {incomingGuardians.map((g) => (
+                  <li key={g.id}>
+                    {g.first_name}
+                    {g.middle_name ? ` ${g.middle_name}` : ""} {g.last_name}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-1 text-xs text-green-700">
+                No need to re-type them. Add another guardian below only if needed.
+              </p>
+            </div>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               {label("First name", true)}

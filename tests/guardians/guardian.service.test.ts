@@ -39,6 +39,7 @@ function insertGuardian(data: Partial<Guardian>): Guardian {
   const guardian: Guardian = {
     id: generateId(),
     centre_id: "centre-a",
+    referral_id: null,
     first_name: "Test",
     middle_name: null,
     last_name: "Guardian",

@@ -78,6 +78,17 @@ describe("Registration wizard chains records with tenant scoping", () => {
   it("offers placement only when the child step is present (ownership chain)", () => {
     expect(client).toContain("caps.placement && caps.child");
   });
+
+  it("guardians submitted with a referral flow automatically to records", () => {
+    expect(client).toContain("referral_id: referralId");
+    expect(client).toContain("incomingGuardians");
+    expect(client).toContain("will be linked automatically");
+    const link = src("src/app/api/admissions/[id]/link/route.ts");
+    expect(link).toContain("linked_guardians");
+    expect(link).toContain("child_guardians");
+    const mig = src("supabase/migrations/20260921000000_guardian_referral_link.sql");
+    expect(mig).toContain("referral_id");
+  });
 });
 
 describe("Creation POST routes default missing centre_id to the own centre", () => {

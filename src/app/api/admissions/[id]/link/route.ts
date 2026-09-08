@@ -67,6 +67,49 @@ export async function POST(
       .eq("id", admission.referral_id)
       .eq("centre_id", ctx.centre.id);
 
+    // Auto-link guardians submitted with this referral, so the records
+    // officer never re-types them: first one primary (unless one exists).
+    let linkedGuardians = 0;
+    try {
+      const { data: refGuardians } = await admin
+        .from("guardians")
+        .select("id")
+        .eq("centre_id", ctx.centre.id)
+        .eq("referral_id", admission.referral_id);
+      const guardianIds = ((refGuardians ?? []) as { id: string }[]).map((g) => g.id);
+      if (guardianIds.length > 0) {
+        const { data: existingRels } = await admin
+          .from("child_guardians")
+          .select("id, guardian_id, is_primary")
+          .eq("centre_id", ctx.centre.id)
+          .eq("child_id", child.id)
+          .eq("is_active", true);
+        const linked = new Set(
+          ((existingRels ?? []) as { guardian_id: string }[]).map((r) => r.guardian_id),
+        );
+        const hasPrimary = ((existingRels ?? []) as { is_primary: boolean }[]).some(
+          (r) => r.is_primary,
+        );
+        let primaryGiven = hasPrimary;
+        for (const gid of guardianIds) {
+          if (linked.has(gid)) continue;
+          const makePrimary = !primaryGiven;
+          primaryGiven = true;
+          const { error: relError } = await admin.from("child_guardians").insert({
+            centre_id: ctx.centre.id,
+            child_id: child.id,
+            guardian_id: gid,
+            relationship_type: "other_authorised",
+            is_primary: makePrimary,
+            is_active: true,
+          });
+          if (!relError) linkedGuardians += 1;
+        }
+      }
+    } catch {
+      // Guardian auto-link must not break the admission link.
+    }
+
     await auditUpdate(
       admin,
       ctx,
@@ -76,7 +119,9 @@ export async function POST(
       { child_id: child.id },
     );
 
-    return NextResponse.json({ data: { admission_id: admission.id, child_id: child.id } });
+    return NextResponse.json({
+      data: { admission_id: admission.id, child_id: child.id, linked_guardians: linkedGuardians },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: statusFromError(message) });

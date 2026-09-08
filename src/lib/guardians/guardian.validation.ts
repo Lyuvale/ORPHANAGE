@@ -9,6 +9,7 @@ import {
 
 export const createGuardianSchema = z.object({
   centre_id: z.string().uuid("Invalid centre ID"),
+  referral_id: z.string().uuid("Invalid referral ID").optional().nullable(),
   first_name: z
     .string()
     .min(1, "First name is required")
@@ -300,6 +301,7 @@ export const endRelationshipSchema = z.object({
 
 export const guardianSearchSchema = z.object({
   status: z.enum(GUARDIAN_STATUSES).optional(),
+  referral_id: z.string().uuid().optional().or(z.literal("")),
   search: z
     .string()
     .max(200, "Search term must be 200 characters or fewer")

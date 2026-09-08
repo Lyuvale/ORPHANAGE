@@ -60,6 +60,7 @@ export type LegalAuthorityType = (typeof LEGAL_AUTHORITY_TYPES)[number];
 export interface Guardian {
   id: string;
   centre_id: string;
+  referral_id: string | null;
   first_name: string;
   middle_name: string | null;
   last_name: string;
@@ -83,6 +84,7 @@ export interface Guardian {
 
 export interface CreateGuardianInput {
   centre_id: string;
+  referral_id?: string | null;
   first_name: string;
   middle_name?: string | null;
   last_name: string;
@@ -216,6 +218,7 @@ export interface EndRelationshipInput {
 export interface GuardianSearchFilters {
   centre_id: string;
   status?: GuardianStatus;
+  referral_id?: string;
   search?: string;
   limit?: number;
   offset?: number;

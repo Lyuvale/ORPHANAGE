@@ -1,8 +1,9 @@
 -- -----------------------------------------------------------------------------
 -- Submit/review separation + caregiver assignment duty (idempotent).
 --
---   - SOCIAL_WORKER submits (referrals/visits create) for CENTRE MANAGER
---     review; a social worker never approves/rejects their own submissions.
+--   - SOCIAL_WORKER submits referrals/admissions for CENTRE MANAGER
+--     review; a social worker never decides referrals (visit approval stays
+--     with the social worker managing family contact).
 --   - SOCIAL_WORKER shares the caregiver-assignment duty with the manager
 --     (staff.assignments.manage only — user-role assignment stays
 --     manager-only via staff.assign_roles).

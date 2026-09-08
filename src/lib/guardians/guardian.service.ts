@@ -36,6 +36,10 @@ export async function listGuardians(
     query = query.eq("status", filters.status);
   }
 
+  if (filters.referral_id) {
+    query = query.eq("referral_id", filters.referral_id);
+  }
+
   if (filters.ids) {
     if (filters.ids.length === 0) return { data: [], count: 0 };
     query = query.in("id", filters.ids);
@@ -126,6 +130,7 @@ export async function createGuardian(
 ): Promise<Guardian> {
   const payload = {
     centre_id: input.centre_id,
+    referral_id: input.referral_id ?? null,
     first_name: input.first_name,
     middle_name: input.middle_name ?? null,
     last_name: input.last_name,

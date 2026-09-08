@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const parsed = guardianSearchSchema.safeParse({
       status: searchParams.get("status") ?? undefined,
+      referral_id: searchParams.get("referral_id") ?? undefined,
       search: searchParams.get("search") ?? undefined,
       limit: searchParams.get("limit") ?? undefined,
       offset: searchParams.get("offset") ?? undefined,
@@ -64,6 +65,7 @@ export async function GET(request: NextRequest) {
     const { data, count } = await listGuardians(adminSupabase, {
       centre_id: ctx.centre.id,
       status: parsed.data.status,
+      referral_id: parsed.data.referral_id || undefined,
       search: parsed.data.search,
       ids: guardianIds,
       limit: parsed.data.limit,
