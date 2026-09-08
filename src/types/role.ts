@@ -410,7 +410,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "daily_care.view",
     "presence.view",
     "guardians.view", "guardians.create", "guardians.update",
-    "guardians.documents.view", "guardians.documents.upload", "guardians.documents.download",
+    "guardians.relationship.manage", "guardians.documents.view", "guardians.documents.upload", "guardians.documents.download",
     "visits.view", "visits.restrictions.view", "visits.contact_attempts.view",
     "health.view", "health.create", "health.update",
     "health.medical_records.view", "health.medical_records.create", "health.medical_records.update",

@@ -95,9 +95,9 @@ describe("Guardians Permissions", () => {
       expect(perms).toContain("guardians.documents.download");
     });
 
-    it("RECORDS_OFFICER does not have relationship.manage", () => {
+    it("RECORDS_OFFICER links guardians during official registration", () => {
       const perms = ROLE_PERMISSIONS.RECORDS_OFFICER;
-      expect(perms).not.toContain("guardians.relationship.manage");
+      expect(perms).toContain("guardians.relationship.manage");
     });
 
     it("RECORDS_OFFICER does not have deactivate", () => {

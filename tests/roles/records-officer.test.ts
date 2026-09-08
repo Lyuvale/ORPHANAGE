@@ -25,6 +25,7 @@ describe("Records officer static permissions (official registrar)", () => {
     for (const p of [
       "children.create",
       "guardians.create",
+      "guardians.relationship.manage",
       "placements.create",
     ]) {
       expect(perms).toContain(p);

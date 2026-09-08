@@ -34,6 +34,17 @@ ON CONFLICT (module, action) DO NOTHING;
 ALTER TYPE notification_event ADD VALUE IF NOT EXISTS 'ADMISSION_APPROVED';
 ALTER TYPE notification_entity ADD VALUE IF NOT EXISTS 'ADMISSION';
 
+-- RECORDS_OFFICER: links guardians during official registration (otherwise
+-- created guardians stay orphaned and invisible — the standalone guardians
+-- list was removed, so the child hub link form is the way back).
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT r.id, p.id
+  FROM roles r
+  CROSS JOIN permissions p
+ WHERE r.name = 'RECORDS_OFFICER'
+   AND p.module = 'guardians' AND p.action = 'relationship.manage'
+ON CONFLICT DO NOTHING;
+
 -- Delete authority is manager-only: archiving a child record moves to the
 -- manager (removed from records, which keeps status updates for maintenance).
 -- Medication administration stays caregiver-only (daily care duty).
