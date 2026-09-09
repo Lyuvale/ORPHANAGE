@@ -5,6 +5,7 @@ import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { getUserRoleName, can } from "@/lib/auth/authorization.service";
 import { listCaregiverChildren } from "@/lib/caregivers/caregiver.service";
 import ApproveRejectButtons from "@/app/(dashboard)/_components/approve-reject-buttons";
+import PackageApproveButtons from "@/app/(dashboard)/dashboard/_components/package-approve-buttons";
 import { serverFetch } from "@/lib/server-fetch";
 
 function baseUrl() {
@@ -283,30 +284,41 @@ async function ManagerSection({ restricted }: { restricted: boolean }) {
       fetchList("/api/admissions?status=pending&limit=20"),
     ]);
 
-  const pendingReferrals: PendingItem[] = [...refSubmitted, ...refUnderReview].map((r) => ({
-    id: String(r.id),
-    kind: "Referral",
-    title: `${String(r.child_first_name ?? "")} ${String(r.child_last_name ?? "")}`.trim() || "Unnamed referral",
-    subtitle: `${String(r.source ?? "").replace(/_/g, " ")} · ${String(r.status ?? "")}`,
-    href: `/referrals/${String(r.id)}`,
-    url: `/api/referrals/${String(r.id)}`,
-    approveBody: { new_status: "admitted" },
-    rejectBody: { new_status: "rejected" },
-    showApprove: true,
-    showReject: true,
-  }));
-  const pendingAdmissions: PendingItem[] = admPending.map((a) => ({
-    id: String(a.id),
-    kind: "Admission",
-    title: String(a.reference_number ?? "Admission"),
-    subtitle: String((a.decision as string) ?? "awaiting review").slice(0, 80),
-    href: `/admissions/${String(a.id)}`,
-    url: `/api/admissions/${String(a.id)}`,
-    approveBody: { new_status: "approved" },
-    rejectBody: { new_status: "denied" },
-    showApprove: true,
-    showReject: true,
-  }));
+  const allReferrals = [...refSubmitted, ...refUnderReview];
+  const admissionByReferral = new Map(
+    admPending.map((a) => [String(a.referral_id), a]),
+  );
+  // Guardians submitted with each referral (shown inside the package).
+  const guardiansByReferral = new Map<string, string[]>();
+  await Promise.all(
+    allReferrals.map(async (r) => {
+      const list = await fetchList(
+        `/api/guardians?referral_id=${String(r.id)}&limit=20`,
+      );
+      guardiansByReferral.set(
+        String(r.id),
+        list.map((g) =>
+          `${String(g.first_name ?? "")} ${String(g.last_name ?? "")}`.trim(),
+        ),
+      );
+    }),
+  );
+
+  const packages = allReferrals.map((r) => {
+    const refId = String(r.id);
+    const adm = admissionByReferral.get(refId) as Record<string, unknown> | undefined;
+    return {
+      referralId: refId,
+      admissionId: adm ? String(adm.id) : null,
+      childName:
+        `${String(r.child_first_name ?? "")} ${String(r.child_last_name ?? "")}`.trim() ||
+        "Unnamed referral",
+      referralRef: String(r.reference_number ?? ""),
+      referralStatus: String(r.status ?? ""),
+      admissionRef: adm ? String(adm.reference_number ?? "") : null,
+      guardians: guardiansByReferral.get(refId) ?? [],
+    };
+  });
 
   return (
     <div className="mt-6 grid gap-6 md:grid-cols-2 max-w-4xl">
@@ -328,11 +340,39 @@ async function ManagerSection({ restricted }: { restricted: boolean }) {
         href="/subscriptions"
         linkText="Open Subscriptions"
       />
-      <PendingReviews
-        title="Pending intake reviews"
-        empty="No referrals or admissions awaiting review."
-        items={[...pendingReferrals, ...pendingAdmissions]}
-      />
+      <div className="bg-white rounded-lg border overflow-hidden md:col-span-2">
+        <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+          <h3 className="text-sm font-semibold text-gray-900">
+            Pending intake packages ({packages.length})
+          </h3>
+          <p className="text-xs text-gray-500">
+            Referral + admission + guardians as one thing — approve or reject together.
+          </p>
+        </div>
+        {packages.length === 0 ? (
+          <p className="px-4 py-5 text-sm text-gray-500">
+            No referrals, admissions or guardians awaiting review.
+          </p>
+        ) : (
+          <ul className="divide-y divide-gray-200">
+            {packages.map((p) => (
+              <li key={p.referralId} className="px-4 py-3">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-gray-900">{p.childName}</p>
+                    <p className="text-xs text-gray-500">
+                      Referral {p.referralRef} ({p.referralStatus.replace(/_/g, " ")})
+                      {p.admissionRef ? ` · Admission ${p.admissionRef}` : " · No admission yet"}
+                      {p.guardians.length > 0 ? ` · Guardians: ${p.guardians.join(", ")}` : ""}
+                    </p>
+                  </div>
+                  <PackageApproveButtons referralId={p.referralId} admissionId={p.admissionId} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       <div className="bg-white rounded-lg border p-6 md:col-span-2">
         <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
           Quick links

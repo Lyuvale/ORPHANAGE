@@ -192,11 +192,12 @@ describe("Manager Approve / Reject where the work lives (no standalone page)", (
     expect(existsSync(join(process.cwd(), "src/app/(dashboard)/approvals"))).toBe(false);
   });
 
-  it("dashboard shows pending referrals/admissions with Approve/Reject inline", () => {
-    expect(dash).toContain("PendingReviews");
-    expect(dash).toContain("/api/referrals/");
-    expect(dash).toContain("/api/admissions/");
-    expect(dash).toContain("ApproveRejectButtons");
+  it("dashboard reviews intake packages (referral+admission+guardians) as one thing", () => {
+    expect(dash).toContain("Pending intake packages");
+    expect(dash).toContain("PackageApproveButtons");
+    const pkg = src("src/app/(dashboard)/dashboard/_components/package-approve-buttons.tsx");
+    expect(pkg).toContain("Approve all");
+    expect(pkg).toContain("Reject all");
   });
 
   it("visits list shows Approve/Reject to approvers (via own caps)", () => {
