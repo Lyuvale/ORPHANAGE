@@ -7,7 +7,6 @@ interface StaffOption {
   first_name: string;
   last_name: string;
   email: string;
-  job_title: string | null;
 }
 
 interface Assignment {
@@ -53,7 +52,9 @@ export default function CaregiverAssignment({
 
   async function loadStaff() {
     try {
-      const res = await fetch("/api/staff");
+      // Caregiver user accounts (login users holding the CAREGIVER role) —
+      // the only valid assignees. If none exist yet, create them in Team.
+      const res = await fetch("/api/caregivers/available");
       if (res.ok) {
         const json = await res.json();
         setStaff(json.data ?? []);
@@ -167,10 +168,15 @@ export default function CaregiverAssignment({
               <option value="">Select a caregiver...</option>
               {staff.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.first_name} {s.last_name} — {s.job_title ?? "Staff"}
+                  {s.first_name} {s.last_name}
                 </option>
               ))}
             </select>
+            {staff.length === 0 && (
+              <p className="mt-1 text-xs text-gray-500">
+                No caregiver accounts yet — create them first in Team, then assign here.
+              </p>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>

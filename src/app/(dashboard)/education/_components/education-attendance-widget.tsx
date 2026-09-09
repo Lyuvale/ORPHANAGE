@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useCaps } from "@/app/(dashboard)/_components/use-caps";
+import { useStickyChild } from "@/app/(dashboard)/_components/use-sticky-child";
 
 interface AttendanceRecord {
   id: string;
@@ -49,7 +50,7 @@ export default function EducationAttendanceWidget({
   const [success, setSuccess] = useState<string | null>(null);
 
   // Form state
-  const [formChildId, setFormChildId] = useState(childId ?? "");
+  const [formChildId, setFormChildId] = useStickyChild(childId ?? "", children);
   const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split("T")[0]);
   const [status, setStatus] = useState("present");
   const [arrivalTime, setArrivalTime] = useState("");

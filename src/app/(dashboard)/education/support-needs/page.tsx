@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useCaps } from "@/app/(dashboard)/_components/use-caps";
+import { useStickyChild } from "@/app/(dashboard)/_components/use-sticky-child";
 import { useSearchParams } from "next/navigation";
 import type {
   EducationSupportNeed,
@@ -29,7 +30,7 @@ export default function EducationSupportNeedsPage() {
   const queryChild = searchParams.get("child_id") ?? "";
 
   const [children, setChildren] = useState<ChildOption[]>([]);
-  const [childId, setChildId] = useState(queryChild);
+  const [childId, setChildId] = useStickyChild(queryChild, children);
   const [needs, setNeeds] = useState<EducationSupportNeed[]>([]);
   const [count, setCount] = useState(0);
   const [centreId, setCentreId] = useState<string | null>(null);

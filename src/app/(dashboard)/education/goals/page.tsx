@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
+import { useStickyChild } from "@/app/(dashboard)/_components/use-sticky-child";
 import { useCaps } from "@/app/(dashboard)/_components/use-caps";
 import type { EducationGoal, EducationGoalStatus } from "@/types/education";
 import {
@@ -20,7 +21,7 @@ export default function EducationGoalsPage() {
   const queryChild = searchParams.get("child_id") ?? "";
 
   const [children, setChildren] = useState<ChildOption[]>([]);
-  const [childId, setChildId] = useState(queryChild);
+  const [childId, setChildId] = useStickyChild(queryChild, children);
   const [goals, setGoals] = useState<EducationGoal[]>([]);
   const [count, setCount] = useState(0);
   const [centreId, setCentreId] = useState<string | null>(null);

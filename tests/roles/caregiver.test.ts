@@ -128,6 +128,47 @@ describe("Caregiver assigned-only data enforcement", () => {
   });
 });
 
+describe("Caregiver assignment dropdown shows caregiver accounts", () => {
+  const avail = src("src/app/api/caregivers/available/route.ts");
+  const comp = src("src/app/(dashboard)/children/[id]/_components/caregiver-assignment.tsx");
+
+  it("exposes active CAREGIVER users scoped to the own centre", () => {
+    expect(avail).toContain("CAREGIVER");
+    expect(avail).toContain("staff.assignments.manage");
+    expect(avail).toContain("ctx.centre.id");
+  });
+
+  it("assignment form lists user accounts with empty-state guidance", () => {
+    expect(comp).toContain("/api/caregivers/available");
+    expect(comp).toContain("No caregiver accounts yet");
+  });
+});
+
+describe("Sticky child context across modules", () => {
+  const hook = src("src/app/(dashboard)/_components/use-sticky-child.tsx");
+
+  it("remembers the opened child and pre-selects it everywhere", () => {
+    expect(hook).toContain("lastChildId");
+    expect(hook).toContain("RememberChild");
+    expect(hook).toContain("useStickyChild");
+  });
+
+  it("child profile remembers; health and education adopt it", () => {
+    const profile = src("src/app/(dashboard)/children/[id]/page.tsx");
+    expect(profile).toContain("RememberChild");
+    for (const rel of [
+      "src/app/(dashboard)/health/page.tsx",
+      "src/app/(dashboard)/education/profile/page.tsx",
+      "src/app/(dashboard)/education/goals/page.tsx",
+      "src/app/(dashboard)/education/support-needs/page.tsx",
+      "src/app/(dashboard)/education/achievements/page.tsx",
+      "src/app/(dashboard)/education/progress/page.tsx",
+    ]) {
+      expect(src(rel)).toContain("useStickyChild");
+    }
+  });
+});
+
 describe("Caregiver dashboard", () => {
   const dash = src("src/app/(dashboard)/dashboard/page.tsx");
 

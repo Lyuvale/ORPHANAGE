@@ -11,6 +11,7 @@ import AddPlacementForm from "./_components/add-placement-form";
 import LinkGuardianForm from "./_components/link-guardian-form";
 import DeleteChildButton from "./_components/delete-child-button";
 import ApproveRejectButtons from "@/app/(dashboard)/_components/approve-reject-buttons";
+import { RememberChild } from "@/app/(dashboard)/_components/use-sticky-child";
 
 function HealthSummary({ health }: { health: Record<string, unknown> }) {
   const blood = health.blood_group as string | null;
@@ -210,6 +211,7 @@ export default async function ChildProfilePage({
 
   return (
     <div>
+      <RememberChild id={child.id} />
       <div className="mb-6">
         <Link
           href="/children"

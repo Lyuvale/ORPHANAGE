@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
+import { useStickyChild } from "@/app/(dashboard)/_components/use-sticky-child";
 import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
 
 const REPORT_OPTIONS = [
@@ -27,8 +29,10 @@ interface HealthOverviewData {
 }
 
 export default function HealthOverviewPage() {
+  const searchParams = useSearchParams();
+  const queryChild = searchParams.get("child_id") ?? "";
   const [children, setChildren] = useState<ChildOption[]>([]);
-  const [selectedChild, setSelectedChild] = useState("");
+  const [selectedChild, setSelectedChild] = useStickyChild(queryChild, children);
   const [overview, setOverview] = useState<HealthOverviewData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

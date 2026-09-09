@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useCaps } from "@/app/(dashboard)/_components/use-caps";
 import { useSearchParams } from "next/navigation";
+import { useStickyChild } from "@/app/(dashboard)/_components/use-sticky-child";
 import type { EducationProfile, EducationStatus } from "@/types/education";
 import {
   EDUCATION_STATUSES,
@@ -20,7 +21,7 @@ export default function EducationProfilePage() {
   const queryChild = searchParams.get("child_id") ?? "";
 
   const [children, setChildren] = useState<ChildOption[]>([]);
-  const [childId, setChildId] = useState(queryChild);
+  const [childId, setChildId] = useStickyChild(queryChild, children);
   const [profile, setProfile] = useState<EducationProfile | null>(null);
   const [centreId, setCentreId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);

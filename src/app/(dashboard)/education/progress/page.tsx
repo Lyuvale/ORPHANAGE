@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useCaps } from "@/app/(dashboard)/_components/use-caps";
+import { useStickyChild } from "@/app/(dashboard)/_components/use-sticky-child";
 import { useSearchParams } from "next/navigation";
 import type { EducationProgress, EducationGoal, EducationProgressStatus } from "@/types/education";
 import {
@@ -20,7 +21,7 @@ export default function EducationProgressPage() {
   const queryChild = searchParams.get("child_id") ?? "";
 
   const [children, setChildren] = useState<ChildOption[]>([]);
-  const [childId, setChildId] = useState(queryChild);
+  const [childId, setChildId] = useStickyChild(queryChild, children);
   const [progress, setProgress] = useState<EducationProgress[]>([]);
   const [goals, setGoals] = useState<EducationGoal[]>([]);
   const [count, setCount] = useState(0);
