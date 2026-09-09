@@ -16,11 +16,12 @@ function statusFromError(message: string): number {
 }
 
 // ─── POST /api/admissions/[id]/link ──────────────────────────
-// Link an approved admission (and its referral) to the officially registered
-// child. Used by the Records Officer right after registering the child, so
-// referral + admission + placement + guardians live together on the child.
-// Allowed for admission creators (submit side) and reviewers (approval side);
-// approval itself still requires admissions.review on the status route.
+// Link an approved admission (and its referral + guardians) to the officially
+// registered child. Used by the Records Officer right after registering the
+// child, so referral + admission + placement + guardians live together.
+// Allowed for admission creators/reviewers AND child registrars (the link is
+// part of official registration); approval itself still requires
+// admissions.review on the status route.
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -32,7 +33,8 @@ export async function POST(
 
     const mayCreate = await can(supabase as unknown as SupabaseClient, ctx, "admissions.create");
     const mayReview = await can(supabase as unknown as SupabaseClient, ctx, "admissions.review");
-    if (!mayCreate && !mayReview) {
+    const mayRegister = await can(supabase as unknown as SupabaseClient, ctx, "children.create");
+    if (!mayCreate && !mayReview && !mayRegister) {
       return NextResponse.json({ error: "Access denied." }, { status: 403 });
     }
 

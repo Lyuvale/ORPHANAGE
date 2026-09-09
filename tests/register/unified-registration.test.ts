@@ -86,6 +86,7 @@ describe("Registration wizard chains records with tenant scoping", () => {
     const link = src("src/app/api/admissions/[id]/link/route.ts");
     expect(link).toContain("linked_guardians");
     expect(link).toContain("child_guardians");
+    expect(link).toContain("children.create");
     const mig = src("supabase/migrations/20260921000000_guardian_referral_link.sql");
     expect(mig).toContain("referral_id");
   });
