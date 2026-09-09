@@ -79,6 +79,11 @@ describe("Registration wizard chains records with tenant scoping", () => {
     expect(client).toContain("caps.placement && caps.child");
   });
 
+  it("walk-in registration is closed: an approved admission must be picked", () => {
+    expect(client).toContain("Please select an approved admission to register from");
+    expect(client).not.toContain("Walk-in (no admission)");
+  });
+
   it("guardians submitted with a referral flow automatically to records", () => {
     expect(client).toContain("referral_id: referralId");
     expect(client).toContain("incomingGuardians");

@@ -238,6 +238,11 @@ export default function RegisterClient({
   const step = steps[stepIndex];
 
   function validateStep(key: StepKey): string | null {
+    if (key === "link") {
+      // No walk-in registration: the records officer registers ONLY from an
+      // approved admission (approval flow cannot be bypassed).
+      if (!linkAdmissionId) return "Please select an approved admission to register from.";
+    }
     if (key === "referral") {
       if (!refReason.trim()) return "Please describe the reason for referral.";
       if (!caps.child && (!refChildFirst.trim() || !refChildLast.trim()))
@@ -519,21 +524,21 @@ export default function RegisterClient({
         <section className="bg-white rounded-lg border p-6 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">Approved Admission</h2>
           <p className="text-sm text-gray-500">
-            Registering after approval: pick the approved admission to register the
-            child from, or continue without one for a walk-in.
+            Registration happens only from an approved admission — pick the one
+            to register the child from.
           </p>
           {linkLoading ? (
             <p className="text-sm text-gray-500">Loading approved admissions…</p>
           ) : linkError ? (
             <p className="text-sm text-red-600">
               Could not load approved admissions: {linkError} Please ask the
-              administrator to check your access, or continue as walk-in.
+              administrator to check your access.
             </p>
           ) : approvedAdmissions.length === 0 ? (
             <p className="text-sm text-gray-500">
               No approved admissions are waiting for registration right now. If
               the manager has just approved one, ask them to confirm it shows as
-              approved — or continue as walk-in.
+              approved.
             </p>
           ) : (
             <div>
@@ -543,7 +548,7 @@ export default function RegisterClient({
                 onChange={(e) => pickAdmission(e.target.value)}
                 className={inputClass()}
               >
-                <option value="">Walk-in (no admission)</option>
+                <option value="">Select an approved admission…</option>
                 {approvedAdmissions.map((a) => (
                   <option key={a.id} value={a.id}>
                     {a.reference_number}
