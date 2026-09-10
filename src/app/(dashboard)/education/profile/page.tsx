@@ -238,7 +238,8 @@ export default function EducationProfilePage() {
         <div className="py-8 text-center text-muted-foreground">Loading...</div>
       ) : !childId ? (
         <div className="py-8 text-center text-muted-foreground">
-          Select a child to view or add education information
+          Select a child to view
+          {canManageEducation ? " or add education information" : " education information"}
         </div>
       ) : profile ? (
         <div className="rounded-lg border p-4">
@@ -271,7 +272,10 @@ export default function EducationProfilePage() {
         </div>
       ) : (
         <div className="py-8 text-center text-muted-foreground">
-          No education information recorded yet. Click &quot;Add Education Information&quot; to begin.
+          No education information recorded yet.
+          {canManageEducation && (
+            <> Click &quot;Add Education Information&quot; to begin.</>
+          )}
         </div>
       )}
     </div>
