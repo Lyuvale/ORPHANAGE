@@ -11,6 +11,7 @@ import AddPlacementForm from "./_components/add-placement-form";
 import LinkGuardianForm from "./_components/link-guardian-form";
 import DeleteChildButton from "./_components/delete-child-button";
 import ApproveRejectButtons from "@/app/(dashboard)/_components/approve-reject-buttons";
+import WithdrawButton from "@/app/(dashboard)/_components/withdraw-button";
 import { RememberChild } from "@/app/(dashboard)/_components/use-sticky-child";
 
 function HealthSummary({ health }: { health: Record<string, unknown> }) {
@@ -178,6 +179,7 @@ export default async function ChildProfilePage({
   let canViewHealthModule = false;
   let canReviewReferral = false;
   let canRejectReferral = false;
+  let canWithdrawReferral = false;
   let canReviewAdmission = false;
   let canArchiveChild = false;
   let isManager = false;
@@ -193,6 +195,10 @@ export default async function ChildProfilePage({
     canViewHealthModule = await can(supabase as never, actx, "health.view");
     canReviewReferral = await can(supabase as never, actx, "referrals.review");
     canRejectReferral = await can(supabase as never, actx, "referrals.reject");
+    canWithdrawReferral =
+      (await can(supabase as never, actx, "referrals.update")) &&
+      !canReviewReferral &&
+      !canRejectReferral;
     canReviewAdmission = await can(supabase as never, actx, "admissions.review");
     canArchiveChild = await can(supabase as never, actx, "children.archive");
     isManager = (await getUserRoleName(supabase as never, actx)) === "CENTRE_MANAGER";
@@ -204,6 +210,7 @@ export default async function ChildProfilePage({
     canViewHealthModule = false;
     canReviewReferral = false;
     canRejectReferral = false;
+    canWithdrawReferral = false;
     canReviewAdmission = false;
     canArchiveChild = false;
     isManager = false;
@@ -379,7 +386,12 @@ export default async function ChildProfilePage({
                             rejectBody={{ new_status: "rejected" }}
                             showApprove={canReviewReferral}
                             showReject={canRejectReferral}
+                            requireReasonOnReject
                           />
+                        )}
+                      {(r.status === "submitted" || r.status === "under_review") &&
+                        canWithdrawReferral && (
+                          <WithdrawButton url={`/api/referrals/${r.id}`} />
                         )}
                     </div>
                   </div>
@@ -432,6 +444,7 @@ export default async function ChildProfilePage({
                           url={`/api/admissions/${a.id}`}
                           approveBody={{ new_status: "approved" }}
                           rejectBody={{ new_status: "denied" }}
+                          requireReasonOnReject
                         />
                       )}
                     </div>

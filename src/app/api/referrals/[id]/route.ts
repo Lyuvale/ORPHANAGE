@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
 import { auditUpdate } from "@/lib/audit/audit.service";
+import { notifyUsers } from "@/lib/notifications/notifications.service";
 import {
   getReferralById,
   updateReferral,
@@ -114,6 +115,33 @@ export async function PATCH(
         status: updated.status,
         reason: parsed.data.reason ?? null,
       });
+
+      // The submitter learns the outcome with the reviewer's reason.
+      if ((updated.status === "admitted" || updated.status === "rejected") && existing.submitted_by) {
+        const reasonText = (parsed.data.reason ?? "").trim();
+        try {
+          await notifyUsers(
+            adminSupabase,
+            ctx.centre.id,
+            [existing.submitted_by],
+            {
+              title: updated.status === "admitted" ? "Referral admitted" : "Referral rejected",
+              message:
+                updated.status === "admitted"
+                  ? `Referral ${existing.reference_number} was admitted.${reasonText ? ` Note: ${reasonText}` : ""}`
+                  : `Referral ${existing.reference_number} was rejected.${reasonText ? ` Reason: ${reasonText}` : ""}`,
+              type: updated.status === "admitted" ? "INFORMATION" : "WARNING",
+              event_type: "REFERRAL_DECIDED",
+              entity_type: "REFERRAL",
+              entity_id: existing.id,
+              route: "/dashboard",
+            },
+            ctx.authUserId,
+          );
+        } catch {
+          // Notification failure must not break the review.
+        }
+      }
 
       return NextResponse.json({ data: updated });
     }

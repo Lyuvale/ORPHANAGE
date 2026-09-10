@@ -216,4 +216,27 @@ describe("Manager Approve / Reject where the work lives (no standalone page)", (
     expect(buttons).toContain("Reject");
     expect(buttons).toContain("router.refresh");
   });
+
+  it("rejection requires a reason that reaches the submitter", () => {
+    expect(buttons).toContain("requireReasonOnReject");
+    expect(buttons).toContain("Confirm");
+    const review = src("src/app/api/referrals/[id]/route.ts");
+    expect(review).toContain("REFERRAL_DECIDED");
+    const admReview = src("src/app/api/admissions/[id]/route.ts");
+    expect(admReview).toContain("ADMISSION_DECIDED");
+    const expReview = src("src/app/api/resources/expenses/[id]/approval/route.ts");
+    expect(expReview).toContain("reason");
+  });
+
+  it("each role edits only its own records (referral/guardian/expense forms)", () => {
+    expect(src("src/app/(dashboard)/referrals/[id]/page.tsx")).toContain("ReferralEditForm");
+    expect(src("src/app/(dashboard)/guardians/[id]/page.tsx")).toContain("GuardianEditForm");
+    expect(src("src/app/(dashboard)/resources/expenses/[id]/page.tsx")).toContain("ExpenseEditForm");
+  });
+
+  it("submitters can withdraw their own pending referrals", () => {
+    const dash = src("src/app/(dashboard)/dashboard/page.tsx");
+    expect(dash).toContain("WithdrawButton");
+    expect(src("src/app/(dashboard)/children/[id]/page.tsx")).toContain("WithdrawButton");
+  });
 });

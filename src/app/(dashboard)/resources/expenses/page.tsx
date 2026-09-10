@@ -144,6 +144,7 @@ export default async function ExpensesPage({
                             method="POST"
                             approveBody={{ status: "APPROVED" }}
                             rejectBody={{ status: "REJECTED" }}
+                            requireReasonOnReject
                           />
                         ) : (
                           <span className="text-gray-400">—</span>

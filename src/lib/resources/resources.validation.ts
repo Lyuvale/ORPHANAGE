@@ -122,6 +122,7 @@ export const expenseApprovalSchema = z.object({
   status: z.enum(["APPROVED", "REJECTED", "PENDING"], {
     errorMap: () => ({ message: "Invalid approval status" }),
   }),
+  reason: z.string().trim().max(2000).optional().or(z.literal("")),
 });
 
 // ─── Benefits ────────────────────────────────────────────────

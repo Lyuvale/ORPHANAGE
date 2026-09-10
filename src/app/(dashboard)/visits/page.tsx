@@ -215,6 +215,7 @@ export default function VisitsPage() {
                           rejectBody={{ new_status: "rejected" }}
                           showApprove={canApproveVisit}
                           showReject={canRejectVisit}
+                          requireReasonOnReject
                         />
                       ) : (
                         <span className="text-muted-foreground">—</span>

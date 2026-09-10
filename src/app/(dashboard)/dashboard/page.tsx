@@ -6,6 +6,7 @@ import { getUserRoleName, can } from "@/lib/auth/authorization.service";
 import { listCaregiverChildren } from "@/lib/caregivers/caregiver.service";
 import ApproveRejectButtons from "@/app/(dashboard)/_components/approve-reject-buttons";
 import PackageApproveButtons from "@/app/(dashboard)/dashboard/_components/package-approve-buttons";
+import WithdrawButton from "@/app/(dashboard)/_components/withdraw-button";
 import { serverFetch } from "@/lib/server-fetch";
 
 function baseUrl() {
@@ -61,6 +62,8 @@ export type PendingItem = {
   rejectBody: Record<string, unknown>;
   showApprove: boolean;
   showReject: boolean;
+  withdrawUrl?: string;
+  showWithdraw?: boolean;
 };
 
 function PendingReviews({
@@ -96,7 +99,7 @@ function PendingReviews({
                 </div>
                 <p className="text-xs text-gray-500 truncate">{item.subtitle}</p>
               </div>
-              <div className="shrink-0">
+              <div className="shrink-0 flex items-center gap-2">
                 <ApproveRejectButtons
                   url={item.url}
                   approveBody={item.approveBody}
@@ -104,6 +107,9 @@ function PendingReviews({
                   showApprove={item.showApprove}
                   showReject={item.showReject}
                 />
+                {item.showWithdraw && item.withdrawUrl && (
+                  <WithdrawButton url={item.withdrawUrl} />
+                )}
               </div>
             </li>
           ))}
@@ -197,7 +203,7 @@ async function SocialWorkerSection({ restricted }: { restricted: boolean }) {
   const ctx = await requireAppAccess(supabase as never, {
     allowInactiveSubscription: true,
   });
-  const [refSubmitted, refUnderReview, openCases, openSafeguarding, upcomingVisits, swCanReview, swCanReject] =
+  const [refSubmitted, refUnderReview, openCases, openSafeguarding, upcomingVisits, swCanReview, swCanReject, swCanWithdraw] =
     await Promise.all([
       fetchList("/api/referrals?status=submitted&limit=20"),
       fetchList("/api/referrals?status=under_review&limit=20"),
@@ -206,6 +212,7 @@ async function SocialWorkerSection({ restricted }: { restricted: boolean }) {
       fetchCount("/api/visits?status=scheduled&limit=1"),
       can(supabase as never, ctx, "referrals.review").catch(() => false),
       can(supabase as never, ctx, "referrals.reject").catch(() => false),
+      can(supabase as never, ctx, "referrals.update").catch(() => false),
     ]);
 
   void restricted;
@@ -221,6 +228,8 @@ async function SocialWorkerSection({ restricted }: { restricted: boolean }) {
     rejectBody: { new_status: "rejected" },
     showApprove: swCanReview,
     showReject: swCanReject,
+    withdrawUrl: `/api/referrals/${String(r.id)}`,
+    showWithdraw: swCanWithdraw && !swCanReview && !swCanReject,
   }));
 
   return (

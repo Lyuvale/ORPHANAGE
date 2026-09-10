@@ -134,6 +134,30 @@ export async function PATCH(
         }
       }
 
+      // A denied recommendation returns to social workers with the reason.
+      if (updated.status === "denied") {
+        const reasonText = (parsed.data.reason ?? "").trim();
+        try {
+          await notifyRole(
+            adminSupabase,
+            ctx.centre.id,
+            ["SOCIAL_WORKER"],
+            {
+              title: "Admission recommendation denied",
+              message: `Admission ${existing.reference_number} was denied.${reasonText ? ` Reason: ${reasonText}` : ""}`,
+              type: "WARNING",
+              event_type: "ADMISSION_DECIDED",
+              entity_type: "ADMISSION",
+              entity_id: existing.id,
+              route: "/dashboard",
+            },
+            ctx.authUserId,
+          );
+        } catch {
+          // Notification failure must not break the review.
+        }
+      }
+
       return NextResponse.json({ data: updated });
     }
 

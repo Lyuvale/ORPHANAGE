@@ -27,8 +27,8 @@ describe("Notifications Types", () => {
       ]);
     });
 
-    it("defines twenty-nine notification events", () => {
-      expect(NOTIFICATION_EVENTS).toHaveLength(29);
+    it("defines thirty-one notification events", () => {
+      expect(NOTIFICATION_EVENTS).toHaveLength(31);
       expect(NOTIFICATION_EVENTS).toContain("SAFEGUARDING_CONCERN");
       expect(NOTIFICATION_EVENTS).toContain("EXPENSE_AWAITING_APPROVAL");
       expect(NOTIFICATION_EVENTS).toContain("FUND_BALANCE_ALERT");
@@ -44,6 +44,8 @@ describe("Notifications Types", () => {
       expect(NOTIFICATION_EVENTS).toContain("ADMISSION_APPROVED");
       expect(NOTIFICATION_EVENTS).toContain("REFERRAL_SUBMITTED");
       expect(NOTIFICATION_EVENTS).toContain("ADMISSION_SUBMITTED");
+      expect(NOTIFICATION_EVENTS).toContain("REFERRAL_DECIDED");
+      expect(NOTIFICATION_EVENTS).toContain("ADMISSION_DECIDED");
       expect(NOTIFICATION_EVENTS).toContain("PLATFORM_ALERT");
     });
 

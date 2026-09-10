@@ -53,13 +53,15 @@ export async function POST(
 
     const updated = await setExpenseApproval(adminSupabase, id, parsed.data.status, ctx.authUserId);
 
+    const reasonText = (parsed.data.reason ?? "").trim() || null;
+
     await auditUpdate(
       adminSupabase,
       ctx,
       "support_expense_approval",
       id,
       { approval_status: existing.approval_status },
-      { approval_status: updated.approval_status, amount: updated.amount, fund_id: updated.fund_id },
+      { approval_status: updated.approval_status, amount: updated.amount, fund_id: updated.fund_id, reason: reasonText },
     );
 
     if (updated.approval_status === "APPROVED") {
@@ -84,7 +86,7 @@ export async function POST(
     } else if (updated.approval_status === "REJECTED") {
       await notifyUsers(adminSupabase, ctx.centre.id, [existing.created_by], {
         title: "Expense rejected",
-        message: `Your expense of ${updated.amount} was rejected.`,
+        message: `Your expense of ${updated.amount} was rejected.${reasonText ? ` Reason: ${reasonText}` : ""}`,
         type: "WARNING",
         event_type: "EXPENSE_REJECTED",
         entity_type: "EXPENSE",

@@ -2,8 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatTsh, getExpenseStatusDisplay, getBenefitTypeDisplay } from "@/types/resources";
 import ApprovalActions from "./_components/approval-actions";
+import ExpenseEditForm from "./_components/expense-edit-form";
 import AuditHistory from "../../../_components/audit-history";
 import { serverFetch } from "@/lib/server-fetch";
+import { createClient } from "@/lib/supabase/server";
+import { requireAppAccess } from "@/lib/auth/app-user-context";
+import { can } from "@/lib/auth/authorization.service";
 
 async function getExpense(id: string) {
   const res = await serverFetch(
@@ -23,6 +27,20 @@ export default async function ExpenseDetailPage({
   const { id } = await params;
   const expense = await getExpense(id);
   if (!expense) notFound();
+
+  let canManage = false;
+  let canApprove = false;
+  try {
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as never, {
+      allowInactiveSubscription: true,
+    });
+    canManage = await can(supabase as never, ctx, "resources.manage");
+    canApprove = await can(supabase as never, ctx, "resources.approve");
+  } catch {
+    canManage = false;
+    canApprove = false;
+  }
 
   return (
     <div>
@@ -69,27 +87,40 @@ export default async function ExpenseDetailPage({
       )}
 
       <div className="mb-6 rounded-lg border bg-white p-4">
-        <h3 className="mb-3 text-base font-semibold text-gray-900">Approval</h3>
-        <ApprovalActions expenseId={expense.id} currentStatus={expense.approval_status} />
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-base font-semibold text-gray-900">Approval</h3>
+          {canManage && <ExpenseEditForm expense={expense} />}
+        </div>
+        {canApprove ? (
+          <ApprovalActions expenseId={expense.id} currentStatus={expense.approval_status} />
+        ) : (
+          <p className="text-sm text-gray-500">
+            Only an authorised approver can approve or reject this expense.
+          </p>
+        )}
       </div>
 
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-base font-semibold text-gray-900">Benefits from this Expense</h3>
-        <Link
-          href={`/resources/benefits/new?expense_id=${expense.id}`}
-          className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500"
-        >
-          Add Benefit
-        </Link>
+        {canManage && (
+          <Link
+            href={`/resources/benefits/new?expense_id=${expense.id}`}
+            className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-500"
+          >
+            Add Benefit
+          </Link>
+        )}
       </div>
 
       {expense.benefits.length === 0 ? (
         <div className="rounded-lg border border-dashed bg-white p-8 text-center">
           <p className="text-sm text-gray-500">
             No benefits recorded for this expense yet.{" "}
-            <Link href={`/resources/benefits/new?expense_id=${expense.id}`} className="font-semibold text-indigo-600">
-              Add the first benefit
-            </Link>
+            {canManage && (
+              <Link href={`/resources/benefits/new?expense_id=${expense.id}`} className="font-semibold text-indigo-600">
+                Add the first benefit
+              </Link>
+            )}
             .
           </p>
         </div>

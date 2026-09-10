@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { can } from "@/lib/auth/authorization.service";
 import ApproveRejectButtons from "@/app/(dashboard)/_components/approve-reject-buttons";
+import GuardianEditForm from "./_components/guardian-edit-form";
 
 async function getGuardian(id: string) {
   const res = await serverFetch(
@@ -71,15 +72,20 @@ export default async function GuardianDetailPage({
   const relationships = await getGuardianRelationships(id);
 
   // Guardian deactivation is manager-only (guardians.deactivate).
+  // Field editing is open to guardians.update holders (records, manager,
+  // social worker).
   let canDeactivate = false;
+  let canEditGuardian = false;
   try {
     const supabase = await createClient();
     const ctx = await requireAppAccess(supabase as never, {
       allowInactiveSubscription: true,
     });
     canDeactivate = await can(supabase as never, ctx, "guardians.deactivate");
+    canEditGuardian = await can(supabase as never, ctx, "guardians.update");
   } catch {
     canDeactivate = false;
+    canEditGuardian = false;
   }
 
   return (
@@ -110,6 +116,12 @@ export default async function GuardianDetailPage({
           )}
         </div>
       </div>
+
+      {canEditGuardian && (
+        <div className="mb-6">
+          <GuardianEditForm guardian={guardian} />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div className="rounded-lg border border-gray-200 p-4">

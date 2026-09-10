@@ -1,5 +1,10 @@
 import Link from "next/link";
 import { serverFetch } from "@/lib/server-fetch";
+import { createClient } from "@/lib/supabase/server";
+import { requireAppAccess } from "@/lib/auth/app-user-context";
+import { can } from "@/lib/auth/authorization.service";
+import ApproveRejectButtons from "@/app/(dashboard)/_components/approve-reject-buttons";
+import ReferralEditForm from "./_components/referral-edit-form";
 
 async function getReferral(id: string) {
   const res = await serverFetch(
@@ -45,19 +50,36 @@ export default async function ReferralDetailPage({
     return (
       <div className="text-center py-12">
         <p className="text-sm text-gray-500">Referral not found.</p>
-        <Link href="/referrals" className="mt-4 inline-block text-sm font-semibold text-indigo-600 hover:text-indigo-500">
-          Back to referrals
+        <Link href="/dashboard" className="mt-4 inline-block text-sm font-semibold text-indigo-600 hover:text-indigo-500">
+          Back to dashboard
         </Link>
       </div>
     );
+  }
+
+  let canEdit = false;
+  let canReview = false;
+  let canReject = false;
+  try {
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as never, {
+      allowInactiveSubscription: true,
+    });
+    canEdit = await can(supabase as never, ctx, "referrals.update");
+    canReview = await can(supabase as never, ctx, "referrals.review");
+    canReject = await can(supabase as never, ctx, "referrals.reject");
+  } catch {
+    canEdit = false;
+    canReview = false;
+    canReject = false;
   }
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <Link href="/referrals" className="text-sm text-gray-500 hover:text-gray-700">
-            &larr; Back to referrals
+          <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-700">
+            &larr; Back to dashboard
           </Link>
           <h1 className="text-2xl font-bold text-gray-900 mt-2">
             {referral.child_first_name}
@@ -66,8 +88,27 @@ export default async function ReferralDetailPage({
           </h1>
           <p className="text-sm text-gray-500 font-mono">{referral.reference_number}</p>
         </div>
-        <StatusBadge status={referral.status} />
+        <div className="flex items-center gap-2">
+          <StatusBadge status={referral.status} />
+          {(referral.status === "submitted" || referral.status === "under_review") &&
+            (canReview || canReject) && (
+              <ApproveRejectButtons
+                url={`/api/referrals/${referral.id}`}
+                approveBody={{ new_status: "admitted" }}
+                rejectBody={{ new_status: "rejected" }}
+                showApprove={canReview}
+                showReject={canReject}
+                requireReasonOnReject
+              />
+            )}
+        </div>
       </div>
+
+      {canEdit && (referral.status === "submitted" || referral.status === "under_review") && (
+        <div className="mb-6">
+          <ReferralEditForm referral={referral} />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div className="rounded-lg border border-gray-200 p-4">
