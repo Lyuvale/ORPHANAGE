@@ -4,6 +4,7 @@ import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { can } from "@/lib/auth/authorization.service";
 import TeamForm from "./TeamForm";
 import StaffDirectory from "./_components/staff-directory";
+import UserAccountsList from "./_components/user-accounts-list";
 
 export const metadata = {
   title: "Team & Staff",
@@ -51,6 +52,18 @@ export default async function TeamPage({
           </p>
           <div className="mt-4">
             <TeamForm />
+          </div>
+        </section>
+      )}
+
+      {canManageAccounts && (
+        <section>
+          <h2 className="text-xl font-semibold text-gray-900">Login accounts & password help</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Usernames, and password resets for staff who forget theirs.
+          </p>
+          <div className="mt-4">
+            <UserAccountsList />
           </div>
         </section>
       )}

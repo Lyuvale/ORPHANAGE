@@ -5,6 +5,7 @@ import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { getUserRoleName, can } from "@/lib/auth/authorization.service";
 import { createAdminClient } from "@/lib/supabase/admin";
 import UsersForm, { type CentreOption } from "./UsersForm";
+import AdminPasswordReset from "./_components/admin-password-reset";
 
 export const metadata = {
   title: "Create users",
@@ -45,6 +46,7 @@ export default async function AdminUsersPage() {
         can create staff accounts for their own centre.
       </p>
       <UsersForm centres={options} />
+      <AdminPasswordReset />
       <p className="text-sm">
         <Link href="/admin" className="text-blue-600 hover:text-blue-800">
           Back to Platform Administration

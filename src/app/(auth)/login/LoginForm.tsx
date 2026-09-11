@@ -113,6 +113,12 @@ export default function LoginForm() {
       >
         {loading ? "Signing in…" : "Sign in"}
       </button>
+
+      <p className="text-xs text-gray-500 text-center">
+        Forgot your password or username? Your username is your email address.
+        Ask the person who created your account (your centre manager) to reset
+        your password for you.
+      </p>
     </form>
   );
 }
