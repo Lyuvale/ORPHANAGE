@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { parseMoneyInput, formatValidationDetails } from "@/lib/money";
 import {
   ASSET_CATEGORIES,
   ASSET_STATUSES,
@@ -103,12 +104,34 @@ export default function NewAssetForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    let quantityValue: number | undefined;
+    if (quantity) {
+      const parsedQty = parseMoneyInput(quantity);
+      if (!parsedQty.ok) {
+        setError(`Quantity: ${parsedQty.error}`);
+        setSaving(false);
+        return;
+      }
+      quantityValue = parsedQty.value;
+    }
+    let costValue: number | null | undefined;
+    if (purchase_known && purchase_cost) {
+      const parsedCost = parseMoneyInput(purchase_cost);
+      if (!parsedCost.ok) {
+        setError(`Purchase cost: ${parsedCost.error}`);
+        setSaving(false);
+        return;
+      }
+      costValue = parsedCost.value;
+    } else if (!purchase_known) {
+      costValue = null;
+    }
     setSaving(true);
     const body = {
       asset_name,
       asset_id: asset_id || undefined,
       asset_category,
-      quantity: quantity ? Number(quantity) : undefined,
+      quantity: quantityValue,
       date_acquired: date_acquired || undefined,
       location: location || undefined,
       asset_status,
@@ -118,7 +141,7 @@ export default function NewAssetForm() {
       fund_id: fund_id || undefined,
       expense_id: expense_id || undefined,
       benefit_id: benefit_id || undefined,
-      purchase_cost: purchase_known ? (purchase_cost ? Number(purchase_cost) : undefined) : null,
+      purchase_cost: costValue,
       notes: notes || undefined,
     };
     const res = await fetch("/api/resources/assets", {
@@ -128,7 +151,9 @@ export default function NewAssetForm() {
     });
     const json = await res.json().catch(() => ({ error: "Unexpected error" }));
     if (!res.ok) {
-      setError(json.error || "Failed to create asset");
+      setError(
+        formatValidationDetails(json.details) ?? json.error ?? "Failed to create asset",
+      );
       setSaving(false);
       return;
     }

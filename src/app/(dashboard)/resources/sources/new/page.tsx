@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { SUPPORT_SOURCE_TYPES, getSourceTypeDisplay } from "@/types/resources";
+import { parseMoneyInput, formatValidationDetails } from "@/lib/money";
 
 export default function NewSourceForm() {
   const router = useRouter();
@@ -34,6 +35,12 @@ export default function NewSourceForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    const parsedAmount = parseMoneyInput(amount);
+    if (!parsedAmount.ok) {
+      setError(parsedAmount.error);
+      setSaving(false);
+      return;
+    }
     setSaving(true);
     const res = await fetch("/api/resources/sources", {
       method: "POST",
@@ -41,7 +48,7 @@ export default function NewSourceForm() {
       body: JSON.stringify({
         source_type: sourceType,
         source_name: sourceName,
-        amount: amount ? Number(amount) : undefined,
+        amount: parsedAmount.value,
         source_date: sourceDate || undefined,
         purpose: purpose || undefined,
         notes: notes || undefined,
@@ -49,7 +56,9 @@ export default function NewSourceForm() {
     });
     const json = await res.json().catch(() => ({ error: "Unexpected error" }));
     if (!res.ok) {
-      setError(json.error || "Failed to create source");
+      setError(
+        formatValidationDetails(json.details) ?? json.error ?? "Failed to create source",
+      );
       setSaving(false);
       return;
     }

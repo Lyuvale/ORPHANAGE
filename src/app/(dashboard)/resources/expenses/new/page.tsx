@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { parseMoneyInput, formatValidationDetails } from "@/lib/money";
 
 export default function NewExpenseForm() {
   const router = useRouter();
@@ -45,6 +46,12 @@ export default function NewExpenseForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    const parsedAmount = parseMoneyInput(amount);
+    if (!parsedAmount.ok) {
+      setError(parsedAmount.error);
+      setSaving(false);
+      return;
+    }
     setSaving(true);
     const res = await fetch("/api/resources/expenses", {
       method: "POST",
@@ -52,14 +59,16 @@ export default function NewExpenseForm() {
       body: JSON.stringify({
         fund_id: fundId,
         description: description,
-        amount: amount ? Number(amount) : undefined,
+        amount: parsedAmount.value,
         expense_date: expenseDate || undefined,
         notes: notes || undefined,
       }),
     });
     const json = await res.json().catch(() => ({ error: "Unexpected error" }));
     if (!res.ok) {
-      setError(json.error || "Failed to create expense");
+      setError(
+        formatValidationDetails(json.details) ?? json.error ?? "Failed to create expense",
+      );
       setSaving(false);
       return;
     }

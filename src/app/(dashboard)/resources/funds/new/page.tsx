@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { parseMoneyInput, formatValidationDetails } from "@/lib/money";
 
 export default function NewFundForm() {
   const router = useRouter();
@@ -46,6 +47,12 @@ export default function NewFundForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    const parsedAmount = parseMoneyInput(amountAllocated);
+    if (!parsedAmount.ok) {
+      setError(parsedAmount.error);
+      setSaving(false);
+      return;
+    }
     setSaving(true);
     const res = await fetch("/api/resources/funds", {
       method: "POST",
@@ -53,13 +60,15 @@ export default function NewFundForm() {
       body: JSON.stringify({
         source_id: sourceId,
         fund_name: fundName,
-        amount_allocated: amountAllocated ? Number(amountAllocated) : undefined,
+        amount_allocated: parsedAmount.value,
         purpose: purpose || undefined,
       }),
     });
     const json = await res.json().catch(() => ({ error: "Unexpected error" }));
     if (!res.ok) {
-      setError(json.error || "Failed to create fund");
+      setError(
+        formatValidationDetails(json.details) ?? json.error ?? "Failed to create fund",
+      );
       setSaving(false);
       return;
     }
