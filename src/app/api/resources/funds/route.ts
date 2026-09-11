@@ -42,6 +42,9 @@ export async function POST(request: NextRequest) {
     await requirePermission(supabase as unknown as SupabaseClient, ctx, "resources.manage");
 
     const body = await request.json();
+    // Tenant default: UI forms never send centre_id — attribute the record to
+    // the caller's own centre (explicit mismatches are still rejected below).
+    if (!body.centre_id) body.centre_id = ctx.centre.id;
     const cleaned = coerceCreate(body);
     const parsed = createFundSchema.safeParse(cleaned);
 

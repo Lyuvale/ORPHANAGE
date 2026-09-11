@@ -18,11 +18,21 @@ export function parseMoneyInput(
   return { ok: true, value: Math.round(n * 100) / 100 };
 }
 
-/** Turn a zod field-error map into a readable one-line message. */
+/** Turn a zod error (flattened or field map) into a readable one-line message. */
 export function formatValidationDetails(details: unknown): string | null {
   if (!details || typeof details !== "object") return null;
+  const obj = details as Record<string, unknown>;
+  // Zod .flatten() shape: { formErrors: string[], fieldErrors: { f: string[] } }
+  const target =
+    obj.fieldErrors && typeof obj.fieldErrors === "object"
+      ? (obj.fieldErrors as Record<string, unknown>)
+      : obj;
   const parts: string[] = [];
-  for (const [k, v] of Object.entries(details as Record<string, unknown>)) {
+  if (Array.isArray(obj.formErrors) && obj.formErrors.length > 0) {
+    parts.push((obj.formErrors as string[]).join(", "));
+  }
+  for (const [k, v] of Object.entries(target)) {
+    if (k === "formErrors" || k === "fieldErrors") continue;
     const msgs = Array.isArray(v) ? v.join(", ") : String(v);
     parts.push(`${k}: ${msgs}`);
   }

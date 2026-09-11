@@ -27,6 +27,28 @@ describe("parseMoneyInput (TZS entry)", () => {
     expect(formatValidationDetails({ amount: ["Amount must be a number"] })).toContain("amount");
     expect(formatValidationDetails(null)).toBeNull();
   });
+
+  it("unwraps zod flattened errors (no [object Object])", () => {
+    const flat = {
+      formErrors: [],
+      fieldErrors: { centre_id: ["Invalid centre ID"], amount: ["Required"] },
+    };
+    const msg = formatValidationDetails(flat);
+    expect(msg).toContain("centre_id");
+    expect(msg).toContain("amount");
+    expect(msg).not.toContain("[object Object]");
+  });
+
+  it("creation routes default missing centre_id to the own centre", () => {
+    for (const rel of [
+      "src/app/api/resources/sources/route.ts",
+      "src/app/api/resources/funds/route.ts",
+      "src/app/api/resources/expenses/route.ts",
+      "src/app/api/resources/assets/route.ts",
+    ]) {
+      expect(src(rel)).toContain("if (!body.centre_id) body.centre_id = ctx.centre.id;");
+    }
+  });
 });
 
 describe("Resource creation forms use safe amount parsing", () => {
