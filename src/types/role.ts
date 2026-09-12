@@ -4,6 +4,7 @@ export const CENTRE_ROLES = [
   "CAREGIVER",
   "RECORDS_OFFICER",
   "ACCOUNTANT_BURSAR",
+  "CENTRE_IT",
 ] as const;
 
 export type CentreRole = (typeof CENTRE_ROLES)[number];
@@ -268,6 +269,10 @@ export const PERMISSIONS = {
 
   NOTIFICATIONS_VIEW: "notifications.view" as const,
   NOTIFICATIONS_MANAGE: "notifications.manage" as const,
+
+  SITE_VIEW: "site.view" as const,
+  SITE_PAGES_MANAGE: "site.pages.manage" as const,
+  SITE_THEME_MANAGE: "site.theme.manage" as const,
 } as const;
 
 export const ALL_PERMISSIONS: PermissionString[] = Object.values(PERMISSIONS);
@@ -334,6 +339,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "notifications.view",
     "notifications.manage",
     "payments.view",
+    "site.view",
   ],
   SOCIAL_WORKER: [
     "children.view",
@@ -459,6 +465,14 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "notifications.view",
     "subscriptions.view_own",
     "payments.view",
+  ],
+  CENTRE_IT: [
+    "children.view",
+    "site.view",
+    "site.pages.manage",
+    "site.theme.manage",
+    "notifications.view",
+    "subscriptions.view_own",
   ],
 };
 

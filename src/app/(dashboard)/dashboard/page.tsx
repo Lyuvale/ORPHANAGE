@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { getUserRoleName, can } from "@/lib/auth/authorization.service";
 import { listCaregiverChildren } from "@/lib/caregivers/caregiver.service";
+import { getSiteTheme, listSitePages } from "@/lib/centre-site/centre-site.service";
 import ApproveRejectButtons from "@/app/(dashboard)/_components/approve-reject-buttons";
 import PackageApproveButtons from "@/app/(dashboard)/dashboard/_components/package-approve-buttons";
 import WithdrawButton from "@/app/(dashboard)/_components/withdraw-button";
@@ -194,6 +195,67 @@ export default async function DashboardPage() {
       {roleName === "ACCOUNTANT_BURSAR" && (
         <AccountantSection restricted={restricted} />
       )}
+
+      {roleName === "CENTRE_IT" && <ItSection />}
+    </div>
+  );
+}
+
+async function ItSection() {
+  const supabase = await createClient();
+  const ctx = await requireAppAccess(supabase as never, {
+    allowInactiveSubscription: true,
+  });
+
+  let publishedCount = 0;
+  let draftCount = 0;
+  let siteUrl = "#";
+  try {
+    const admin = createAdminClient();
+    const pages = await listSitePages(admin, ctx.centre.id);
+    publishedCount = pages.data.filter((p) => p.is_published).length;
+    draftCount = pages.data.length - publishedCount;
+    const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    siteUrl = `${base}/s/${ctx.centre.code}`;
+    await getSiteTheme(admin, ctx.centre.id);
+  } catch {
+    // keep zeros
+  }
+
+  return (
+    <div className="mt-6 grid gap-6 md:grid-cols-2 max-w-4xl">
+      <Card title="Published pages" value={String(publishedCount)} href="/centre-site" linkText="Manage Pages" />
+      <Card title="Draft pages" value={String(draftCount)} href="/centre-site" linkText="Manage Pages" />
+      <div className="bg-white rounded-lg border p-6">
+        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+          Public website
+        </h3>
+        <p className="mt-2 text-sm text-gray-500">
+          Your centre&apos;s own public site — build pages and appearance here.
+        </p>
+        <Link
+          href="/centre-site"
+          className="mt-3 inline-block rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+        >
+          Open Website Builder →
+        </Link>
+      </div>
+      <div className="bg-white rounded-lg border p-6">
+        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+          Preview
+        </h3>
+        <p className="mt-2 text-sm text-gray-500">
+          Only published pages are visible to visitors.
+        </p>
+        <a
+          href={siteUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 inline-block text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+        >
+          View live site ↗
+        </a>
+      </div>
     </div>
   );
 }

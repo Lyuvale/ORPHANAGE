@@ -30,6 +30,7 @@ const TENANT_PATHS = [
   "/centres",
   "/register",
   "/dashboard",
+  "/centre-site",
 ];
 
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
@@ -157,6 +158,7 @@ export default async function DashboardLayout({
                     <NavLink href="/education">Education</NavLink>
                   )}
                   {perms.has("resources.view") && <NavLink href="/resources">Resources</NavLink>}
+                  {perms.has("site.view") && <NavLink href="/centre-site">Website</NavLink>}
                   {isManager && <NavLink href="/subscriptions">Subscriptions</NavLink>}
                   {perms.has("audit.view") && <NavLink href="/audit">Audit</NavLink>}
                 </>

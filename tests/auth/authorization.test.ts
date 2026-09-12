@@ -170,8 +170,8 @@ const USER_A = "user-a";
 const USER_B = "user-b";
 
 describe("Role Definitions", () => {
-  it("defines exactly 5 official centre roles", () => {
-    expect(CENTRE_ROLES).toHaveLength(5);
+  it("defines exactly 6 official centre roles", () => {
+    expect(CENTRE_ROLES).toHaveLength(6);
   });
 
   it("includes all required role names", () => {
@@ -180,6 +180,7 @@ describe("Role Definitions", () => {
     expect(CENTRE_ROLES).toContain("CAREGIVER");
     expect(CENTRE_ROLES).toContain("RECORDS_OFFICER");
     expect(CENTRE_ROLES).toContain("ACCOUNTANT_BURSAR");
+    expect(CENTRE_ROLES).toContain("CENTRE_IT");
   });
 
   it("does not include PLATFORM_ADMIN in centre roles", () => {
