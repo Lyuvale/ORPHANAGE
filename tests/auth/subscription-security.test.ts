@@ -18,6 +18,8 @@ const AUTH_ACTIONS = "src/lib/auth/auth-actions.ts";
 const CENTRE_SERVICE = "src/lib/centres/centre.service.ts";
 const BACKFILL_MIGRATION =
   "supabase/migrations/20260913000003_enforce_subscription_invariants.sql";
+const ENUM_MIGRATION =
+  "supabase/migrations/20260913000002_add_centre_pending_enum.sql";
 
 describe("Subscription security — invariant: an ACTIVE centre requires a valid subscription", () => {
   it("defines a pending status so creation is never active by default", () => {
@@ -103,7 +105,8 @@ describe("Subscription security — backfill migration enforces the invariant on
   const mig = src(BACKFILL_MIGRATION);
 
   it("extends the centre_status enum with pending", () => {
-    expect(mig).toContain("ALTER TYPE centre_status ADD VALUE IF NOT EXISTS 'pending'");
+    const enumMig = src(ENUM_MIGRATION);
+    expect(enumMig).toContain("ALTER TYPE centre_status ADD VALUE IF NOT EXISTS 'pending'");
   });
 
   it("is idempotent (skips centres that already have a subscription)", () => {

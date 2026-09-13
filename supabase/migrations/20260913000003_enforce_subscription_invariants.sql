@@ -14,15 +14,10 @@
 --
 -- Idempotent: centres that already have ANY subscription row are untouched.
 -- Safe on fresh databases (no centres / no plans / no tables => no-op).
+-- NOTE: the 'pending' centre_status value is added by the SEPARATE migration
+-- 20260913000002_add_centre_pending_enum.sql (PostgreSQL forbids using a new
+-- enum value in the same transaction that creates it).
 -- =============================================================================
-
--- 0. Extend the centre_status enum to include 'pending' (new centres start as
---    pending until a subscription is provisioned and the centre is activated).
-DO $$ BEGIN
-  ALTER TYPE centre_status ADD VALUE IF NOT EXISTS 'pending';
-EXCEPTION
-  WHEN duplicate_object THEN NULL;
-END $$;
 
 -- New centres default to 'pending' (never implicitly active without a
 -- subscription provisioning path).
