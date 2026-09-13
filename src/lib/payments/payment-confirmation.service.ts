@@ -28,6 +28,14 @@ import { notifyRole } from "@/lib/notifications/notifications.service";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AdminClient = SupabaseClient<any, "public", any>;
 
+/**
+ * Sentinel UUID used when a contribution is confirmed with no acting app user
+ * (public anonymous donation). support_sources/support_funds.created_by are
+ * NOT NULL (no FK), so this zero-UUID marks "system / online contribution"
+ * without fabricating a real user.
+ */
+const SYSTEM_ACTOR_ID = "00000000-0000-0000-0000-000000000000";
+
 export interface PaymentRow {
   id: string;
   centre_id: string;
@@ -221,7 +229,7 @@ async function handleContributionConfirmation(
     source_date: new Date().toISOString().slice(0, 10),
     purpose,
     notes: `Provider reference: ${row.provider_reference}. Email: ${row.contributor_email ?? "n/a"}.`,
-  }, null);
+  }, actorUserId ?? SYSTEM_ACTOR_ID);
 
   // Link the source to the payment transaction.
   await admin
@@ -237,7 +245,7 @@ async function handleContributionConfirmation(
     fund_name: defaultPurpose,
     amount_allocated: Number(row.amount),
     purpose: defaultPurpose,
-  }, null);
+  }, actorUserId ?? SYSTEM_ACTOR_ID);
 
   await admin
     .from("payment_transactions")
