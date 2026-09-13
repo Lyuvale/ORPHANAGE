@@ -6,10 +6,19 @@ import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
 import { recordAuditEvent } from "@/lib/audit/audit.service";
 import { statusFromError } from "@/lib/resources/route-helpers";
+import { createSubscription, getPlanById, listPlans } from "@/lib/subscriptions/subscription.service";
+import { loadSubscriptionForContext } from "@/lib/subscriptions/subscription-access.service";
 
 /**
  * POST /api/platform/centres
  * PLATFORM ADMIN: create a new centre — platform.centres.
+ *
+ * SECURITY: a centre is NEVER created "active". New centres are created with
+ * status "pending" and a TRIAL subscription is provisioned immediately (on the
+ * requested active plan, or the cheapest active plan), so an "active" centre
+ * can never exist without a subscription. A centre is only useful once the
+ * platform administrator ACTIVATES it (PATCH), which requires a valid
+ * subscription.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -27,6 +36,7 @@ export async function POST(request: NextRequest) {
       address_line1?: string;
       city?: string;
       country?: string;
+      plan_id?: string;
     };
 
     if (!body.name?.trim()) {
@@ -51,6 +61,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Resolve the plan to provision: explicit active plan, else cheapest active plan.
+    let planId: string | null = null;
+    if (body.plan_id?.trim()) {
+      const plan = await getPlanById(admin, body.plan_id.trim());
+      if (!plan || !plan.is_active) {
+        return NextResponse.json({ error: "The requested plan does not exist or is inactive." }, { status: 400 });
+      }
+      planId = plan.id;
+    }
+
+    // Create the centre as PENDING (never active without a subscription).
     const { data, error } = await admin
       .from("centres")
       .insert({
@@ -61,7 +82,7 @@ export async function POST(request: NextRequest) {
         address_line1: body.address_line1?.trim() || null,
         city: body.city?.trim() || null,
         country: body.country?.trim() || "Nigeria",
-        status: "active",
+        status: "pending",
       })
       .select("id, name, code, status, created_at")
       .single();
@@ -69,6 +90,29 @@ export async function POST(request: NextRequest) {
     if (error) {
       return NextResponse.json({ error: "Failed to create centre." }, { status: 500 });
     }
+
+    // Provision a trial subscription (14 days) so the centre is ready to be
+    // activated with a plan in place.
+    const chosenPlanId =
+      planId ?? (await listPlans(admin)).sort((a, b) => Number(a.price) - Number(b.price))[0]?.id ?? null;
+
+    if (!chosenPlanId) {
+      await admin.from("centres").delete().eq("id", data.id);
+      return NextResponse.json(
+        { error: "No active plan exists. Create a plan first, then create the centre." },
+        { status: 400 },
+      );
+    }
+
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const trialEndIso = new Date(Date.now() + 14 * 86400000).toISOString().slice(0, 10);
+    await createSubscription(admin, {
+      centreId: data.id,
+      planId: chosenPlanId,
+      status: "trial",
+      startDate: todayIso,
+      trialEndsAt: trialEndIso,
+    }, { actorUserId: ctx.profile.id, reason: "Trial subscription provisioned automatically at centre creation." });
 
     await recordAuditEvent(admin, ctx, {
       action: "CENTRE_CREATED",
@@ -140,6 +184,17 @@ export async function PATCH(request: NextRequest) {
       .maybeSingle();
     if (!existing) {
       return NextResponse.json({ error: "Centre not found" }, { status: 404 });
+    }
+
+    // SECURITY: activation requires a valid subscription.
+    if (targetStatus === "active") {
+      const subCtx = await loadSubscriptionForContext(admin as never, body.centre_id);
+      if (!subCtx.isSubscriptionValid) {
+        return NextResponse.json(
+          { error: "Cannot activate this centre — it has no valid subscription. Assign or renew a plan first." },
+          { status: 400 },
+        );
+      }
     }
 
     const { data, error } = await admin

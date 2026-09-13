@@ -7,6 +7,7 @@ import type {
 } from "@/types/centre-site";
 import { DEFAULT_SITE_THEME } from "@/types/centre-site";
 import type { SitePageInput, SitePagePatch, SiteThemeInput } from "@/lib/centre-site/centre-site.validation";
+import { loadSubscriptionForContext } from "@/lib/subscriptions/subscription-access.service";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AdminClient = SupabaseClient<any, "public", any>;
@@ -262,6 +263,11 @@ export async function getPublicSite(admin: AdminClient, centreCode: string): Pro
     throw new Error(`Failed to load centre: ${centreError.message}`);
   }
   if (!centre) return null;
+
+  // SECURITY: a centre's public website is only served while its subscription
+  // is valid — an inactive (unsubscribed) centre must not present a live site.
+  const subCtx = await loadSubscriptionForContext(admin as never, centre.id);
+  if (!subCtx.isSubscriptionValid) return null;
 
   const theme = await getSiteTheme(admin, centre.id);
   const pages = await listSitePages(admin, centre.id, { publishedOnly: true });

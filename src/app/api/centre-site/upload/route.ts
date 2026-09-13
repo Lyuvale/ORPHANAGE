@@ -16,6 +16,8 @@ import { statusFromError } from "@/lib/resources/route-helpers";
  *
  * SECURITY: requires app access + at least one site-management permission
  * (`site.pages.manage` for page images, `site.theme.manage` for logo/hero).
+ * Uploading requires a valid centre subscription — an inactive centre cannot
+ * change what its public website displays.
  * File type and size are enforced server-side; SVGs are rejected.
  */
 
@@ -30,9 +32,7 @@ const ALLOWED: Record<string, string> = {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    const ctx = await requireAppAccess(supabase as unknown as SupabaseClient, {
-      allowInactiveSubscription: true,
-    });
+    const ctx = await requireAppAccess(supabase as unknown as SupabaseClient);
 
     const canPages =
       (await can(supabase as unknown as SupabaseClient, ctx, "site.pages.manage").catch(() => false)) ||

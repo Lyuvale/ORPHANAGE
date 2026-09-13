@@ -1,4 +1,4 @@
-export type CentreStatus = "active" | "suspended" | "deactivated";
+export type CentreStatus = "pending" | "active" | "suspended" | "deactivated";
 
 export interface Centre {
   id: string;
@@ -45,6 +45,6 @@ export interface UpdateCentreInput {
   status?: CentreStatus;
 }
 
-export const CENTRE_STATUSES = ["active", "suspended", "deactivated"] as const;
+export const CENTRE_STATUSES = ["pending", "active", "suspended", "deactivated"] as const;
 
 export const CENTRE_DEFAULT_COUNTRY = "Nigeria";

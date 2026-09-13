@@ -45,7 +45,7 @@ function createCentre(input: {
     state: null,
     postal_code: null,
     country: "Nigeria",
-    status: input.status ?? "active",
+    status: input.status ?? "pending",
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
@@ -95,7 +95,7 @@ describe("Centre Service Logic", () => {
     expect(centre.id).toBeDefined();
     expect(centre.name).toBe("Sunshine Centre");
     expect(centre.code).toBe("SUN-001");
-    expect(centre.status).toBe("active");
+    expect(centre.status).toBe("pending");
     expect(centre.country).toBe("Nigeria");
     expect(centre.created_at).toBeDefined();
     expect(centre.updated_at).toBeDefined();
@@ -121,8 +121,8 @@ describe("Centre Service Logic", () => {
 
   it("rejects invalid status values at type level", () => {
     // TypeScript compile-time check - this documents the type constraint.
-    const validStatuses: CentreStatus[] = ["active", "suspended", "deactivated"];
-    expect(validStatuses).toHaveLength(3);
+    const validStatuses: CentreStatus[] = ["pending", "active", "suspended", "deactivated"];
+    expect(validStatuses).toHaveLength(4);
   });
 
   it("updates centre data correctly", () => {

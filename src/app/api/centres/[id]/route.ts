@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
+import { loadSubscriptionForContext } from "@/lib/subscriptions/subscription-access.service";
 import {
   requirePermission,
   getUserRoleName,
@@ -104,6 +105,17 @@ export async function PATCH(
 
     const status: CentreStatus | undefined =
       parsed.data.status as CentreStatus | undefined;
+
+    // SECURITY: activating a centre requires a valid subscription.
+    if (status === "active" && existing.status !== "active") {
+      const subCtx = await loadSubscriptionForContext(createAdminClient() as never, id);
+      if (!subCtx.isSubscriptionValid) {
+        return NextResponse.json(
+          { error: "Cannot activate this centre — it has no valid subscription. Contact the platform administrator." },
+          { status: 400 },
+        );
+      }
+    }
 
     const input: UpdateCentreInput = {
       name: parsed.data.name,

@@ -89,7 +89,9 @@ export async function POST(request: NextRequest) {
       state: parsed.data.state || undefined,
       postal_code: parsed.data.postal_code || undefined,
       country: parsed.data.country,
-      status: parsed.data.status,
+      // SECURITY: centres are NEVER created "active" from this (dashboard) path
+      // — it provisions no subscription, so the service default "pending" applies.
+      // Activation is a platform operation that verifies a valid subscription.
     };
 
     const codeTaken = await centreCodeExists(input.code);

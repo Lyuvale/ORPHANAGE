@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { loadSubscriptionForContext } from "@/lib/subscriptions/subscription-access.service";
 
 export interface PublicCentreSummary {
   id: string;
@@ -17,8 +18,8 @@ export interface PublicCentreSummary {
  * "support a centre" experience BEFORE the platform administrator logs in.
  *
  * SECURITY: this returns only the safe marketing/purpose subset (name, code,
- * purpose presets) of ENABLED centres — never staff, children, balances, or
- * inactive centres.
+ * purpose presets) of ENABLED centres with a VALID SUBSCRIPTION — never staff,
+ * children, balances, or inactive centres.
  */
 export async function GET() {
   try {
@@ -50,13 +51,27 @@ export async function GET() {
       return NextResponse.json({ error: "Failed to load centres" }, { status: 500 });
     }
 
+    // SECURITY: only centres with a valid subscription may receive donations
+    // or be listed on the public support page.
+    const withValidSubscription: (typeof centres) = [];
+    if (centres && centres.length > 0) {
+      for (const centre of centres) {
+        const subCtx = await loadSubscriptionForContext(admin as never, centre.id);
+        if (subCtx.isSubscriptionValid) {
+          withValidSubscription.push(centre);
+        }
+      }
+    }
+
     const byId = new Map(
       (enabled as { centre_id: string; purpose_presets: unknown; default_purpose: string }[]).map(
         (c) => [c.centre_id, c],
       ),
     );
 
-    const data: PublicCentreSummary[] = (centres ?? []).map((c: { id: string; name: string; code: string | null }) => {
+    const data: PublicCentreSummary[] = (
+      withValidSubscription as { id: string; name: string; code: string | null }[]
+    ).map((c: { id: string; name: string; code: string | null }) => {
       const cfg = byId.get(c.id);
       return {
         id: c.id,

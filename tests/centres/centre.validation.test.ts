@@ -102,7 +102,7 @@ describe("Centre Validation", () => {
     });
 
     it("accepts valid status values", () => {
-      for (const status of ["active", "suspended", "deactivated"]) {
+      for (const status of ["pending", "active", "suspended", "deactivated"]) {
         const result = createCentreSchema.safeParse({
           name: "Test Centre",
           code: "TEST-001",

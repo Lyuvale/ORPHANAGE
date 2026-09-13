@@ -59,7 +59,7 @@ export async function provisionUser(
   const supabase = (await createClient()) as unknown as SupabaseClient;
   let ctx;
   try {
-    ctx = await requireAppAccess(supabase, { allowInactiveSubscription: true });
+    ctx = await requireAppAccess(supabase);
   } catch {
     return { ok: false, error: "Please sign in and try again." };
   }

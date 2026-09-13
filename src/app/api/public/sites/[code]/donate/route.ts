@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { initiatePayment } from "@/lib/payments/payment-confirmation.service";
 import { getPaymentProvider } from "@/lib/payments/payment-provider";
+import { loadSubscriptionForContext } from "@/lib/subscriptions/subscription-access.service";
 
 /**
  * POST /api/public/sites/[code]/donate
@@ -73,6 +74,15 @@ export async function POST(
     if (!(await platformDonationsEnabled(admin))) {
       return NextResponse.json(
         { error: "Online donations are currently paused." },
+        { status: 403 },
+      );
+    }
+
+    // SECURITY: donations only for centres with a valid subscription.
+    const subCtx = await loadSubscriptionForContext(admin as never, centre.id);
+    if (!subCtx.isSubscriptionValid) {
+      return NextResponse.json(
+        { error: "This centre's services are currently inactive. Online donations are paused." },
         { status: 403 },
       );
     }

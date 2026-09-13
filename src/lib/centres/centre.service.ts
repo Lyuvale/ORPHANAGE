@@ -135,7 +135,7 @@ export async function createCentre(input: CreateCentreInput): Promise<Centre> {
     state: input.state || null,
     postal_code: input.postal_code || null,
     country: input.country ?? "Nigeria",
-    status: input.status ?? "active",
+    status: input.status ?? "pending",
   };
 
   const { data, error } = await supabase

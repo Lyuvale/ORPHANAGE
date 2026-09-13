@@ -22,7 +22,7 @@ export interface Database {
           state: string | null;
           postal_code: string | null;
           country: string;
-          status: "active" | "suspended" | "deactivated";
+          status: "pending" | "active" | "suspended" | "deactivated";
           created_at: string;
           updated_at: string;
         };
@@ -38,7 +38,7 @@ export interface Database {
           state?: string | null;
           postal_code?: string | null;
           country?: string;
-          status?: "active" | "suspended" | "deactivated";
+          status?: "pending" | "active" | "suspended" | "deactivated";
           created_at?: string;
           updated_at?: string;
         };
@@ -54,7 +54,7 @@ export interface Database {
           state?: string | null;
           postal_code?: string | null;
           country?: string;
-          status?: "active" | "suspended" | "deactivated";
+          status?: "pending" | "active" | "suspended" | "deactivated";
           created_at?: string;
           updated_at?: string;
         };
@@ -1986,7 +1986,7 @@ export interface Database {
     Views: Record<string, never>;
     Functions: Record<string, never>;
     Enums: {
-      centre_status: "active" | "suspended" | "deactivated";
+      centre_status: "pending" | "active" | "suspended" | "deactivated";
       user_profile_status: "active" | "deactivated";
       user_role_status: "active" | "revoked";
       child_status: "active" | "transferred" | "graduated" | "alumni" | "deactivated";

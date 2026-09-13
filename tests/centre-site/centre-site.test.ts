@@ -200,7 +200,7 @@ describe("Centre site — API routes are guarded", () => {
     expect(pubRoute).toContain("getPublicSite");
   });
 
-  it("the upload route is guarded and rejects unauthorised uploads", () => {
+  it("the upload route is guarded, rejects unauthorised uploads, and demands a valid subscription", () => {
     const up = src("src/app/api/centre-site/upload/route.ts");
     expect(up).toContain("requireAppAccess");
     expect(up).toContain('site.pages.manage"');
@@ -208,6 +208,7 @@ describe("Centre site — API routes are guarded", () => {
     expect(up).toContain('"Access denied."');
     expect(up).toContain("image/jpeg");
     expect(up).not.toContain("requirePermission");
+    expect(up).not.toContain("allowInactiveSubscription");
   });
 
   it("the public donation routes are anon-safe and use the provider + confirmation flow", () => {
