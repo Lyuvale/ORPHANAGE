@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { SiteTheme } from "@/types/centre-site";
 import { SITE_FONT_OPTIONS } from "@/types/centre-site";
+import ImageUploader from "./image-uploader";
 
 const inputCls =
   "mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm";
@@ -128,21 +129,36 @@ export default function ThemePanel({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label className={labelCls} htmlFor="logo_url">Logo URL</label>
-          <input id="logo_url" disabled={!canManage} className={inputCls} value={form.logo_url ?? ""}
-            onChange={(e) => set("logo_url", e.target.value)} placeholder="https://…" />
+          {canManage ? (
+            <ImageUploader value={form.logo_url ?? ""} onChange={(url) => set("logo_url", url)} label="Logo" />
+          ) : (
+            <>
+              <label className={labelCls} htmlFor="logo_url">Logo URL</label>
+              <input id="logo_url" className={inputCls} value={form.logo_url ?? ""} readOnly />
+            </>
+          )}
         </div>
         <div>
-          <label className={labelCls} htmlFor="favicon_url">Favicon URL</label>
-          <input id="favicon_url" disabled={!canManage} className={inputCls} value={form.favicon_url ?? ""}
-            onChange={(e) => set("favicon_url", e.target.value)} placeholder="https://…" />
+          {canManage ? (
+            <ImageUploader value={form.favicon_url ?? ""} onChange={(url) => set("favicon_url", url)} label="Favicon" />
+          ) : (
+            <>
+              <label className={labelCls} htmlFor="favicon_url">Favicon URL</label>
+              <input id="favicon_url" className={inputCls} value={form.favicon_url ?? ""} readOnly />
+            </>
+          )}
         </div>
       </div>
 
       <div>
-        <label className={labelCls} htmlFor="hero_image_url">Hero image URL (optional)</label>
-        <input id="hero_image_url" disabled={!canManage} className={inputCls} value={form.hero_image_url ?? ""}
-          onChange={(e) => set("hero_image_url", e.target.value)} placeholder="https://…" />
+        {canManage ? (
+          <ImageUploader value={form.hero_image_url ?? ""} onChange={(url) => set("hero_image_url", url)} label="Hero image URL (optional)" />
+        ) : (
+          <>
+            <label className={labelCls} htmlFor="hero_image_url">Hero image URL (optional)</label>
+            <input id="hero_image_url" className={inputCls} value={form.hero_image_url ?? ""} readOnly />
+          </>
+        )}
       </div>
 
       <div>

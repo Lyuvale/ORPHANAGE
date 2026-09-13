@@ -297,6 +297,7 @@ export async function initiatePayment(
     currency?: string;
     purpose?: string | null;
     providerReference: string;
+    provider?: string;
     contributorName?: string | null;
     contributorEmail?: string | null;
     contributorContact?: string | null;
@@ -312,7 +313,7 @@ export async function initiatePayment(
       purpose: input.purpose ?? null,
       amount: input.amount,
       currency: input.currency ?? "TZS",
-      provider: "MOCK",
+      provider: input.provider ?? "MOCK",
       provider_reference: input.providerReference,
       status: "PENDING",
       contributor_name: input.contributorName ?? null,

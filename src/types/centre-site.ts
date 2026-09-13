@@ -56,6 +56,11 @@ export type SiteEmbedBlock = SiteBlockBase & {
   data: { html: string };
 };
 
+export type SiteDonationBlock = SiteBlockBase & {
+  type: "donation";
+  data: { title?: string; description?: string };
+};
+
 export type SitePageBlock =
   | SiteHeadingBlock
   | SiteParagraphBlock
@@ -65,7 +70,8 @@ export type SitePageBlock =
   | SiteQuoteBlock
   | SiteDividerBlock
   | SiteVideoBlock
-  | SiteEmbedBlock;
+  | SiteEmbedBlock
+  | SiteDonationBlock;
 
 export const SITE_BLOCK_TYPES = [
   "heading",
@@ -77,6 +83,7 @@ export const SITE_BLOCK_TYPES = [
   "divider",
   "video",
   "embed_html",
+  "donation",
 ] as const;
 
 export type SiteBlockType = (typeof SITE_BLOCK_TYPES)[number];

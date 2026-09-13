@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { SitePage, SitePageBlock, SiteBlockType } from "@/types/centre-site";
 import { SITE_BLOCK_TYPES } from "@/types/centre-site";
 import BlockRenderer from "@/components/centre-site/block-renderer";
+import ImageUploader from "./image-uploader";
 
 const inputCls =
   "mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm";
@@ -37,6 +38,8 @@ function emptyBlock(type: SiteBlockType): SitePageBlock {
       return { ...base, type, data: { url: "" } };
     case "embed_html":
       return { ...base, type, data: { html: "" } };
+    case "donation":
+      return { ...base, type, data: { title: "", description: "" } };
   }
 }
 
@@ -82,11 +85,7 @@ function BlockEditorFields({
     case "image":
       return (
         <div className="space-y-3">
-          <div>
-            <label className={labelCls}>Image URL</label>
-            <input className={inputCls} value={block.data.src}
-              onChange={(e) => set("src", e.target.value)} placeholder="https://…" />
-          </div>
+          <ImageUploader value={block.data.src} onChange={(url) => set("src", url)} label="Image" />
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label className={labelCls}>Alt text</label>
@@ -162,6 +161,25 @@ function BlockEditorFields({
           <textarea className={`${inputCls} font-mono`} rows={4} value={block.data.html}
             onChange={(e) => set("html", e.target.value)}
             placeholder="e.g. a Google Form iframe" />
+        </div>
+      );
+    case "donation":
+      return (
+        <div className="space-y-3">
+          <div>
+            <label className={labelCls}>Heading (optional)</label>
+            <input className={inputCls} value={block.data.title ?? ""}
+              onChange={(e) => set("title", e.target.value)} placeholder="Support this centre" />
+          </div>
+          <div>
+            <label className={labelCls}>Description (optional)</label>
+            <textarea className={inputCls} rows={2} value={block.data.description ?? ""}
+              onChange={(e) => set("description", e.target.value)} />
+          </div>
+          <p className="text-xs text-gray-500">
+            Donations are collected on the visitor&apos;s side of the site and land directly in this centre&apos;s
+            Resources &amp; Support for the accountant.
+          </p>
         </div>
       );
   }
@@ -306,7 +324,7 @@ export default function PageEditor({
       {preview ? (
         <div className="mt-6 rounded-lg border bg-white p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Preview ({publicUrl})</h2>
-          <BlockRenderer blocks={blocks} />
+          <BlockRenderer blocks={blocks} centreCode={centreCode} />
         </div>
       ) : (
         <div className="mt-6 space-y-6">

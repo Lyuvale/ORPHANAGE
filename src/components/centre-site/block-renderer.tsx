@@ -1,4 +1,5 @@
 import type { SitePageBlock } from "@/types/centre-site";
+import DonationBlock from "@/components/centre-site/donation-block";
 
 /**
  * Renders the validated content blocks of a centre website page.
@@ -6,7 +7,13 @@ import type { SitePageBlock } from "@/types/centre-site";
  * injects raw HTML is `embed_html` — a deliberate capability for trusted
  * centre IT staff (e.g. Google Forms), matching "the centre owns its site".
  */
-export default function BlockRenderer({ blocks }: { blocks: SitePageBlock[] }) {
+export default function BlockRenderer({
+  blocks,
+  centreCode,
+}: {
+  blocks: SitePageBlock[];
+  centreCode?: string;
+}) {
   if (!Array.isArray(blocks) || blocks.length === 0) {
     return (
       <p className="text-gray-400 text-sm">This page has no content yet.</p>
@@ -107,6 +114,10 @@ export default function BlockRenderer({ blocks }: { blocks: SitePageBlock[] }) {
                 dangerouslySetInnerHTML={{ __html: block.data.html }}
               />
             );
+
+          case "donation":
+            if (!centreCode) return null;
+            return <DonationBlock key={block.id} centreCode={centreCode} block={block} />;
 
           default:
             return null;

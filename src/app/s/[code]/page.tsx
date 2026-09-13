@@ -56,7 +56,7 @@ export default async function CentreSiteHome({
       {page.meta_description && (
         <p className="mb-6 text-gray-500 text-sm">{page.meta_description}</p>
       )}
-      <BlockRenderer blocks={page.content} />
+      <BlockRenderer blocks={page.content} centreCode={code} />
     </article>
   );
 }

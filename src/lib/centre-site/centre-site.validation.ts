@@ -63,6 +63,14 @@ export const sitePageBlockSchema = z.discriminatedUnion("type", [
     type: z.literal("embed_html"),
     data: z.object({ html: z.string() }),
   }),
+  z.object({
+    ...blockBase,
+    type: z.literal("donation"),
+    data: z.object({
+      title: z.string().max(200).optional(),
+      description: z.string().max(1000).optional(),
+    }),
+  }),
 ]);
 
 export const sitePageInputSchema = z.object({

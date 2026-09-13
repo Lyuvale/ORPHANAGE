@@ -46,6 +46,7 @@ describe("Centre site — block validation (discriminated union)", () => {
       { id: "b7", type: "divider", data: {} },
       { id: "b8", type: "video", data: { url: "https://youtube.com/embed/x" } },
       { id: "b9", type: "embed_html", data: { html: "<iframe ...></iframe>" } },
+      { id: "b10", type: "donation", data: { title: "Support us", description: "Give today" } },
     ];
     for (const block of blocks) {
       expect(sitePageBlockSchema.safeParse(block).success).toBe(true);
@@ -72,6 +73,7 @@ describe("Centre site — block validation (discriminated union)", () => {
       "divider",
       "video",
       "embed_html",
+      "donation",
     ]);
   });
 });
@@ -152,6 +154,13 @@ describe("Centre site — migrations align the database", () => {
       expect(mig).toContain(token);
     }
   });
+
+  it("creates a public storage bucket for website images", () => {
+    const mig = src("supabase/migrations/20260922000002_centre_site_uploads.sql");
+    expect(mig).toContain("storage.buckets");
+    expect(mig).toContain("'centre-site'");
+    expect(mig).toContain("public");
+  });
 });
 
 describe("Centre site — API routes are guarded", () => {
@@ -189,5 +198,30 @@ describe("Centre site — API routes are guarded", () => {
     expect(svc).toContain('.eq("status", "active")');
     expect(svc).toContain("publishedOnly: true");
     expect(pubRoute).toContain("getPublicSite");
+  });
+
+  it("the upload route is guarded and rejects unauthorised uploads", () => {
+    const up = src("src/app/api/centre-site/upload/route.ts");
+    expect(up).toContain("requireAppAccess");
+    expect(up).toContain('site.pages.manage"');
+    expect(up).toContain('site.theme.manage"');
+    expect(up).toContain('"Access denied."');
+    expect(up).toContain("image/jpeg");
+    expect(up).not.toContain("requirePermission");
+  });
+
+  it("the public donation routes are anon-safe and use the provider + confirmation flow", () => {
+    const donate = src("src/app/api/public/sites/[code]/donate/route.ts");
+    const confirm = src("src/app/api/public/payments/confirm/route.ts");
+    const page = src("src/app/payments/confirm/page.tsx");
+    expect(donate).not.toContain("requireAppAccess");
+    expect(donate).not.toContain("requirePermission");
+    expect(donate).toContain("initiatePayment(");
+    expect(donate).toContain("createCheckout");
+    expect(donate).toContain('"CONTRIBUTION"');
+    expect(donate).toContain('"centre_online_contributions"');
+    expect(confirm).toContain("confirmPayment(");
+    expect(confirm).toContain('"MOCK"');
+    expect(page).toContain("/api/public/payments/confirm");
   });
 });
