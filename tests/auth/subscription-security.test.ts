@@ -66,24 +66,28 @@ describe("Subscription security — centre activation is guarded", () => {
   });
 });
 
-describe("Subscription security — public surfaces only serve subscribed centres", () => {
-  it("the public centre listing filters by valid subscription", () => {
+describe("Subscription security — donations serve the CENTRE's needs, not the SaaS subscription", () => {
+  it("the public centre listing is governed by centre status + contributions, NOT subscription", () => {
     const route = src(PUBLIC_CENTRES);
-    expect(route).toContain("loadSubscriptionForContext");
-    expect(route).toContain("isSubscriptionValid");
+    expect(route).toContain('.eq("status", "active")');
+    expect(route).toContain('eq("enabled", true)');
+    expect(route).not.toContain("loadSubscriptionForContext");
+    expect(route).not.toContain("isSubscriptionValid");
   });
 
-  it("the public donate route rejects unsubscribed centres", () => {
+  it("the public donate route accepts donors for any active centre with contributions enabled", () => {
     const route = src(PUBLIC_DONATE);
-    expect(route).toContain("loadSubscriptionForContext");
-    expect(route).toContain("isSubscriptionValid");
-    expect(route).toContain("Online donations are paused.");
+    expect(route).toContain('centre.status !== "active"');
+    expect(route).toContain('contribCfg.enabled !== true');
+    expect(route).not.toContain("loadSubscriptionForContext");
+    expect(route).not.toContain("isSubscriptionValid");
   });
 
-  it("the public site service returns null for unsubscribed centres", () => {
+  it("the public site service serves any active centre regardless of subscription", () => {
     const svc = src(PUBLIC_SITE_SVC);
-    expect(svc).toContain("loadSubscriptionForContext");
-    expect(svc).toContain("isSubscriptionValid");
+    expect(svc).toContain('.eq("status", "active")');
+    expect(svc).not.toContain("loadSubscriptionForContext");
+    expect(svc).not.toContain("isSubscriptionValid");
   });
 });
 
