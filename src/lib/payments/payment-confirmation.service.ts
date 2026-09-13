@@ -108,8 +108,17 @@ export async function confirmPayment(
     return { outcome: "IGNORED" };
   }
 
-  // 4. Transition the payment transaction.
+  // 4. Dispatch the financial context FIRST (while still PENDING). If any step
+  //    fails, the payment stays PENDING so a later retry recovers cleanly —
+  //    we never mark money "received" without a recorded Source/Fund.
   if (event.status === "SUCCESSFUL") {
+    if (row.flow_type === "SUBSCRIPTION") {
+      await handleSubscriptionConfirmation(admin, row, opts.actorUserId ?? undefined);
+    } else {
+      await handleContributionConfirmation(admin, row, opts.actorUserId ?? undefined);
+    }
+
+    // 5. Only now transition to the terminal state.
     await admin
       .from("payment_transactions")
       .update({
@@ -120,12 +129,6 @@ export async function confirmPayment(
       })
       .eq("id", row.id);
 
-    // 5. Dispatch to the correct financial context.
-    if (row.flow_type === "SUBSCRIPTION") {
-      await handleSubscriptionConfirmation(admin, row, opts.actorUserId ?? undefined);
-    } else {
-      await handleContributionConfirmation(admin, row, opts.actorUserId ?? undefined);
-    }
     return { outcome: "CONFIRMED" };
   }
 
@@ -220,16 +223,29 @@ async function handleContributionConfirmation(
   // is a refund for a previously received contribution (handled elsewhere).
   const contributorName = row.contributor_name || "Online contributor";
   const purpose = row.purpose || "General Support";
+  const refPrefix = `Provider reference: ${row.provider_reference}.`;
 
-  const source = await createSource(admin, {
-    centre_id: row.centre_id,
-    source_type: "CONTRIBUTION",
-    source_name: `Online contribution - ${contributorName}`,
-    amount: Number(row.amount),
-    source_date: new Date().toISOString().slice(0, 10),
-    purpose,
-    notes: `Provider reference: ${row.provider_reference}. Email: ${row.contributor_email ?? "n/a"}.`,
-  }, actorUserId ?? SYSTEM_ACTOR_ID);
+  // Idempotency: a retry after a partial failure must reuse the existing
+  // source (matched by provider reference in notes) instead of booking the
+  // same contribution twice.
+  const { data: existingSource } = await admin
+    .from("support_sources")
+    .select("*")
+    .eq("centre_id", row.centre_id)
+    .like("notes", `${refPrefix}%`)
+    .maybeSingle();
+
+  const source =
+    existingSource ??
+    (await createSource(admin, {
+      centre_id: row.centre_id,
+      source_type: "CONTRIBUTION",
+      source_name: `Online contribution - ${contributorName}`,
+      amount: Number(row.amount),
+      source_date: new Date().toISOString().slice(0, 10),
+      purpose,
+      notes: `${refPrefix} Email: ${row.contributor_email ?? "n/a"}.`,
+    }, actorUserId ?? SYSTEM_ACTOR_ID));
 
   // Link the source to the payment transaction.
   await admin
@@ -239,13 +255,24 @@ async function handleContributionConfirmation(
 
   // Optionally create a Fund for the chosen purpose (allocating the full amount).
   const defaultPurpose = purpose;
-  const fund = await createFund(admin, {
-    centre_id: row.centre_id,
-    source_id: source.id,
-    fund_name: defaultPurpose,
-    amount_allocated: Number(row.amount),
-    purpose: defaultPurpose,
-  }, actorUserId ?? SYSTEM_ACTOR_ID);
+  const { data: existingFund } = existingSource
+    ? await admin
+        .from("support_funds")
+        .select("*")
+        .eq("source_id", source.id)
+        .eq("fund_name", defaultPurpose)
+        .maybeSingle()
+    : { data: null };
+
+  const fund =
+    existingFund ??
+    (await createFund(admin, {
+      centre_id: row.centre_id,
+      source_id: source.id,
+      fund_name: defaultPurpose,
+      amount_allocated: Number(row.amount),
+      purpose: defaultPurpose,
+    }, actorUserId ?? SYSTEM_ACTOR_ID));
 
   await admin
     .from("payment_transactions")
