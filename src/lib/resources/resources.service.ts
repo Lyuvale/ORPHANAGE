@@ -89,7 +89,7 @@ export async function getSourceById(admin: AdminClient, id: string): Promise<Sup
 export async function createSource(
   admin: AdminClient,
   input: CreateSupportSourceInput,
-  userId: string,
+  userId: string | null,
 ): Promise<SupportSource> {
   const { data, error } = await admin
     .from("support_sources")
@@ -176,7 +176,7 @@ export async function getFundById(admin: AdminClient, id: string): Promise<Suppo
 export async function createFund(
   admin: AdminClient,
   input: CreateSupportFundInput,
-  userId: string,
+  userId: string | null,
 ): Promise<SupportFund> {
   const { data, error } = await admin
     .from("support_funds")

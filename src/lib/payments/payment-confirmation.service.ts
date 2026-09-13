@@ -221,7 +221,7 @@ async function handleContributionConfirmation(
     source_date: new Date().toISOString().slice(0, 10),
     purpose,
     notes: `Provider reference: ${row.provider_reference}. Email: ${row.contributor_email ?? "n/a"}.`,
-  }, actorUserId ?? "SYSTEM");
+  }, null);
 
   // Link the source to the payment transaction.
   await admin
@@ -237,7 +237,7 @@ async function handleContributionConfirmation(
     fund_name: defaultPurpose,
     amount_allocated: Number(row.amount),
     purpose: defaultPurpose,
-  }, actorUserId ?? "SYSTEM");
+  }, null);
 
   await admin
     .from("payment_transactions")
