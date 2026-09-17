@@ -51,8 +51,11 @@ export async function provisionUser(
   if (!email || !password || !firstName || !lastName || !requestedRole) {
     return { ok: false, error: "Please fill in all required fields." };
   }
-  if (password.length < 8) {
-    return { ok: false, error: "Password must be at least 8 characters." };
+  if (password.length < 10) {
+    return { ok: false, error: "Password must be at least 10 characters." };
+  }
+  if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
+    return { ok: false, error: "Password must contain at least one letter and one number." };
   }
 
   // ── Authenticate + authorise the caller ────────────────────────────────

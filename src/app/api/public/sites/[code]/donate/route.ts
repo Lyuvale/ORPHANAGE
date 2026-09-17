@@ -3,6 +3,9 @@ import { randomUUID } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { initiatePayment } from "@/lib/payments/payment-confirmation.service";
 import { getPaymentProvider } from "@/lib/payments/payment-provider";
+import { createRateLimiter, clientIp } from "@/lib/security/rate-limit";
+
+const donateLimiter = createRateLimiter(30, 10 * 60 * 1000); // 30 per 10 min / IP
 
 /**
  * POST /api/public/sites/[code]/donate
@@ -45,6 +48,16 @@ export async function POST(
 ) {
   try {
     const { code } = await params;
+
+    // Rate limit BEFORE any work: per-IP cap on donation initiations.
+    const limit = donateLimiter(clientIp(request));
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: `Too many attempts. Try again in ${limit.retryAfterSeconds}s.` },
+        { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+      );
+    }
+
     const admin = createAdminClient();
 
     const { data: centre, error: centreError } = await admin

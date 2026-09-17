@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { confirmPayment } from "@/lib/payments/payment-confirmation.service";
 import { getPaymentProvider } from "@/lib/payments/payment-provider";
+import { createRateLimiter, clientIp } from "@/lib/security/rate-limit";
+
+const confirmLimiter = createRateLimiter(60, 10 * 60 * 1000); // 60 per 10 min / IP
 
 /**
  * POST /api/public/payments/confirm
@@ -20,6 +23,14 @@ import { getPaymentProvider } from "@/lib/payments/payment-provider";
  */
 export async function POST(request: NextRequest) {
   try {
+    const limit = confirmLimiter(clientIp(request));
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: `Too many attempts. Try again in ${limit.retryAfterSeconds}s.` },
+        { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+      );
+    }
+
     if (getPaymentProvider().name !== "MOCK") {
       return NextResponse.json(
         { error: "Payment confirmation is handled by the payment provider webhook." },
