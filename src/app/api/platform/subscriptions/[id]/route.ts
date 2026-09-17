@@ -3,7 +3,60 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { requirePermission } from "@/lib/auth/authorization.service";
+import { auditSecurityEvent } from "@/lib/audit/audit.service";
 import type { SupabaseClient } from "@supabase/supabase-js";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AdminClient = SupabaseClient<any, "public", any>;
+
+/**
+ * If a centre no longer has ANY valid subscription (trial/active), it stops
+ * being operationally active. Removing/cancelling the last subscription is a
+ * deliberate platform decision, so the centre transitions to `pending` — it is
+ * no longer listed/active until a new subscription is provisioned and the
+ * centre is activated again (activation requires a valid subscription).
+ *
+ * A centre whose subscription merely EXPIRES is NOT converted here: donations
+ * serve the centre's needs, not the SaaS subscription, so an active centre
+ * with a lapsed subscription keeps receiving online donations while platform
+ * access is blocked by the subscription gate.
+ */
+async function deactivateCentreIfUnsubscribed(
+  admin: AdminClient,
+  ctx: Awaited<ReturnType<typeof requireAppAccess>>,
+  centreId: string,
+): Promise<void> {
+  const { data: centre } = await admin
+    .from("centres")
+    .select("id, name, status")
+    .eq("id", centreId)
+    .maybeSingle();
+  if (!centre || centre.status !== "active") return;
+
+  const { count } = await admin
+    .from("subscriptions")
+    .select("id", { count: "exact", head: true })
+    .eq("centre_id", centreId)
+    .in("status", ["trial", "active"]);
+
+  if ((count ?? 0) > 0) return;
+
+  await admin.from("centres").update({ status: "pending" }).eq("id", centreId);
+  try {
+    await auditSecurityEvent(admin, {
+      action: "CENTRE_STATUS_CHANGED",
+      entity_type: "centre",
+      entity_id: centreId,
+      centre_id: centreId,
+      actor_user_id: ctx.authUserId,
+      actor_email: ctx.profile.email ?? undefined,
+      previous_values: { status: "active" },
+      new_values: { status: "pending" },
+    });
+  } catch {
+    // Audit failure must not break the subscription operation.
+  }
+}
 
 // ─── PATCH /api/platform/subscriptions/[id] ──────────────────
 
@@ -73,6 +126,10 @@ export async function PATCH(
       reason: `Subscription updated by platform administrator`,
     });
 
+    // If the update moved the subscription to a terminal state (or left the
+    // centre with no valid subscription at all), the centre stops being active.
+    await deactivateCentreIfUnsubscribed(admin, ctx, current.centre_id);
+
     return NextResponse.json({ data });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
@@ -125,6 +182,9 @@ export async function DELETE(
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    // Removal of the last valid subscription stops the centre from being active.
+    await deactivateCentreIfUnsubscribed(admin, ctx, current.centre_id);
 
     return NextResponse.json({ data: { success: true } });
   } catch (error) {
