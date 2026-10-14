@@ -123,40 +123,40 @@ export default async function ChildrenListPage({
 
       {/* Children table */}
       {children.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-sm text-gray-500">No children found.</p>
+        <div className="rounded-xl border border-slate-200 bg-white py-16 text-center shadow-sm">
+          <p className="text-sm text-slate-400">No children found.</p>
           {showRegister && (
             <Link
               href="/register"
-              className="mt-4 inline-block text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+              className="mt-4 inline-block text-sm font-semibold text-care-600 hover:text-care-700"
             >
               Start a new registration
             </Link>
           )}
         </div>
       ) : (
-        <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-          <table className="min-w-full divide-y divide-gray-300">
-            <thead className="bg-gray-50">
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-slate-50">
               <tr>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Reference
                 </th>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Name
                 </th>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Status
                 </th>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Admission Date
                 </th>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Date of Birth
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
+            <tbody className="divide-y divide-slate-100 bg-white">
               {children.map(
                 (child: {
                   id: string;
@@ -168,32 +168,32 @@ export default async function ChildrenListPage({
                   admission_date: string;
                   date_of_birth: string;
                 }) => (
-                  <tr key={child.id}>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm font-mono text-gray-500">
+                  <tr key={child.id} className="transition-colors hover:bg-slate-50">
+                    <td className="whitespace-nowrap px-4 py-3 text-sm font-mono text-slate-500">
                       <Link
                         href={`/children/${child.id}`}
-                        className="text-indigo-600 hover:text-indigo-500"
+                        className="text-care-600 hover:text-care-700"
                       >
                         {child.reference_number}
                       </Link>
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
+                    <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-slate-900">
                       <Link
                         href={`/children/${child.id}`}
-                        className="text-indigo-600 hover:text-indigo-500"
+                        className="text-care-600 hover:text-care-700"
                       >
                         {child.first_name}
                         {child.middle_name ? ` ${child.middle_name}` : ""}{" "}
                         {child.last_name}
                       </Link>
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm">
+                    <td className="whitespace-nowrap px-4 py-3 text-sm">
                       <StatusBadge status={child.status} />
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-500">
                       {new Date(child.admission_date).toLocaleDateString()}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    <td className="whitespace-nowrap px-4 py-3 text-sm text-slate-500">
                       {new Date(child.date_of_birth).toLocaleDateString()}
                     </td>
                   </tr>

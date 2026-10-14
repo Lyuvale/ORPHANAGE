@@ -65,22 +65,38 @@ export default function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-5">
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-gray-700">
           Email
         </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
-          placeholder="you@example.com"
-        />
+        <div className="relative mt-1">
+          <svg
+            aria-hidden
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+            />
+          </svg>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="block w-full rounded-xl border border-gray-200 bg-gray-50/50 py-2 pl-9 pr-3 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-care-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-care-100"
+            placeholder="you@example.com"
+          />
+        </div>
       </div>
 
       <div>
@@ -95,7 +111,7 @@ export default function LoginForm() {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
+          className="mt-1 block w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-care-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-care-100"
           placeholder="••••••••"
         />
       </div>
@@ -109,12 +125,12 @@ export default function LoginForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:opacity-60"
+        className="w-full rounded-xl bg-care-600 px-4 py-2.5 font-display text-sm font-bold text-white shadow-card transition hover:bg-care-700 hover:shadow-raised disabled:opacity-60"
       >
         {loading ? "Signing in…" : "Sign in"}
       </button>
 
-      <p className="text-xs text-gray-500 text-center">
+      <p className="text-center text-xs text-gray-500">
         Forgot your password or username? Your username is your email address.
         Ask the person who created your account (your centre manager) to reset
         your password for you.

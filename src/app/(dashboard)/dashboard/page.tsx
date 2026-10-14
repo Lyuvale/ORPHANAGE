@@ -77,30 +77,30 @@ function PendingReviews({
   items: PendingItem[];
 }) {
   return (
-    <div className="bg-white rounded-lg border overflow-hidden md:col-span-2">
-      <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-        <h3 className="text-sm font-semibold text-gray-900">
-          {title} ({items.length})
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm md:col-span-2">
+      <div className="border-b border-slate-100 bg-slate-50/50 px-5 py-4">
+        <h3 className="text-sm font-semibold text-slate-900">
+          {title} <span className="ml-1 text-slate-400">({items.length})</span>
         </h3>
       </div>
       {items.length === 0 ? (
-        <p className="px-4 py-5 text-sm text-gray-500">{empty}</p>
+        <p className="px-5 py-8 text-center text-sm text-slate-400">{empty}</p>
       ) : (
-        <ul className="divide-y divide-gray-200">
+        <ul className="divide-y divide-slate-100">
           {items.map((item) => (
-            <li key={`${item.kind}-${item.id}`} className="px-4 py-3 flex items-center justify-between gap-3">
+            <li key={`${item.kind}-${item.id}`} className="flex items-center justify-between gap-3 px-5 py-4">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-700">
+                  <span className="inline-flex items-center rounded-full bg-care-50 px-2 py-0.5 text-[11px] font-semibold text-care-700">
                     {item.kind}
                   </span>
-                  <Link href={item.href} className="text-sm font-semibold text-indigo-600 hover:text-indigo-500 truncate">
+                  <Link href={item.href} className="truncate text-sm font-semibold text-care-600 hover:text-care-700">
                     {item.title}
                   </Link>
                 </div>
-                <p className="text-xs text-gray-500 truncate">{item.subtitle}</p>
+                <p className="mt-0.5 truncate text-xs text-slate-400">{item.subtitle}</p>
               </div>
-              <div className="shrink-0 flex items-center gap-2">
+              <div className="flex shrink-0 items-center gap-2">
                 <ApproveRejectButtons
                   url={item.url}
                   approveBody={item.approveBody}
@@ -132,16 +132,19 @@ function Card({
   linkText: string;
 }) {
   return (
-    <div className="bg-white rounded-lg border p-6">
-      <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
         {title}
       </h3>
-      <p className="mt-2 text-2xl font-semibold text-gray-900">{value}</p>
+      <p className="mt-2 text-3xl font-bold tracking-tight text-slate-900">{value}</p>
       <Link
         href={href}
-        className="mt-3 inline-block text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+        className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-care-600 hover:text-care-700"
       >
-        {linkText} →
+        {linkText}
+        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+        </svg>
       </Link>
     </div>
   );
@@ -158,13 +161,15 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-      <p className="text-sm text-gray-500 mt-1">
-        {ctx.centre?.name ?? ""} — {roleName?.replace(/_/g, " ") ?? "Staff"}
-      </p>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Dashboard</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          {ctx.centre?.name ?? ""} — {roleName?.replace(/_/g, " ") ?? "Staff"}
+        </p>
+      </div>
 
       {restricted && (
-        <div className="mt-6 rounded-md bg-amber-50 border border-amber-200 p-4">
+        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
           <p className="text-sm text-amber-800">
             Your centre&apos;s subscription is currently inactive, so normal
             services are restricted.
@@ -223,37 +228,43 @@ async function ItSection() {
   }
 
   return (
-    <div className="mt-6 grid gap-6 md:grid-cols-2 max-w-4xl">
+    <div className="mt-6 grid gap-5 md:grid-cols-2 max-w-4xl">
       <Card title="Published pages" value={String(publishedCount)} href="/centre-site" linkText="Manage Pages" />
       <Card title="Draft pages" value={String(draftCount)} href="/centre-site" linkText="Manage Pages" />
-      <div className="bg-white rounded-lg border p-6">
-        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
           Public website
         </h3>
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="mt-2 text-sm text-slate-500">
           Your centre&apos;s own public site — build pages and appearance here.
         </p>
         <Link
           href="/centre-site"
-          className="mt-3 inline-block rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-care-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-care-700"
         >
-          Open Website Builder →
+          Open Website Builder
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
         </Link>
       </div>
-      <div className="bg-white rounded-lg border p-6">
-        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
           Preview
         </h3>
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="mt-2 text-sm text-slate-500">
           Only published pages are visible to visitors.
         </p>
         <a
           href={siteUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-3 inline-block text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+          className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-care-600 hover:text-care-700"
         >
-          View live site ↗
+          View live site
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+          </svg>
         </a>
       </div>
     </div>
@@ -295,7 +306,7 @@ async function SocialWorkerSection({ restricted }: { restricted: boolean }) {
   }));
 
   return (
-    <div className="mt-6 grid gap-6 md:grid-cols-2 max-w-4xl">
+    <div className="mt-6 grid gap-5 md:grid-cols-2 max-w-4xl">
       <PendingReviews
         title="Referrals awaiting review"
         empty="No referrals awaiting review."
@@ -319,11 +330,11 @@ async function SocialWorkerSection({ restricted }: { restricted: boolean }) {
         href="/visits"
         linkText="Open Visits"
       />
-      <div className="bg-white rounded-lg border p-6 md:col-span-2">
-        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:col-span-2">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
           Quick links
         </h3>
-        <div className="mt-3 flex flex-wrap gap-3">
+        <div className="mt-3 flex flex-wrap gap-2">
           {[
             ["/register", "New Registration"],
             ["/children", "Children"],
@@ -333,7 +344,7 @@ async function SocialWorkerSection({ restricted }: { restricted: boolean }) {
             <Link
               key={href}
               href={href}
-              className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-care-200 hover:bg-care-50 hover:text-care-700"
             >
               {text}
             </Link>
@@ -392,7 +403,7 @@ async function ManagerSection({ restricted }: { restricted: boolean }) {
   });
 
   return (
-    <div className="mt-6 grid gap-6 md:grid-cols-2 max-w-4xl">
+    <div className="mt-6 grid gap-5 md:grid-cols-2 max-w-4xl">
       <Card
         title="Children in care"
         value={childrenCount === null ? "—" : String(childrenCount)}
@@ -411,27 +422,27 @@ async function ManagerSection({ restricted }: { restricted: boolean }) {
         href="/subscriptions"
         linkText="Open Subscriptions"
       />
-      <div className="bg-white rounded-lg border overflow-hidden md:col-span-2">
-        <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-          <h3 className="text-sm font-semibold text-gray-900">
-            Pending intake packages ({packages.length})
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm md:col-span-2">
+        <div className="border-b border-slate-100 bg-slate-50/50 px-5 py-4">
+          <h3 className="text-sm font-semibold text-slate-900">
+            Pending intake packages <span className="ml-1 text-slate-400">({packages.length})</span>
           </h3>
-          <p className="text-xs text-gray-500">
+          <p className="mt-0.5 text-xs text-slate-400">
             Referral + admission + guardians as one thing — approve or reject together.
           </p>
         </div>
         {packages.length === 0 ? (
-          <p className="px-4 py-5 text-sm text-gray-500">
+          <p className="px-5 py-8 text-center text-sm text-slate-400">
             No referrals, admissions or guardians awaiting review.
           </p>
         ) : (
-          <ul className="divide-y divide-gray-200">
+          <ul className="divide-y divide-slate-100">
             {packages.map((p) => (
-              <li key={p.referralId} className="px-4 py-3">
-                <div className="flex items-center justify-between gap-3 flex-wrap">
+              <li key={p.referralId} className="px-5 py-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-gray-900">{p.childName}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-sm font-semibold text-slate-900">{p.childName}</p>
+                    <p className="mt-0.5 text-xs text-slate-400">
                       Referral {p.referralRef} ({p.referralStatus.replace(/_/g, " ")})
                       {p.admissionRef ? ` · Admission ${p.admissionRef}` : " · No admission yet"}
                       {p.guardians.length > 0 ? ` · Guardians: ${p.guardians.join(", ")}` : ""}
@@ -444,11 +455,11 @@ async function ManagerSection({ restricted }: { restricted: boolean }) {
           </ul>
         )}
       </div>
-      <div className="bg-white rounded-lg border p-6 md:col-span-2">
-        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm md:col-span-2">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
           Quick links
         </h3>
-        <div className="mt-3 flex flex-wrap gap-3">
+        <div className="mt-3 flex flex-wrap gap-2">
           {[
             ["/team", "Team & Staff"],
             ["/audit", "Audit Trail"],
@@ -457,7 +468,7 @@ async function ManagerSection({ restricted }: { restricted: boolean }) {
             <Link
               key={href}
               href={href}
-              className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-care-200 hover:bg-care-50 hover:text-care-700"
             >
               {text}
             </Link>
@@ -479,7 +490,7 @@ async function RecordsSection({ restricted }: { restricted: boolean }) {
   const awaiting = approvedAdmissions.filter((a) => !(a.child_id as string | null));
 
   return (
-    <div className="mt-6 grid gap-6 md:grid-cols-2 max-w-4xl">
+    <div className="mt-6 grid gap-5 md:grid-cols-2 max-w-4xl">
       <Card
         title="Children registered"
         value={childrenCount === null ? "—" : String(childrenCount)}
@@ -492,18 +503,21 @@ async function RecordsSection({ restricted }: { restricted: boolean }) {
         href="/register"
         linkText="Register now"
       />
-      <div className="bg-white rounded-lg border p-6">
-        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
           Registration
         </h3>
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="mt-2 text-sm text-slate-500">
           Register a child from an approved admission: child, guardian and placement in one flow.
         </p>
         <Link
           href="/register"
-          className="mt-3 inline-block rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-care-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-care-700"
         >
-          New Registration →
+          New Registration
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
         </Link>
       </div>
     </div>
@@ -520,7 +534,7 @@ async function AccountantSection({ restricted }: { restricted: boolean }) {
   void restricted;
 
   return (
-    <div className="mt-6 grid gap-6 md:grid-cols-2 max-w-4xl">
+    <div className="mt-6 grid gap-5 md:grid-cols-2 max-w-4xl">
       <Card
         title="Expenses pending approval"
         value={pendingExpenses === null ? "—" : String(pendingExpenses)}
@@ -539,11 +553,11 @@ async function AccountantSection({ restricted }: { restricted: boolean }) {
         href="/resources/assets"
         linkText="Open Assets"
       />
-      <div className="bg-white rounded-lg border p-6">
-        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
           Quick links
         </h3>
-        <div className="mt-3 flex flex-wrap gap-3">
+        <div className="mt-3 flex flex-wrap gap-2">
           {[
             ["/resources/sources", "Sources"],
             ["/resources/expenses/new", "New Expense"],
@@ -552,7 +566,7 @@ async function AccountantSection({ restricted }: { restricted: boolean }) {
             <Link
               key={href}
               href={href}
-              className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-care-200 hover:bg-care-50 hover:text-care-700"
             >
               {text}
             </Link>
@@ -582,36 +596,36 @@ async function CaregiverSection() {
 
   return (
     <div className="mt-6 max-w-3xl">
-      <div className="bg-white rounded-lg border overflow-hidden">
-        <div className="px-4 py-5 sm:px-6">
-          <h2 className="text-lg font-medium text-gray-900">
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="px-6 py-5">
+          <h2 className="text-lg font-semibold text-slate-900">
             My Assigned Children ({assigned.length})
           </h2>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-slate-500">
             You can only see and record care for these children.
           </p>
         </div>
         {assigned.length === 0 ? (
-          <p className="border-t border-gray-200 px-4 py-5 sm:px-6 text-sm text-gray-500">
+          <p className="border-t border-slate-100 px-6 py-8 text-center text-sm text-slate-400">
             No children are currently assigned to you. Please contact your centre manager.
           </p>
         ) : (
-          <ul className="border-t border-gray-200 divide-y divide-gray-200">
+          <ul className="divide-y divide-slate-100 border-t border-slate-100">
             {assigned.map((a) => (
-              <li key={a.child_id} className="px-4 py-4 sm:px-6 flex items-center justify-between">
+              <li key={a.child_id} className="flex items-center justify-between px-6 py-4">
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">
+                  <p className="text-sm font-semibold text-slate-900">
                     {a.child
                       ? `${a.child.first_name} ${a.child.last_name}`
                       : "Child"}
                   </p>
                   {a.child?.reference_number && (
-                    <p className="text-xs text-gray-400 font-mono">{a.child.reference_number}</p>
+                    <p className="mt-0.5 font-mono text-xs text-slate-400">{a.child.reference_number}</p>
                   )}
                 </div>
                 <Link
                   href={`/children/${a.child_id}`}
-                  className="text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+                  className="text-sm font-semibold text-care-600 hover:text-care-700"
                 >
                   Open →
                 </Link>

@@ -1,8 +1,6 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import NotificationBell from "./_components/notification-bell";
-import SignOutButton from "./_components/sign-out-button";
+import Sidebar from "./_components/sidebar";
 import { createClient } from "@/lib/supabase/server";
 import { requireAppAccess, type AppUserContext } from "@/lib/auth/app-user-context";
 import { getUserPermissions, getUserRoleName } from "@/lib/auth/authorization.service";
@@ -10,8 +8,6 @@ import { AuthError } from "@/lib/auth/app-user-context";
 
 export const dynamic = "force-dynamic";
 
-// Tenant (centre) pages a platform admin must be kept out of. Each admin page
-// also guards itself, so this is a defence-in-depth redirect to the admin home.
 const TENANT_PATHS = [
   "/children",
   "/admissions",
@@ -33,17 +29,6 @@ const TENANT_PATHS = [
   "/centre-site",
 ];
 
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <Link
-      href={href}
-      className="text-gray-600 hover:text-gray-900 px-2 py-2 text-[13px] font-medium whitespace-nowrap shrink-0"
-    >
-      {children}
-    </Link>
-  );
-}
-
 export default async function DashboardLayout({
   children,
 }: {
@@ -53,10 +38,8 @@ export default async function DashboardLayout({
   let isPlatformAdmin = false;
   let canRegister = false;
   let centreName = "";
-  // The user's own DB permissions, fetched once. Every centre menu entry is
-  // shown only when the matching permission is held, so each role sees only
-  // the modules it may use (spec: role-based menu).
   let perms = new Set<string>();
+
   try {
     const supabase = (await createClient()) as never;
     const ctx = await requireAppAccess(supabase, { allowInactiveSubscription: true });
@@ -72,7 +55,6 @@ export default async function DashboardLayout({
     } catch {
       perms = new Set<string>();
     }
-    // Intake creation permission in any of the five registration modules.
     canRegister =
       perms.has("referrals.create") ||
       perms.has("children.create") ||
@@ -89,9 +71,6 @@ export default async function DashboardLayout({
     canRegister = false;
   }
 
-  // Keep the platform admin inside the /admin area. Tenant pages (children,
-  // staff, etc.) render their own centre-level view and are not meant for the
-  // platform administrator.
   if (isPlatformAdmin) {
     let pathname = "";
     try {
@@ -107,67 +86,65 @@ export default async function DashboardLayout({
     }
   }
 
+  const navItems = isPlatformAdmin
+    ? [
+        { href: "/admin", label: "Overview", icon: "dashboard" },
+        { href: "/admin/centres", label: "Centres", icon: "children" },
+        { href: "/admin/users", label: "Create Manager", icon: "team" },
+        { href: "/admin/payments", label: "Payments", icon: "subscriptions" },
+        { href: "/admin/subscriptions", label: "Subscriptions", icon: "subscriptions" },
+        { href: "/admin/settings", label: "Settings", icon: "audit" },
+        { href: "/notifications", label: "Notifications", icon: "notifications" },
+      ]
+    : [
+        { href: "/dashboard", label: "Dashboard", icon: "dashboard" },
+        ...(perms.has("children.view")
+          ? [{ href: "/children", label: "Children", icon: "children" }]
+          : []),
+        ...(canRegister
+          ? [{ href: "/register", label: "Register", icon: "register" }]
+          : []),
+        ...(perms.has("cases.view")
+          ? [{ href: "/cases", label: "Cases", icon: "cases" }]
+          : []),
+        ...(perms.has("safeguarding.view")
+          ? [{ href: "/safeguarding", label: "Safeguarding", icon: "safeguarding" }]
+          : []),
+        ...(perms.has("visits.view")
+          ? [{ href: "/visits", label: "Visits", icon: "visits" }]
+          : []),
+        ...(perms.has("staff.view")
+          ? [{ href: "/team", label: "Team", icon: "team" }]
+          : []),
+        ...(perms.has("health.view")
+          ? [{ href: "/health", label: "Health", icon: "health" }]
+          : []),
+        ...(perms.has("education_development.view")
+          ? [{ href: "/education", label: "Education", icon: "education" }]
+          : []),
+        ...(perms.has("resources.view")
+          ? [{ href: "/resources", label: "Resources", icon: "resources" }]
+          : []),
+        ...(perms.has("site.view")
+          ? [{ href: "/centre-site", label: "Website", icon: "website" }]
+          : []),
+        ...(isManager
+          ? [{ href: "/subscriptions", label: "Subscriptions", icon: "subscriptions" }]
+          : []),
+        ...(perms.has("audit.view")
+          ? [{ href: "/audit", label: "Audit", icon: "audit" }]
+          : []),
+        { href: "/notifications", label: "Notifications", icon: "notifications" },
+      ];
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14">
-            <div className="flex items-center gap-3 min-w-0">
-              <h1 className="text-lg font-semibold text-gray-900 truncate">
-                Children&apos;s Care Platform
-              </h1>
-              {isPlatformAdmin && (
-                <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700 shrink-0">
-                  PLATFORM ADMIN
-                </span>
-              )}
-              {isManager && centreName && (
-                <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 shrink-0 truncate max-w-48">
-                  {centreName}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-1 shrink-0">
-              <NotificationBell />
-              <SignOutButton />
-            </div>
-          </div>
-          <nav className="flex items-center gap-0.5 overflow-x-auto pb-1 -mb-px">
-              {isPlatformAdmin ? (
-                <>
-                  <NavLink href="/admin">Overview</NavLink>
-                  <NavLink href="/admin/centres">Centres</NavLink>
-                  <NavLink href="/admin/users">Create Manager</NavLink>
-                  <NavLink href="/admin/payments">Payments</NavLink>
-                  <NavLink href="/admin/subscriptions">Subscriptions</NavLink>
-                  <NavLink href="/admin/settings">Settings</NavLink>
-                </>
-              ) : (
-                <>
-                  <NavLink href="/dashboard">Dashboard</NavLink>
-                  {perms.has("children.view") && <NavLink href="/children">Children</NavLink>}
-                  {canRegister && <NavLink href="/register">Register</NavLink>}
-                  {perms.has("cases.view") && <NavLink href="/cases">Cases</NavLink>}
-                  {perms.has("safeguarding.view") && (
-                    <NavLink href="/safeguarding">Safeguarding</NavLink>
-                  )}
-                  {perms.has("visits.view") && <NavLink href="/visits">Visits</NavLink>}
-                  {perms.has("staff.view") && <NavLink href="/team">Team</NavLink>}
-                  {perms.has("health.view") && <NavLink href="/health">Health</NavLink>}
-                  {perms.has("education_development.view") && (
-                    <NavLink href="/education">Education</NavLink>
-                  )}
-                  {perms.has("resources.view") && <NavLink href="/resources">Resources</NavLink>}
-                  {perms.has("site.view") && <NavLink href="/centre-site">Website</NavLink>}
-                  {isManager && <NavLink href="/subscriptions">Subscriptions</NavLink>}
-                  {perms.has("audit.view") && <NavLink href="/audit">Audit</NavLink>}
-                </>
-              )}
-              <NavLink href="/notifications">Notifications</NavLink>
-          </nav>
-        </div>
-      </header>
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>
-    </div>
+    <Sidebar
+      navItems={navItems}
+      centreName={centreName}
+      isPlatformAdmin={isPlatformAdmin}
+      isManager={isManager}
+    >
+      {children}
+    </Sidebar>
   );
 }

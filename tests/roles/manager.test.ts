@@ -159,14 +159,14 @@ describe("Manager navigation (permission-driven menu)", () => {
 
   it("shows management areas (Team hub, Resources, Audit) and no separate Staff page", () => {
     for (const href of [
-      'href="/team"',
-      'href="/resources"',
-      'href="/audit"',
-      'href="/register"',
+      'href: "/team"',
+      'href: "/resources"',
+      'href: "/audit"',
+      'href: "/register"',
     ]) {
       expect(layout).toContain(href);
     }
-    expect(layout).not.toContain('href="/staff"');
+    expect(layout).not.toContain('href: "/staff"');
   });
 });
 

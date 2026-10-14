@@ -120,9 +120,8 @@ describe("Register navigation", () => {
   const layout = src("src/app/(dashboard)/layout.tsx");
 
   it("exposes a Register link to intake roles and keeps platform admin out", () => {
-    expect(layout).toContain('href="/register"');
+    expect(layout).toContain('href: "/register"');
     expect(layout).toContain("canRegister");
-    expect(layout).toContain('"/register"');
   });
 });
 
@@ -157,15 +156,15 @@ describe("Intake sections live together on the child; standalone lists removed",
   it("navigation has no standalone intake sections", () => {
     const layout = src("src/app/(dashboard)/layout.tsx");
     for (const href of [
-      'href="/referrals"',
-      'href="/admissions"',
-      'href="/placements"',
-      'href="/guardians"',
+      'href: "/referrals"',
+      'href: "/admissions"',
+      'href: "/placements"',
+      'href: "/guardians"',
     ]) {
       expect(layout).not.toContain(href);
     }
-    expect(layout).toContain('href="/children"');
-    expect(layout).toContain('href="/register"');
+    expect(layout).toContain('href: "/children"');
+    expect(layout).toContain('href: "/register"');
   });
 
   it("child profile shows referral, admission, placement, guardians and health together", () => {

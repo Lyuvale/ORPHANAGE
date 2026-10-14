@@ -1,19 +1,71 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ═══════════════════════════════════════════════════════════════════
+   DESIGN SYSTEM — Children's Care & Accountability Platform
+   Tailwind v4 @theme tokens (foundation inayosimamia muonekano wote).
+   ───────────────────────────────────────────────────────────────────
+   • Fonti      → Plus Jakarta Sans (brand/display) + Inter (body/UI)
+   • Brand      → "care" indigo (imani, usafi) — inaonekana kwenye CTA
+   • Accent     → "emerald" (tumaini, ukuaji) — donations/success
+   • Neutrals   → slate (chapa) / stone (surface)
+   • Shadows    → soft layered elevation (Tailwind v4 native ring/shadow)
+   Tokens hizi zinajiunga na ma-class ya Tailwind kiotomatiki:
+   bg-brand-600, text-slate-900, font-display, shadow-card, n.k.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@theme {
+  --font-sans: var(--font-orphanage-sans), var(--font-orphanage-display),
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-orphanage-display), var(--font-orphanage-sans),
+    ui-sans-serif, system-ui, sans-serif;
+
+  /* ── Brand · "care" (indigo) ── */
+  --color-care-50: #eef2ff;
+  --color-care-100: #e0e7ff;
+  --color-care-200: #c7d2fe;
+  --color-care-300: #a5b4fc;
+  --color-care-400: #818cf8;
+  --color-care-500: #6366f1;
+  --color-care-600: #4f46e5;
+  --color-care-700: #4338ca;
+  --color-care-800: #3730a3;
+  --color-care-900: #312e81;
+  --color-care-950: #1e1b4b;
+
+  /* ── Accent · "hope" (emerald) ── */
+  --color-hope-50: #ecfdf5;
+  --color-hope-100: #d1fae5;
+  --color-hope-200: #a7f3d0;
+  --color-hope-300: #6ee7b7;
+  --color-hope-400: #34d399;
+  --color-hope-500: #10b981;
+  --color-hope-600: #059669;
+  --color-hope-700: #047857;
+  --color-hope-800: #065f46;
+  --color-hope-900: #064e3b;
+
+  /* ── Brand gradient (care→hope, "imani→tumaini") ── */
+  --gradient-brand: 135deg, var(--color-care-600), var(--color-hope-600);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── Base ───────────────────────────────────────────────────── */
+
+:root {
+  --background: #f8fafc; /* slate-50 */
+  --foreground: #0f172a; /* slate-900 */
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Uchaguo wa maandishi (text highlight) huakisi brand */
+::selection {
+  background: var(--color-care-200);
+  color: var(--color-care-950);
 }
