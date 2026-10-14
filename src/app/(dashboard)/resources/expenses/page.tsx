@@ -46,15 +46,15 @@ export default async function ExpensesPage({
     <div>
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-medium text-gray-900">Expenses</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="text-lg font-medium text-zinc-900">Expenses</h2>
+          <p className="text-sm text-zinc-500">
             Spending against Funds — approval needed before counting toward balances
           </p>
         </div>
         {canCreateExp && (
           <Link
             href="/resources/expenses/new"
-            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-zinc-500"
           >
             Add Expense
           </Link>
@@ -65,7 +65,7 @@ export default async function ExpensesPage({
         <select
           name="status"
           defaultValue={params.status ?? ""}
-          className="block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+          className="block rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
         >
           <option value="">All Statuses</option>
           <option value="PENDING">Pending</option>
@@ -74,7 +74,7 @@ export default async function ExpensesPage({
         </select>
         <button
           type="submit"
-          className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+          className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-zinc-50"
         >
           Filter
         </button>
@@ -82,7 +82,7 @@ export default async function ExpensesPage({
 
       {expenses.length === 0 ? (
         <div className="rounded-lg border border-dashed bg-white p-12 text-center">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-zinc-500">
             No expenses found.{" "}
             {canCreateExp && (
               <Link href="/resources/expenses/new" className="font-semibold text-indigo-600">
@@ -95,18 +95,18 @@ export default async function ExpensesPage({
       ) : (
         <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
           <table className="min-w-full divide-y divide-gray-300">
-            <thead className="bg-gray-50">
+            <thead className="bg-zinc-50">
               <tr>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Description</th>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Fund</th>
-                <th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Amount</th>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
+                <th className="px-3 py-3.5 text-left text-sm font-semibold text-zinc-900">Description</th>
+                <th className="px-3 py-3.5 text-left text-sm font-semibold text-zinc-900">Fund</th>
+                <th className="px-3 py-3.5 text-right text-sm font-semibold text-zinc-900">Amount</th>
+                <th className="px-3 py-3.5 text-left text-sm font-semibold text-zinc-900">Status</th>
                 {canApproveExp && (
-                  <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Actions</th>
+                  <th className="px-3 py-3.5 text-left text-sm font-semibold text-zinc-900">Actions</th>
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
+            <tbody className="divide-y divide-zinc-200 bg-white">
               {expenses.map(
                 (e: {
                   id: string;
@@ -115,13 +115,13 @@ export default async function ExpensesPage({
                   amount: number;
                   approval_status: string;
                 }) => (
-                  <tr key={e.id} className="hover:bg-gray-50">
+                  <tr key={e.id} className="hover:bg-zinc-50">
                     <td className="px-3 py-4 text-sm">
                       <Link href={`/resources/expenses/${e.id}`} className="font-semibold text-indigo-600 hover:text-indigo-500">
                         {e.description || "Expense"}
                       </Link>
                     </td>
-                    <td className="px-3 py-4 text-sm text-gray-500">
+                    <td className="px-3 py-4 text-sm text-zinc-500">
                       {e.fund ? (
                         <Link href={`/resources/funds/${e.fund.id}`} className="hover:text-indigo-600">
                           {e.fund.fund_name}
@@ -130,9 +130,9 @@ export default async function ExpensesPage({
                         "-"
                       )}
                     </td>
-                    <td className="px-3 py-4 text-right text-sm text-gray-900">{formatTsh(e.amount)}</td>
+                    <td className="px-3 py-4 text-right text-sm text-zinc-900">{formatTsh(e.amount)}</td>
                     <td className="px-3 py-4 text-sm">
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">
+                      <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700">
                         {getExpenseStatusDisplay(e.approval_status as never)}
                       </span>
                     </td>
@@ -147,7 +147,7 @@ export default async function ExpensesPage({
                             requireReasonOnReject
                           />
                         ) : (
-                          <span className="text-gray-400">—</span>
+                          <span className="text-zinc-400">—</span>
                         )}
                       </td>
                     )}

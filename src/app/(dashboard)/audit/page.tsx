@@ -46,7 +46,7 @@ const ACTION_COLORS: Record<string, string> = {
   CREATE: "bg-green-100 text-green-800",
   UPDATE: "bg-blue-100 text-blue-800",
   DELETE: "bg-red-100 text-red-800",
-  VIEW: "bg-gray-100 text-gray-800",
+  VIEW: "bg-zinc-100 text-gray-800",
   EXPORT: "bg-amber-100 text-amber-800",
   DOWNLOAD: "bg-teal-100 text-teal-800",
   APPROVE: "bg-emerald-100 text-emerald-800",
@@ -117,8 +117,8 @@ export default async function AuditTrailPage({
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Audit Trail</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-zinc-900">Audit Trail</h1>
+          <p className="mt-1 text-sm text-zinc-500">
             A secure, append-only record of who did what, when, and on which
             record within this centre.
           </p>
@@ -132,7 +132,7 @@ export default async function AuditTrailPage({
             to: params.to ?? "",
             export: "csv",
           }).toString()}`}
-          className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+          className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-zinc-50"
         >
           Export CSV
         </a>
@@ -143,7 +143,7 @@ export default async function AuditTrailPage({
         <select
           name="action"
           defaultValue={params.action ?? ""}
-          className="block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+          className="block rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
         >
           <option value="">All Actions</option>
           {ALL_AUDIT_ACTIONS.map((a) => (
@@ -157,30 +157,30 @@ export default async function AuditTrailPage({
           name="entity_type"
           placeholder="Section / entity type"
           defaultValue={params.entity_type ?? ""}
-          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+          className="block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
         />
         <input
           type="text"
           name="actor_email"
           placeholder="Actor email"
           defaultValue={params.actor_email ?? ""}
-          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+          className="block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
         />
         <input
           type="date"
           name="from"
           defaultValue={params.from ?? ""}
-          className="block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+          className="block rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
         />
         <input
           type="date"
           name="to"
           defaultValue={params.to ?? ""}
-          className="block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+          className="block rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
         />
         <button
           type="submit"
-          className="col-span-2 rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-span-1"
+          className="col-span-2 rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-zinc-50 sm:col-span-1"
         >
           Filter
         </button>
@@ -188,55 +188,55 @@ export default async function AuditTrailPage({
 
       {rows.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-sm text-gray-500">No audit events found.</p>
+          <p className="text-sm text-zinc-500">No audit events found.</p>
         </div>
       ) : (
         <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
           <table className="min-w-full divide-y divide-gray-300">
-            <thead className="bg-gray-50">
+            <thead className="bg-zinc-50">
               <tr>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                <th className="px-3 py-3.5 text-left text-sm font-semibold text-zinc-900">
                   Date / Time
                 </th>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                <th className="px-3 py-3.5 text-left text-sm font-semibold text-zinc-900">
                   Who
                 </th>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                <th className="px-3 py-3.5 text-left text-sm font-semibold text-zinc-900">
                   Action
                 </th>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                <th className="px-3 py-3.5 text-left text-sm font-semibold text-zinc-900">
                   Section / Record
                 </th>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                <th className="px-3 py-3.5 text-left text-sm font-semibold text-zinc-900">
                   Details
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
+            <tbody className="divide-y divide-zinc-200 bg-white">
               {rows.map((row) => (
                 <tr key={row.id}>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-zinc-500">
                     {new Date(row.created_at).toLocaleString()}
                   </td>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-zinc-900">
                     {row.actor_email || "System / Security event"}
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm">
                     <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${ACTION_COLORS[row.action] ?? "bg-gray-100 text-gray-800"}`}
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${ACTION_COLORS[row.action] ?? "bg-zinc-100 text-gray-800"}`}
                     >
                       {row.action}
                     </span>
                   </td>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-zinc-900">
                     {entityLabel(row.entity_type)}
                     {row.entity_id && (
-                      <span className="ml-1 font-mono text-xs text-gray-400">
+                      <span className="ml-1 font-mono text-xs text-zinc-400">
                         ({row.entity_id.slice(0, 8)})
                       </span>
                     )}
                   </td>
-                  <td className="px-3 py-4 text-sm text-gray-500">
+                  <td className="px-3 py-4 text-sm text-zinc-500">
                     {(row.new_values || row.previous_values || row.metadata) && (
                       <span className="block truncate max-w-xs">
                         {formatValue(row.new_values ?? row.previous_values ?? row.metadata)}
@@ -251,7 +251,7 @@ export default async function AuditTrailPage({
       )}
 
       <div className="mt-4 flex items-center justify-between">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-zinc-500">
           {total} {total === 1 ? "event" : "events"} total
         </p>
         <div className="flex gap-2">
@@ -266,12 +266,12 @@ export default async function AuditTrailPage({
                 limit: String(limit),
                 offset: String(Math.max(offset - limit, 0)),
               }).toString()}`}
-              className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+              className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-zinc-50"
             >
               Previous
             </Link>
           )}
-          <span className="px-3 py-2 text-sm text-gray-500">
+          <span className="px-3 py-2 text-sm text-zinc-500">
             Page {page} of {totalPages}
           </span>
           {page < totalPages && (
@@ -285,7 +285,7 @@ export default async function AuditTrailPage({
                 limit: String(limit),
                 offset: String(offset + limit),
               }).toString()}`}
-              className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+              className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-zinc-50"
             >
               Next
             </Link>

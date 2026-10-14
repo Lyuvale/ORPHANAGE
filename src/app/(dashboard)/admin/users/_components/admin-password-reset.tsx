@@ -38,9 +38,9 @@ export default function AdminPasswordReset() {
   }
 
   return (
-    <div className="rounded-lg border bg-white p-4">
-      <h2 className="text-sm font-semibold text-gray-900">Password help</h2>
-      <p className="mt-1 text-sm text-gray-500">
+    <div className="rounded-lg border border-zinc-200 bg-white p-4">
+      <h2 className="text-sm font-semibold text-zinc-900">Password help</h2>
+      <p className="mt-1 text-sm text-zinc-500">
         Find any account by email (its username) and reset its password. The
         temporary password is shown once — share it directly.
       </p>
@@ -68,7 +68,7 @@ export default function AdminPasswordReset() {
           <p className="text-sm font-semibold text-green-900">
             Temporary password for {result.displayName} ({result.email})
           </p>
-          <p className="mt-1 font-mono text-lg font-bold text-gray-900 select-all">
+          <p className="mt-1 font-mono text-lg font-bold text-zinc-900 select-all">
             {result.tempPassword}
           </p>
           <button

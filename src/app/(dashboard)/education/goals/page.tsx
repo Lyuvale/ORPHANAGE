@@ -160,7 +160,7 @@ export default function EducationGoalsPage() {
         {childId && canManageGoals && (
           <button
             onClick={() => setShowForm((s) => !s)}
-            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-zinc-500"
           >
             {showForm ? "Cancel" : "Add Goal"}
           </button>
@@ -189,7 +189,7 @@ export default function EducationGoalsPage() {
       </div>
 
       {showForm && childId && canManageGoals && (
-        <div className="mb-6 rounded-lg border p-4">
+        <div className="mb-6 rounded-lg border border-zinc-200 bg-white p-4">
           <h2 className="mb-3 text-lg font-semibold">New Development Goal</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <input
@@ -226,7 +226,7 @@ export default function EducationGoalsPage() {
             <button
               onClick={handleSubmit}
               disabled={!form.title}
-              className="rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+              className="rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-zinc-500 disabled:opacity-50"
             >
               Save Goal
             </button>
@@ -245,7 +245,7 @@ export default function EducationGoalsPage() {
       ) : (
         <div className="space-y-3">
           {goals.map((g) => (
-            <div key={g.id} className="rounded-lg border p-4">
+            <div key={g.id} className="rounded-lg border border-zinc-200 bg-white p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h3 className="font-semibold">{g.title}</h3>

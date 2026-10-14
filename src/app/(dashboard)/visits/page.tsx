@@ -184,7 +184,7 @@ export default function VisitsPage() {
                           : v.status === "checked_in"
                             ? "bg-blue-100 text-blue-800"
                             : v.status === "cancelled" || v.status === "rejected"
-                              ? "bg-gray-100 text-gray-800"
+                              ? "bg-zinc-100 text-gray-800"
                               : v.status === "no_show"
                                 ? "bg-red-100 text-red-800"
                                 : "bg-yellow-100 text-yellow-800"

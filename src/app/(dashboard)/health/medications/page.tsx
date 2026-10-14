@@ -168,7 +168,7 @@ export default function MedicationsPage() {
         {canManage && (
           <button
             onClick={() => setShowForm((s) => !s)}
-            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-zinc-500"
           >
             {showForm ? "Cancel" : "Add Medication"}
           </button>
@@ -197,7 +197,7 @@ export default function MedicationsPage() {
       </div>
 
       {showForm && childId && canManage && (
-        <div className="mb-6 rounded-lg border p-4">
+        <div className="mb-6 rounded-lg border border-zinc-200 bg-white p-4">
           <h2 className="mb-3 text-lg font-semibold">New Medication</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <input
@@ -258,7 +258,7 @@ export default function MedicationsPage() {
             <button
               onClick={handleSubmit}
               disabled={!form.medication_name}
-              className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+              className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-500 disabled:opacity-50"
             >
               Save Medication
             </button>
@@ -299,7 +299,7 @@ export default function MedicationsPage() {
                           ? "bg-green-100 text-green-800"
                           : m.status === "COMPLETED"
                             ? "bg-blue-100 text-blue-800"
-                            : "bg-gray-100 text-gray-800"
+                            : "bg-zinc-100 text-gray-800"
                       }`}
                     >
                       {getMedicationStatusDisplay(m.status)}

@@ -39,15 +39,15 @@ export default async function CentreDetailPage({
   return (
     <div className="max-w-3xl">
       <div className="mb-6">
-        <Link href="/centres" className="text-sm text-gray-500 hover:text-gray-700">
+        <Link href="/centres" className="text-sm text-zinc-500 hover:text-zinc-700">
           &larr; Back to Centres
         </Link>
       </div>
 
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{centre.name}</h2>
-          <p className="text-sm text-gray-500 font-mono mt-1">Code: {centre.code}</p>
+          <h2 className="text-2xl font-bold text-zinc-900">{centre.name}</h2>
+          <p className="text-sm text-zinc-500 font-mono mt-1">Code: {centre.code}</p>
         </div>
         <span
           className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
@@ -64,26 +64,26 @@ export default async function CentreDetailPage({
 
       <div className="bg-white rounded-lg border divide-y">
         <div className="p-6">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
+          <h3 className="text-sm font-medium text-zinc-500 uppercase tracking-wider mb-4">
             Contact Information
           </h3>
           <dl className="grid grid-cols-2 gap-4">
             <div>
-              <dt className="text-sm text-gray-500">Email</dt>
-              <dd className="text-sm text-gray-900">{centre.contact_email ?? "—"}</dd>
+              <dt className="text-sm text-zinc-500">Email</dt>
+              <dd className="text-sm text-zinc-900">{centre.contact_email ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-sm text-gray-500">Phone</dt>
-              <dd className="text-sm text-gray-900">{centre.contact_phone ?? "—"}</dd>
+              <dt className="text-sm text-zinc-500">Phone</dt>
+              <dd className="text-sm text-zinc-900">{centre.contact_phone ?? "—"}</dd>
             </div>
           </dl>
         </div>
 
         <div className="p-6">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
+          <h3 className="text-sm font-medium text-zinc-500 uppercase tracking-wider mb-4">
             Address
           </h3>
-          <div className="text-sm text-gray-900 space-y-1">
+          <div className="text-sm text-zinc-900 space-y-1">
             {centre.address_line1 && <p>{centre.address_line1}</p>}
             {centre.address_line2 && <p>{centre.address_line2}</p>}
             <p>
@@ -95,19 +95,19 @@ export default async function CentreDetailPage({
         </div>
 
         <div className="p-6">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-4">
+          <h3 className="text-sm font-medium text-zinc-500 uppercase tracking-wider mb-4">
             Metadata
           </h3>
           <dl className="grid grid-cols-2 gap-4">
             <div>
-              <dt className="text-sm text-gray-500">Created</dt>
-              <dd className="text-sm text-gray-900">
+              <dt className="text-sm text-zinc-500">Created</dt>
+              <dd className="text-sm text-zinc-900">
                 {new Date(centre.created_at).toLocaleString()}
               </dd>
             </div>
             <div>
-              <dt className="text-sm text-gray-500">Last Updated</dt>
-              <dd className="text-sm text-gray-900">
+              <dt className="text-sm text-zinc-500">Last Updated</dt>
+              <dd className="text-sm text-zinc-900">
                 {new Date(centre.updated_at).toLocaleString()}
               </dd>
             </div>

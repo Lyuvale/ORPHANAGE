@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 const STATUS_COLORS: Record<string, string> = {
   trial: "bg-blue-100 text-blue-800",
   active: "bg-green-100 text-green-800",
-  expired: "bg-gray-100 text-gray-800",
+  expired: "bg-zinc-100 text-gray-800",
   suspended: "bg-amber-100 text-amber-800",
   cancelled: "bg-red-100 text-red-800",
 };
@@ -76,33 +76,33 @@ export default async function AdminSubscriptionsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Subscription Management</h1>
-          <p className="text-sm text-gray-500">Manage subscription plans and centre subscriptions</p>
+          <h1 className="text-2xl font-bold text-zinc-900">Subscription Management</h1>
+          <p className="text-sm text-zinc-500">Manage subscription plans and centre subscriptions</p>
         </div>
-        <Link href="/admin" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+        <Link href="/admin" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50">
           Back to Admin
         </Link>
       </div>
 
       <nav className="flex flex-wrap gap-2">
-        <Link href="/admin" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Overview</Link>
-        <Link href="/admin/centres" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Centres</Link>
+        <Link href="/admin" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Overview</Link>
+        <Link href="/admin/centres" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Centres</Link>
         <Link href="/admin/subscriptions" className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white">Subscriptions</Link>
-        <Link href="/admin/payments" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Payments</Link>
+        <Link href="/admin/payments" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Payments</Link>
       </nav>
 
       {/* Subscriptions List */}
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-gray-900">Centre Subscriptions ({subscriptions.length})</h2>
+        <h2 className="text-lg font-semibold text-zinc-900">Centre Subscriptions ({subscriptions.length})</h2>
         {subscriptions.length === 0 ? (
-          <div className="rounded-xl border bg-white p-8 text-center">
-            <p className="text-gray-500">No subscriptions yet.</p>
+          <div className="rounded-xl border border-zinc-200 bg-white p-8 text-center">
+            <p className="text-zinc-500">No subscriptions yet.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border bg-white">
+          <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
             <table className="min-w-full text-sm">
               <thead>
-                <tr className="border-b bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
+                <tr className="border-b bg-zinc-50 text-left text-xs font-medium text-zinc-500 uppercase">
                   <th className="px-4 py-3">Centre</th>
                   <th className="px-4 py-3">Plan</th>
                   <th className="px-4 py-3">Status</th>
@@ -111,35 +111,35 @@ export default async function AdminSubscriptionsPage() {
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-zinc-100">
                 {subscriptions.map((sub) => {
                   const centre = centresMap.get(sub.centre_id as string) as { name?: string; code?: string } | undefined;
                   const plan = plansMap.get(sub.plan_id as string) as { name?: string; price?: number; billing_period?: string } | undefined;
                   return (
-                    <tr key={sub.id as string} className="hover:bg-gray-50">
+                    <tr key={sub.id as string} className="hover:bg-zinc-50">
                       <td className="px-4 py-3">
                         <Link href={`/admin/centres/${sub.centre_id}`} className="text-indigo-600 hover:underline font-medium">
                           {centre?.name ?? "—"}
                         </Link>
-                        <span className="ml-1 text-xs text-gray-400">({centre?.code ?? "—"})</span>
+                        <span className="ml-1 text-xs text-zinc-400">({centre?.code ?? "—"})</span>
                       </td>
-                      <td className="px-4 py-3 text-gray-900">
+                      <td className="px-4 py-3 text-zinc-900">
                         {plan?.name ?? "—"}
                         {plan?.price != null && (
-                          <span className="ml-1 text-xs text-gray-400">
+                          <span className="ml-1 text-xs text-zinc-400">
                             TZS {Number(plan.price).toLocaleString()}/{(plan.billing_period ?? "").toLowerCase()}
                           </span>
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[sub.status as string] ?? "bg-gray-100 text-gray-800"}`}>
+                        <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[sub.status as string] ?? "bg-zinc-100 text-gray-800"}`}>
                           {(sub.status as string)?.charAt(0).toUpperCase()}{(sub.status as string)?.slice(1)}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-500">
+                      <td className="px-4 py-3 text-zinc-500">
                         {sub.start_date ? new Date(sub.start_date as string).toLocaleDateString() : "—"}
                       </td>
-                      <td className="px-4 py-3 text-gray-500">
+                      <td className="px-4 py-3 text-zinc-500">
                         {sub.end_date ? new Date(sub.end_date as string).toLocaleDateString() : "—"}
                       </td>
                       <td className="px-4 py-3 text-right">
@@ -160,19 +160,19 @@ export default async function AdminSubscriptionsPage() {
 
       {/* Plans List */}
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-gray-900">Plans ({allPlans.length})</h2>
+        <h2 className="text-lg font-semibold text-zinc-900">Plans ({allPlans.length})</h2>
         {allPlans.length === 0 ? (
-          <div className="rounded-xl border bg-white p-8 text-center">
-            <p className="text-gray-500">No plans created yet.</p>
+          <div className="rounded-xl border border-zinc-200 bg-white p-8 text-center">
+            <p className="text-zinc-500">No plans created yet.</p>
           </div>
         ) : (
           <div className="space-y-3">
             {allPlans.map((plan) => (
-              <div key={plan.id as string} className="rounded-xl border bg-white p-4">
+              <div key={plan.id as string} className="rounded-xl border border-zinc-200 bg-white p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="font-medium text-gray-900">{plan.name as string}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="font-medium text-zinc-900">{plan.name as string}</p>
+                    <p className="text-sm text-zinc-500">
                       TZS {Number(plan.price).toLocaleString()} / {(plan.billing_period as string).toLowerCase()}
                       {(plan.description as string) && <span className="ml-2">· {plan.description as string}</span>}
                     </p>

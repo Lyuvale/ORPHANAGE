@@ -52,45 +52,45 @@ export default async function ResourcesOverviewPage() {
       {/* Summary cards */}
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {cards.map((c) => (
-          <div key={c.label} className="rounded-lg border bg-white p-4">
+          <div key={c.label} className="rounded-lg border border-zinc-200 bg-white p-4">
             <div className={`text-2xl font-bold ${c.color}`}>{c.value}</div>
-            <div className="text-sm text-gray-500">{c.label}</div>
+            <div className="text-sm text-zinc-500">{c.label}</div>
           </div>
         ))}
       </div>
 
       {/* Breakdowns */}
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="rounded-lg border bg-white p-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">By Source Type</h2>
+        <div className="rounded-lg border border-zinc-200 bg-white p-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">By Source Type</h2>
           <div className="mt-2 flex flex-wrap gap-2">
             {overview?.by_source_type?.map(
               (e: { source_type: string; count: number; amount: number }) => (
-                <span key={e.source_type} className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700">
+                <span key={e.source_type} className="rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-700">
                   {getSourceTypeDisplay(e.source_type as never)} · {e.count} ({formatTsh(e.amount)})
                 </span>
               ),
-            ) ?? <span className="text-sm text-gray-400">No sources yet</span>}
+            ) ?? <span className="text-sm text-zinc-400">No sources yet</span>}
           </div>
         </div>
-        <div className="rounded-lg border bg-white p-4">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">By Benefit Type</h2>
+        <div className="rounded-lg border border-zinc-200 bg-white p-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">By Benefit Type</h2>
           <div className="mt-2 flex flex-wrap gap-2">
             {overview?.by_benefit_type?.map(
               (e: { benefit_type: string; count: number }) => (
-                <span key={e.benefit_type} className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700">
+                <span key={e.benefit_type} className="rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-700">
                   {getBenefitTypeDisplay(e.benefit_type as never)} · {e.count}
                 </span>
               ),
-            ) ?? <span className="text-sm text-gray-400">No benefits yet</span>}
+            ) ?? <span className="text-sm text-zinc-400">No benefits yet</span>}
           </div>
         </div>
       </div>
 
       {/* Recent funds */}
-      <div className="mb-6 rounded-lg border bg-white p-4">
+      <div className="mb-6 rounded-lg border border-zinc-200 bg-white p-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Recent Funds</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">Recent Funds</h2>
           <Link href="/resources/funds" className="text-sm font-semibold text-indigo-600 hover:text-indigo-500">
             View all
           </Link>
@@ -100,38 +100,38 @@ export default async function ResourcesOverviewPage() {
             <Link
               key={f.id}
               href={`/resources/funds/${f.id}`}
-              className="rounded-lg border border-gray-200 p-4 hover:bg-gray-50"
+              className="rounded-lg border border-zinc-200 p-4 hover:bg-zinc-50"
             >
-              <div className="font-semibold text-gray-900">{f.fund_name}</div>
-              <div className="mt-2 text-sm text-gray-500">
+              <div className="font-semibold text-zinc-900">{f.fund_name}</div>
+              <div className="mt-2 text-sm text-zinc-500">
                 Received {formatTsh(f.amount_allocated)}
               </div>
-              <div className="text-sm text-gray-500">Used {formatTsh(f.used)}</div>
+              <div className="text-sm text-zinc-500">Used {formatTsh(f.used)}</div>
               <div className="text-sm font-semibold text-emerald-600">Balance {formatTsh(f.balance)}</div>
             </Link>
           ))}
           {(overview?.recent_funds ?? []).length === 0 && (
-            <p className="text-sm text-gray-400">No funds yet.</p>
+            <p className="text-sm text-zinc-400">No funds yet.</p>
           )}
         </div>
       </div>
 
       {/* Reports */}
-      <div className="rounded-lg border bg-white p-4">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Reports</h2>
-        <p className="mt-1 text-sm text-gray-500">
+      <div className="rounded-lg border border-zinc-200 bg-white p-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">Reports</h2>
+        <p className="mt-1 text-sm text-zinc-500">
           Export reports based on the Source → Fund → Expense → Benefit → Child relationship, plus
           the Asset register.
         </p>
         <div className="mt-3 space-y-2">
           {REPORT_TYPES.map((rt) => (
             <div key={rt.key} className="flex flex-wrap items-center gap-2">
-              <span className="w-36 text-sm font-medium text-gray-700">{rt.label}</span>
+              <span className="w-36 text-sm font-medium text-zinc-700">{rt.label}</span>
               {FORMATS.map((fm) => (
                 <a
                   key={fm.key}
                   href={`/api/resources/reports?type=${rt.key}&format=${fm.key}`}
-                  className="rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-200"
+                  className="rounded-md bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-700 hover:bg-gray-200"
                 >
                   {fm.label}
                 </a>

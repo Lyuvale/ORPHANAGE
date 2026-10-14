@@ -36,14 +36,14 @@ async function getGuardianRelationships(guardianId: string) {
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
     active: "bg-green-100 text-green-800",
-    inactive: "bg-gray-100 text-gray-800",
+    inactive: "bg-zinc-100 text-gray-800",
     deceased: "bg-red-100 text-red-800",
     unknown: "bg-yellow-100 text-yellow-800",
   };
 
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-sm font-medium ${colors[status] ?? "bg-gray-100 text-gray-800"}`}
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-sm font-medium ${colors[status] ?? "bg-zinc-100 text-gray-800"}`}
     >
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
@@ -61,7 +61,7 @@ export default async function GuardianDetailPage({
   if (!guardian) {
     return (
       <div className="text-center py-12">
-        <p className="text-sm text-gray-500">Guardian not found.</p>
+        <p className="text-sm text-zinc-500">Guardian not found.</p>
         <Link href="/guardians" className="mt-4 inline-block text-sm font-semibold text-indigo-600 hover:text-indigo-500">
           Back to guardians
         </Link>
@@ -92,10 +92,10 @@ export default async function GuardianDetailPage({
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <Link href="/children" className="text-sm text-gray-500 hover:text-gray-700">
+          <Link href="/children" className="text-sm text-zinc-500 hover:text-zinc-700">
             &larr; Back to children
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900 mt-2">
+          <h1 className="text-2xl font-bold text-zinc-900 mt-2">
             {guardian.preferred_name || guardian.first_name}
             {guardian.middle_name ? ` ${guardian.middle_name}` : ""}{" "}
             {guardian.last_name}
@@ -124,12 +124,12 @@ export default async function GuardianDetailPage({
       )}
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <div className="rounded-lg border border-gray-200 p-4">
-          <h2 className="text-sm font-semibold text-gray-900 mb-3">Personal Details</h2>
+        <div className="rounded-lg border border-zinc-200 p-4">
+          <h2 className="text-sm font-semibold text-zinc-900 mb-3">Personal Details</h2>
           <dl className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <dt className="text-gray-500">Full Name</dt>
-              <dd className="text-gray-900">
+              <dt className="text-zinc-500">Full Name</dt>
+              <dd className="text-zinc-900">
                 {guardian.first_name}
                 {guardian.middle_name ? ` ${guardian.middle_name}` : ""}{" "}
                 {guardian.last_name}
@@ -137,84 +137,84 @@ export default async function GuardianDetailPage({
             </div>
             {guardian.preferred_name && (
               <div className="flex justify-between">
-                <dt className="text-gray-500">Preferred Name</dt>
-                <dd className="text-gray-900">{guardian.preferred_name}</dd>
+                <dt className="text-zinc-500">Preferred Name</dt>
+                <dd className="text-zinc-900">{guardian.preferred_name}</dd>
               </div>
             )}
             {guardian.gender && (
               <div className="flex justify-between">
-                <dt className="text-gray-500">Gender</dt>
-                <dd className="text-gray-900">{guardian.gender.charAt(0).toUpperCase() + guardian.gender.slice(1)}</dd>
+                <dt className="text-zinc-500">Gender</dt>
+                <dd className="text-zinc-900">{guardian.gender.charAt(0).toUpperCase() + guardian.gender.slice(1)}</dd>
               </div>
             )}
             {guardian.date_of_birth && (
               <div className="flex justify-between">
-                <dt className="text-gray-500">Date of Birth</dt>
-                <dd className="text-gray-900">{new Date(guardian.date_of_birth).toLocaleDateString()}</dd>
+                <dt className="text-zinc-500">Date of Birth</dt>
+                <dd className="text-zinc-900">{new Date(guardian.date_of_birth).toLocaleDateString()}</dd>
               </div>
             )}
             {guardian.occupation && (
               <div className="flex justify-between">
-                <dt className="text-gray-500">Occupation</dt>
-                <dd className="text-gray-900">{guardian.occupation}</dd>
+                <dt className="text-zinc-500">Occupation</dt>
+                <dd className="text-zinc-900">{guardian.occupation}</dd>
               </div>
             )}
           </dl>
         </div>
 
-        <div className="rounded-lg border border-gray-200 p-4">
-          <h2 className="text-sm font-semibold text-gray-900 mb-3">Contact Information</h2>
+        <div className="rounded-lg border border-zinc-200 p-4">
+          <h2 className="text-sm font-semibold text-zinc-900 mb-3">Contact Information</h2>
           <dl className="space-y-2 text-sm">
             {guardian.phone && (
               <div className="flex justify-between">
-                <dt className="text-gray-500">Phone</dt>
-                <dd className="text-gray-900">{guardian.phone}</dd>
+                <dt className="text-zinc-500">Phone</dt>
+                <dd className="text-zinc-900">{guardian.phone}</dd>
               </div>
             )}
             {guardian.alternative_phone && (
               <div className="flex justify-between">
-                <dt className="text-gray-500">Alt. Phone</dt>
-                <dd className="text-gray-900">{guardian.alternative_phone}</dd>
+                <dt className="text-zinc-500">Alt. Phone</dt>
+                <dd className="text-zinc-900">{guardian.alternative_phone}</dd>
               </div>
             )}
             {guardian.email && (
               <div className="flex justify-between">
-                <dt className="text-gray-500">Email</dt>
-                <dd className="text-gray-900">{guardian.email}</dd>
+                <dt className="text-zinc-500">Email</dt>
+                <dd className="text-zinc-900">{guardian.email}</dd>
               </div>
             )}
             {guardian.address && (
               <div className="flex justify-between">
-                <dt className="text-gray-500">Address</dt>
-                <dd className="text-gray-900 text-right max-w-xs">{guardian.address}</dd>
+                <dt className="text-zinc-500">Address</dt>
+                <dd className="text-zinc-900 text-right max-w-xs">{guardian.address}</dd>
               </div>
             )}
             {guardian.id_reference && (
               <div className="flex justify-between">
-                <dt className="text-gray-500">ID Reference</dt>
-                <dd className="text-gray-900 font-mono">{guardian.id_reference}</dd>
+                <dt className="text-zinc-500">ID Reference</dt>
+                <dd className="text-zinc-900 font-mono">{guardian.id_reference}</dd>
               </div>
             )}
           </dl>
         </div>
 
-        <div className="rounded-lg border border-gray-200 p-4 sm:col-span-2">
-          <h2 className="text-sm font-semibold text-gray-900 mb-3">Connected Children</h2>
+        <div className="rounded-lg border border-zinc-200 p-4 sm:col-span-2">
+          <h2 className="text-sm font-semibold text-zinc-900 mb-3">Connected Children</h2>
           {relationships.data.length === 0 ? (
-            <p className="text-sm text-gray-500">No relationships recorded.</p>
+            <p className="text-sm text-zinc-500">No relationships recorded.</p>
           ) : (
             <div className="overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="min-w-full divide-y divide-zinc-200">
                 <thead>
                   <tr>
-                    <th className="text-left text-xs font-medium text-gray-500 uppercase">Child</th>
-                    <th className="text-left text-xs font-medium text-gray-500 uppercase">Relationship</th>
-                    <th className="text-left text-xs font-medium text-gray-500 uppercase">Primary</th>
-                    <th className="text-left text-xs font-medium text-gray-500 uppercase">Active</th>
-                    <th className="text-left text-xs font-medium text-gray-500 uppercase">Start Date</th>
+                    <th className="text-left text-xs font-medium text-zinc-500 uppercase">Child</th>
+                    <th className="text-left text-xs font-medium text-zinc-500 uppercase">Relationship</th>
+                    <th className="text-left text-xs font-medium text-zinc-500 uppercase">Primary</th>
+                    <th className="text-left text-xs font-medium text-zinc-500 uppercase">Active</th>
+                    <th className="text-left text-xs font-medium text-zinc-500 uppercase">Start Date</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-zinc-100">
                   {relationships.data.map(
                     (rel: {
                       id: string;
@@ -238,29 +238,29 @@ export default async function GuardianDetailPage({
                               : `${rel.child_id.slice(0, 8)}...`}
                           </Link>
                           {rel.child?.reference_number && (
-                            <span className="block text-xs text-gray-400 font-mono">
+                            <span className="block text-xs text-zinc-400 font-mono">
                               {rel.child.reference_number}
                             </span>
                           )}
                         </td>
-                        <td className="py-2 text-sm text-gray-900">
+                        <td className="py-2 text-sm text-zinc-900">
                           {rel.relationship_type.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase())}
                         </td>
                         <td className="py-2 text-sm">
                           {rel.is_primary ? (
                             <span className="text-green-600 font-medium">Yes</span>
                           ) : (
-                            <span className="text-gray-400">No</span>
+                            <span className="text-zinc-400">No</span>
                           )}
                         </td>
                         <td className="py-2 text-sm">
                           {rel.is_active ? (
                             <span className="text-green-600">Active</span>
                           ) : (
-                            <span className="text-gray-400">Ended</span>
+                            <span className="text-zinc-400">Ended</span>
                           )}
                         </td>
-                        <td className="py-2 text-sm text-gray-500">
+                        <td className="py-2 text-sm text-zinc-500">
                           {new Date(rel.start_date).toLocaleDateString()}
                         </td>
                       </tr>
@@ -273,9 +273,9 @@ export default async function GuardianDetailPage({
         </div>
 
         {guardian.notes && (
-          <div className="rounded-lg border border-gray-200 p-4 sm:col-span-2">
-            <h2 className="text-sm font-semibold text-gray-900 mb-3">Notes</h2>
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">{guardian.notes}</p>
+          <div className="rounded-lg border border-zinc-200 p-4 sm:col-span-2">
+            <h2 className="text-sm font-semibold text-zinc-900 mb-3">Notes</h2>
+            <p className="text-sm text-zinc-700 whitespace-pre-wrap">{guardian.notes}</p>
           </div>
         )}
       </div>

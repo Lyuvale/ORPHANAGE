@@ -37,13 +37,13 @@ function StatusBadge({ status }: { status: string }) {
     active: "bg-green-100 text-green-800",
     transferred: "bg-blue-100 text-blue-800",
     graduated: "bg-purple-100 text-purple-800",
-    alumni: "bg-gray-100 text-gray-800",
+    alumni: "bg-zinc-100 text-gray-800",
     deactivated: "bg-red-100 text-red-800",
   };
 
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${colors[status] ?? "bg-gray-100 text-gray-800"}`}
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${colors[status] ?? "bg-zinc-100 text-gray-800"}`}
     >
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
@@ -73,7 +73,7 @@ export default async function ChildrenListPage({
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Children</h1>
+        <h1 className="text-2xl font-bold text-zinc-900">Children</h1>
         <div className="flex items-center gap-3">
           <ReportExportDialog
             apiPath="/api/reports/children"
@@ -99,12 +99,12 @@ export default async function ChildrenListPage({
           name="search"
           placeholder="Search by name or reference..."
           defaultValue={params.search ?? ""}
-          className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+          className="block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
         />
         <select
           name="status"
           defaultValue={params.status ?? ""}
-          className="block rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+          className="block rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
         >
           <option value="">All Statuses</option>
           <option value="active">Active</option>
@@ -115,7 +115,7 @@ export default async function ChildrenListPage({
         </select>
         <button
           type="submit"
-          className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+          className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-zinc-50"
         >
           Search
         </button>
@@ -204,7 +204,7 @@ export default async function ChildrenListPage({
         </div>
       )}
 
-      <p className="mt-4 text-sm text-gray-500">
+      <p className="mt-4 text-sm text-zinc-500">
         {count} {count === 1 ? "child" : "children"} total
       </p>
     </div>

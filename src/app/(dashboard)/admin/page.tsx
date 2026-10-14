@@ -204,8 +204,8 @@ export default async function AdminPage() {
       {/* ── Header ──────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Platform Dashboard</h1>
-          <p className="text-sm text-gray-500">Overview of all centres, subscriptions and payments</p>
+          <h1 className="text-2xl font-bold text-zinc-900">Platform Dashboard</h1>
+          <p className="text-sm text-zinc-500">Overview of all centres, subscriptions and payments</p>
         </div>
         <span className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
           PLATFORM ADMIN
@@ -216,13 +216,13 @@ export default async function AdminPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {kpiCards.map((kpi) => {
           const cardContent = (
-            <div className={`group rounded-xl border bg-white p-5 shadow-sm transition hover:shadow-md ${kpi.color.split(" ")[0]} hover:border-current`}>
+            <div className={`group rounded-xl border border-zinc-200 bg-white p-5 transition hover:shadow-md ${kpi.color.split(" ")[0]} hover:border-current`}>
               <div className="flex items-center justify-between">
                 <span className="text-2xl">{kpi.icon}</span>
-                {kpi.href && <span className="text-xs text-gray-400 group-hover:text-gray-600">→</span>}
+                {kpi.href && <span className="text-xs text-zinc-400 group-hover:text-zinc-600">→</span>}
               </div>
-              <p className="mt-3 text-2xl font-bold text-gray-900">{kpi.value}</p>
-              <p className="text-sm text-gray-500">{kpi.label}</p>
+              <p className="mt-3 text-2xl font-bold text-zinc-900">{kpi.value}</p>
+              <p className="text-sm text-zinc-500">{kpi.label}</p>
               <p className={`mt-1 text-xs font-medium ${kpi.color.split(" ")[1]}`}>{kpi.sub}</p>
             </div>
           );
@@ -242,47 +242,47 @@ export default async function AdminPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Link
           href="/admin/centres/new"
-          className="flex items-center gap-3 rounded-xl border-2 border-dashed border-indigo-200 bg-white p-4 text-center transition hover:border-indigo-400 hover:bg-indigo-50"
+          className="flex items-center gap-3 rounded-xl border-2 border-dashed border-indigo-200 bg-white p-4 text-center transition hover:border-zinc-400 hover:bg-indigo-50"
         >
           <span className="text-2xl">➕</span>
-          <span className="text-sm font-medium text-gray-700">Create Centre</span>
+          <span className="text-sm font-medium text-zinc-700">Create Centre</span>
         </Link>
         <Link
           href="/admin/users"
           className="flex items-center gap-3 rounded-xl border-2 border-dashed border-blue-200 bg-white p-4 text-center transition hover:border-blue-400 hover:bg-blue-50"
         >
           <span className="text-2xl">👤</span>
-          <span className="text-sm font-medium text-gray-700">Create Manager</span>
+          <span className="text-sm font-medium text-zinc-700">Create Manager</span>
         </Link>
         <Link
           href="/admin/subscriptions"
           className="flex items-center gap-3 rounded-xl border-2 border-dashed border-amber-200 bg-white p-4 text-center transition hover:border-amber-400 hover:bg-amber-50"
         >
           <span className="text-2xl">📋</span>
-          <span className="text-sm font-medium text-gray-700">Manage Plans</span>
+          <span className="text-sm font-medium text-zinc-700">Manage Plans</span>
         </Link>
         <Link
           href="/admin/payments"
           className="flex items-center gap-3 rounded-xl border-2 border-dashed border-green-200 bg-white p-4 text-center transition hover:border-green-400 hover:bg-green-50"
         >
           <span className="text-2xl">💳</span>
-          <span className="text-sm font-medium text-gray-700">View Payments</span>
+          <span className="text-sm font-medium text-zinc-700">View Payments</span>
         </Link>
       </div>
 
       {/* ── Two-column layout: Revenue + Recent Centres ──────── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Revenue Breakdown */}
-        <div className="rounded-xl border bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">Revenue Breakdown</h2>
+        <div className="rounded-xl border border-zinc-200 bg-white p-6">
+          <h2 className="mb-4 text-lg font-semibold text-zinc-900">Revenue Breakdown</h2>
           <div className="space-y-4">
             {revenueBreakdown.map((rb) => (
               <div key={rb.label}>
                 <div className="mb-1 flex items-center justify-between text-sm">
-                  <span className="text-gray-600">{rb.label}</span>
-                  <span className="font-medium text-gray-900">TZS {rb.amount.toLocaleString()}</span>
+                  <span className="text-zinc-600">{rb.label}</span>
+                  <span className="font-medium text-zinc-900">TZS {rb.amount.toLocaleString()}</span>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+                <div className="h-2 overflow-hidden rounded-full bg-zinc-100">
                   <div
                     className={`h-full rounded-full ${rb.color} transition-all`}
                     style={{ width: `${(rb.amount / maxRevenue) * 100}%` }}
@@ -293,39 +293,39 @@ export default async function AdminPage() {
           </div>
           <div className="mt-4 border-t pt-3">
             <div className="flex items-center justify-between text-sm">
-              <span className="font-medium text-gray-700">Total Revenue</span>
-              <span className="text-lg font-bold text-gray-900">TZS {totalRevenue.toLocaleString()}</span>
+              <span className="font-medium text-zinc-700">Total Revenue</span>
+              <span className="text-lg font-bold text-zinc-900">TZS {totalRevenue.toLocaleString()}</span>
             </div>
           </div>
         </div>
 
         {/* Recent Centres */}
-        <div className="rounded-xl border bg-white p-6 shadow-sm">
+        <div className="rounded-xl border border-zinc-200 bg-white p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Centres</h2>
+            <h2 className="text-lg font-semibold text-zinc-900">Recent Centres</h2>
             <Link href="/admin/centres" className="text-sm text-indigo-600 hover:text-indigo-800">
               View all →
             </Link>
           </div>
           {recentCentres.length === 0 ? (
-            <p className="text-sm text-gray-500">No centres yet.</p>
+            <p className="text-sm text-zinc-500">No centres yet.</p>
           ) : (
             <div className="space-y-3">
               {recentCentres.map((c) => (
                 <Link
                   key={c.id as string}
                   href={`/admin/centres/${c.id}`}
-                  className="flex items-center justify-between rounded-lg border p-3 transition hover:bg-gray-50"
+                  className="flex items-center justify-between rounded-lg border p-3 transition hover:bg-zinc-50"
                 >
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{c.name as string}</p>
-                    <p className="text-xs text-gray-500">{c.code as string}</p>
+                    <p className="text-sm font-medium text-zinc-900">{c.name as string}</p>
+                    <p className="text-xs text-zinc-500">{c.code as string}</p>
                   </div>
                   <span
                     className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                       c.status === "active"
                         ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-600"
+                        : "bg-zinc-100 text-zinc-600"
                     }`}
                   >
                     {c.status === "active" ? "Active" : "Inactive"}
@@ -340,15 +340,15 @@ export default async function AdminPage() {
       {/* ── Two-column: Recent Subscriptions + Audit Trail ───── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Recent Subscriptions */}
-        <div className="rounded-xl border bg-white p-6 shadow-sm">
+        <div className="rounded-xl border border-zinc-200 bg-white p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Subscriptions</h2>
+            <h2 className="text-lg font-semibold text-zinc-900">Recent Subscriptions</h2>
             <Link href="/admin/subscriptions" className="text-sm text-indigo-600 hover:text-indigo-800">
               View all →
             </Link>
           </div>
           {recentSubs.length === 0 ? (
-            <p className="text-sm text-gray-500">No subscriptions yet.</p>
+            <p className="text-sm text-zinc-500">No subscriptions yet.</p>
           ) : (
             <div className="space-y-3">
               {recentSubs.map((sub) => {
@@ -357,8 +357,8 @@ export default async function AdminPage() {
                 return (
                   <div key={sub.id as string} className="flex items-center justify-between rounded-lg border p-3">
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{centre?.name ?? "Unknown"}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-sm font-medium text-zinc-900">{centre?.name ?? "Unknown"}</p>
+                      <p className="text-xs text-zinc-500">
                         {plan?.name ?? "—"} {plan?.price != null ? `· TZS ${Number(plan.price).toLocaleString()}` : ""}
                       </p>
                     </div>
@@ -369,7 +369,7 @@ export default async function AdminPage() {
                           : sub.status === "trial"
                             ? "bg-blue-100 text-blue-700"
                             : sub.status === "expired"
-                              ? "bg-gray-100 text-gray-600"
+                              ? "bg-zinc-100 text-zinc-600"
                               : "bg-amber-100 text-amber-700"
                       }`}
                     >
@@ -383,15 +383,15 @@ export default async function AdminPage() {
         </div>
 
         {/* Audit Trail */}
-        <div className="rounded-xl border bg-white p-6 shadow-sm">
+        <div className="rounded-xl border border-zinc-200 bg-white p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
+            <h2 className="text-lg font-semibold text-zinc-900">Recent Activity</h2>
             <Link href="/audit" className="text-sm text-indigo-600 hover:text-indigo-800">
               View all →
             </Link>
           </div>
           {auditEntries.length === 0 ? (
-            <p className="text-sm text-gray-500">No activity yet.</p>
+            <p className="text-sm text-zinc-500">No activity yet.</p>
           ) : (
             <div className="space-y-3">
               {auditEntries.map((entry) => (
@@ -408,10 +408,10 @@ export default async function AdminPage() {
                             : "📝"}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm text-gray-900">
+                    <p className="text-sm text-zinc-900">
                       {ACTION_LABELS[entry.action as string] ?? (entry.action as string)}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-zinc-500">
                       {entry.entity_type as string} · {new Date(entry.created_at as string).toLocaleString("en-GB", {
                         day: "2-digit",
                         month: "short",

@@ -186,7 +186,7 @@ export default function SafeguardingPage() {
                     <span
                       className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
                         c.status === "resolved" || c.status === "closed"
-                          ? "bg-gray-100 text-gray-800"
+                          ? "bg-zinc-100 text-gray-800"
                           : c.status === "under_investigation"
                             ? "bg-purple-100 text-purple-800"
                             : "bg-blue-100 text-blue-800"

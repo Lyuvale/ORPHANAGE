@@ -79,8 +79,8 @@ export default function NewFundForm() {
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
       <div>
-        <h2 className="text-lg font-medium text-gray-900">Add Fund</h2>
-        <p className="text-sm text-gray-500">Allocate money from a Source for a specific purpose</p>
+        <h2 className="text-lg font-medium text-zinc-900">Add Fund</h2>
+        <p className="text-sm text-zinc-500">Allocate money from a Source for a specific purpose</p>
       </div>
 
       {error && (
@@ -89,12 +89,12 @@ export default function NewFundForm() {
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-gray-700">Source</label>
+          <label className="block text-sm font-medium text-zinc-700">Source</label>
           <select
             required
             value={sourceId}
             onChange={(e) => setSourceId(e.target.value)}
-            className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
           >
             <option value="">Select a source...</option>
             {sources.map((s) => (
@@ -104,23 +104,23 @@ export default function NewFundForm() {
             ))}
           </select>
           {selected && selected.remaining !== undefined && (
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-zinc-500">
               This source has {selected.remaining.toLocaleString()} remaining to allocate.
             </p>
           )}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Fund Name</label>
+          <label className="block text-sm font-medium text-zinc-700">Fund Name</label>
           <input
             type="text"
             required
             value={fundName}
             onChange={(e) => setFundName(e.target.value)}
-            className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Amount Allocated (Tsh)</label>
+          <label className="block text-sm font-medium text-zinc-700">Amount Allocated (Tsh)</label>
           <input
             type="number"
             step="0.01"
@@ -128,16 +128,16 @@ export default function NewFundForm() {
             min="0"
             value={amountAllocated}
             onChange={(e) => setAmountAllocated(e.target.value)}
-            className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
           />
         </div>
         <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-gray-700">Purpose</label>
+          <label className="block text-sm font-medium text-zinc-700">Purpose</label>
           <input
             type="text"
             value={purpose}
             onChange={(e) => setPurpose(e.target.value)}
-            className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
           />
         </div>
       </div>
@@ -146,11 +146,11 @@ export default function NewFundForm() {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
+          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-zinc-500 disabled:opacity-50"
         >
           {saving ? "Saving..." : "Save Fund"}
         </button>
-        <Link href="/resources/funds" className="text-sm font-semibold text-gray-600 hover:text-gray-900">
+        <Link href="/resources/funds" className="text-sm font-semibold text-zinc-600 hover:text-zinc-900">
           Cancel
         </Link>
       </div>

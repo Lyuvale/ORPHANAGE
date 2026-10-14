@@ -65,7 +65,7 @@ export default function UserAccountsList() {
 
   return (
     <div>
-      <p className="text-sm text-gray-500 mb-3">
+      <p className="text-sm text-zinc-500 mb-3">
         Each person&apos;s <span className="font-medium">username is their email address</span>.
         If someone forgets their password, reset it here and share the temporary
         password with them directly.
@@ -82,7 +82,7 @@ export default function UserAccountsList() {
           <p className="text-sm font-semibold text-green-900">
             Temporary password for {result.displayName} ({result.email})
           </p>
-          <p className="mt-1 font-mono text-lg font-bold text-gray-900 select-all">
+          <p className="mt-1 font-mono text-lg font-bold text-zinc-900 select-all">
             {result.tempPassword}
           </p>
           <p className="mt-1 text-xs text-green-800">
@@ -98,25 +98,25 @@ export default function UserAccountsList() {
       )}
 
       {loading ? (
-        <p className="text-sm text-gray-500">Loading accounts…</p>
+        <p className="text-sm text-zinc-500">Loading accounts…</p>
       ) : accounts.length === 0 ? (
-        <p className="text-sm text-gray-500">No login accounts yet.</p>
+        <p className="text-sm text-zinc-500">No login accounts yet.</p>
       ) : (
-        <ul className="divide-y divide-gray-200 rounded-lg border bg-white">
+        <ul className="divide-y divide-zinc-200 rounded-lg border border-zinc-200 bg-white">
           {accounts.map((a) => (
             <li key={a.id} className="px-4 py-3 flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">
+                <p className="text-sm font-semibold text-zinc-900 truncate">
                   {a.first_name} {a.last_name}
                 </p>
-                <p className="text-xs text-gray-500 font-mono truncate">{a.email}</p>
+                <p className="text-xs text-zinc-500 font-mono truncate">{a.email}</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <span className="text-xs text-gray-400">{a.status}</span>
+                <span className="text-xs text-zinc-400">{a.status}</span>
                 <button
                   onClick={() => reset(a.id, `${a.first_name} ${a.last_name}`)}
                   disabled={busyId !== null}
-                  className="rounded-md bg-white px-3 py-1.5 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50"
+                  className="rounded-md bg-white px-3 py-1.5 text-xs font-semibold text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-zinc-50 disabled:opacity-50"
                 >
                   {busyId === a.id ? "…" : "Reset password"}
                 </button>

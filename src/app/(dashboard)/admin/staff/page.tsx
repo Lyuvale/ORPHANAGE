@@ -118,73 +118,73 @@ export default async function AdminStaffPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Staff Summary</h1>
-        <Link href="/admin" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+        <h1 className="text-2xl font-bold text-zinc-900">Staff Summary</h1>
+        <Link href="/admin" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50">
           Back to Dashboard
         </Link>
       </div>
 
       <nav className="flex flex-wrap gap-2">
-        <Link href="/admin" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Overview</Link>
-        <Link href="/admin/centres" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Centres</Link>
+        <Link href="/admin" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Overview</Link>
+        <Link href="/admin/centres" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Centres</Link>
         <Link href="/admin/staff" className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white">Staff</Link>
-        <Link href="/admin/subscriptions" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Subscriptions</Link>
-        <Link href="/admin/payments" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Payments</Link>
+        <Link href="/admin/subscriptions" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Subscriptions</Link>
+        <Link href="/admin/payments" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Payments</Link>
       </nav>
 
       {/* Summary stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border bg-white p-5 shadow-sm">
-          <p className="text-sm text-gray-500">Total Staff</p>
-          <p className="mt-1 text-2xl font-bold text-gray-900">{staff.length}</p>
-          <p className="text-xs text-gray-400">active & revoked</p>
+        <div className="rounded-xl border border-zinc-200 bg-white p-5">
+          <p className="text-sm text-zinc-500">Total Staff</p>
+          <p className="mt-1 text-2xl font-bold text-zinc-900">{staff.length}</p>
+          <p className="text-xs text-zinc-400">active & revoked</p>
         </div>
-        <div className="rounded-xl border bg-white p-5 shadow-sm">
-          <p className="text-sm text-gray-500">Centres with Staff</p>
-          <p className="mt-1 text-2xl font-bold text-gray-900">{byCentre.size}</p>
-          <p className="text-xs text-gray-400">of {realCentres.length} active</p>
+        <div className="rounded-xl border border-zinc-200 bg-white p-5">
+          <p className="text-sm text-zinc-500">Centres with Staff</p>
+          <p className="mt-1 text-2xl font-bold text-zinc-900">{byCentre.size}</p>
+          <p className="text-xs text-zinc-400">of {realCentres.length} active</p>
         </div>
-        <div className="rounded-xl border bg-white p-5 shadow-sm">
-          <p className="text-sm text-gray-500">Managers</p>
-          <p className="mt-1 text-2xl font-bold text-gray-900">
+        <div className="rounded-xl border border-zinc-200 bg-white p-5">
+          <p className="text-sm text-zinc-500">Managers</p>
+          <p className="mt-1 text-2xl font-bold text-zinc-900">
             {staff.filter((s) => s.role_name === "CENTRE_MANAGER").length}
           </p>
-          <p className="text-xs text-gray-400">centres assigned a manager</p>
+          <p className="text-xs text-zinc-400">centres assigned a manager</p>
         </div>
       </div>
 
       {/* Per-centre breakdown */}
       {realCentres.length === 0 ? (
-        <p className="text-sm text-gray-500">No centres found.</p>
+        <p className="text-sm text-zinc-500">No centres found.</p>
       ) : (
         <div className="space-y-4">
           {realCentres.map((c) => {
             const centreStaff = byCentre.get(c.id) ?? [];
             return (
-              <div key={c.id} className="rounded-xl border bg-white p-5 shadow-sm">
+              <div key={c.id} className="rounded-xl border border-zinc-200 bg-white p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-base font-semibold text-gray-900">
-                      {c.name} <span className="ml-1 text-xs text-gray-400">({c.code})</span>
+                    <h2 className="text-base font-semibold text-zinc-900">
+                      {c.name} <span className="ml-1 text-xs text-zinc-400">({c.code})</span>
                     </h2>
                     <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                      c.status === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
+                      c.status === "active" ? "bg-green-100 text-green-700" : "bg-zinc-100 text-zinc-600"
                     }`}>
                       {c.status === "active" ? "Active" : "Deactivated"}
                     </span>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-gray-900">{centreStaff.length}</p>
-                    <p className="text-xs text-gray-400">staff</p>
+                    <p className="text-2xl font-bold text-zinc-900">{centreStaff.length}</p>
+                    <p className="text-xs text-zinc-400">staff</p>
                   </div>
                 </div>
                 {centreStaff.length === 0 ? (
-                  <p className="mt-3 text-sm text-gray-500">No staff assigned to this centre yet.</p>
+                  <p className="mt-3 text-sm text-zinc-500">No staff assigned to this centre yet.</p>
                 ) : (
                   <div className="mt-3 overflow-x-auto">
                     <table className="min-w-full text-sm">
                       <thead>
-                        <tr className="border-b text-left text-xs font-medium text-gray-500 uppercase">
+                        <tr className="border-b text-left text-xs font-medium text-zinc-500 uppercase">
                           <th className="px-3 py-2">Name</th>
                           <th className="px-3 py-2">Email</th>
                           <th className="px-3 py-2">Role</th>
@@ -192,13 +192,13 @@ export default async function AdminStaffPage() {
                           <th className="px-3 py-2">Action</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100">
+                      <tbody className="divide-y divide-zinc-100">
                         {centreStaff.map((m) => (
-                          <tr key={`${m.id}-${m.centre_id}`} className="hover:bg-gray-50">
-                            <td className="px-3 py-2 font-medium text-gray-900">
+                          <tr key={`${m.id}-${m.centre_id}`} className="hover:bg-zinc-50">
+                            <td className="px-3 py-2 font-medium text-zinc-900">
                               {[m.first_name, m.last_name].filter(Boolean).join(" ") || "—"}
                             </td>
-                            <td className="px-3 py-2 text-gray-500">{m.email ?? "—"}</td>
+                            <td className="px-3 py-2 text-zinc-500">{m.email ?? "—"}</td>
                             <td className="px-3 py-2">
                               <span className="inline-block rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
                                 {m.role_name}
@@ -210,7 +210,7 @@ export default async function AdminStaffPage() {
                                   Active
                                 </span>
                               ) : (
-                                <span className="inline-block rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
+                                <span className="inline-block rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-600">
                                   Revoked
                                 </span>
                               )}

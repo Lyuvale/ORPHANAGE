@@ -25,12 +25,12 @@ export default async function BenefitsPage({
     <div>
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-medium text-gray-900">Benefits</h2>
-          <p className="text-sm text-gray-500">Support delivered to children, funded by expenses</p>
+          <h2 className="text-lg font-medium text-zinc-900">Benefits</h2>
+          <p className="text-sm text-zinc-500">Support delivered to children, funded by expenses</p>
         </div>
         <Link
           href="/resources/benefits/new"
-          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-zinc-500"
         >
           Add Benefit
         </Link>
@@ -38,7 +38,7 @@ export default async function BenefitsPage({
 
       {benefits.length === 0 ? (
         <div className="rounded-lg border border-dashed bg-white p-12 text-center">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-zinc-500">
             No benefits found.{" "}
             <Link href="/resources/benefits/new" className="font-semibold text-indigo-600">
               Add the first benefit
@@ -49,24 +49,24 @@ export default async function BenefitsPage({
       ) : (
         <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
           <table className="min-w-full divide-y divide-gray-300">
-            <thead className="bg-gray-50">
+            <thead className="bg-zinc-50">
               <tr>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Type</th>
-                <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Description</th>
-                <th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Children</th>
+                <th className="px-3 py-3.5 text-left text-sm font-semibold text-zinc-900">Type</th>
+                <th className="px-3 py-3.5 text-left text-sm font-semibold text-zinc-900">Description</th>
+                <th className="px-3 py-3.5 text-right text-sm font-semibold text-zinc-900">Children</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
+            <tbody className="divide-y divide-zinc-200 bg-white">
               {benefits.map(
                 (b: { id: string; benefit_type: string; description: string | null; children: unknown[] }) => (
-                  <tr key={b.id} className="hover:bg-gray-50">
+                  <tr key={b.id} className="hover:bg-zinc-50">
                     <td className="px-3 py-4 text-sm">
                       <Link href={`/resources/benefits/${b.id}`} className="font-semibold text-indigo-600 hover:text-indigo-500">
                         {getBenefitTypeDisplay(b.benefit_type as never)}
                       </Link>
                     </td>
-                    <td className="px-3 py-4 text-sm text-gray-500">{b.description || "-"}</td>
-                    <td className="px-3 py-4 text-right text-sm text-gray-900">{b.children?.length ?? 0}</td>
+                    <td className="px-3 py-4 text-sm text-zinc-500">{b.description || "-"}</td>
+                    <td className="px-3 py-4 text-right text-sm text-zinc-900">{b.children?.length ?? 0}</td>
                   </tr>
                 ),
               )}

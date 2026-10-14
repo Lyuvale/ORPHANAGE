@@ -36,12 +36,12 @@ export default async function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Create user accounts</h1>
+        <h1 className="text-2xl font-semibold text-zinc-900">Create user accounts</h1>
         <span className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700">
           PLATFORM ADMINISTRATOR
         </span>
       </div>
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-zinc-600">
         Create a centre manager account for a centre. Once signed in, the manager
         can create staff accounts for their own centre.
       </p>

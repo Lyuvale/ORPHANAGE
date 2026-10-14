@@ -105,14 +105,14 @@ export default function EmergencyViewPage() {
         <div className="py-8 text-center text-muted-foreground">Loading...</div>
       ) : view ? (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <div className="rounded-lg border p-4">
+          <div className="rounded-lg border border-zinc-200 bg-white p-4">
             <h2 className="mb-3 text-lg font-semibold">Blood Group</h2>
             <div className="text-lg font-medium">
               {view.blood_group ? view.blood_group.replace("_", " ") : "Unknown"}
             </div>
           </div>
 
-          <div className="rounded-lg border p-4">
+          <div className="rounded-lg border border-zinc-200 bg-white p-4">
             <h2 className="mb-3 text-lg font-semibold">Critical Allergies</h2>
             {view.critical_allergies.length === 0 ? (
               <p className="text-muted-foreground">None recorded</p>
@@ -129,7 +129,7 @@ export default function EmergencyViewPage() {
             )}
           </div>
 
-          <div className="rounded-lg border p-4">
+          <div className="rounded-lg border border-zinc-200 bg-white p-4">
             <h2 className="mb-3 text-lg font-semibold">Important Conditions</h2>
             {view.important_conditions.length === 0 ? (
               <p className="text-muted-foreground">None recorded</p>
@@ -145,7 +145,7 @@ export default function EmergencyViewPage() {
             )}
           </div>
 
-          <div className="rounded-lg border p-4">
+          <div className="rounded-lg border border-zinc-200 bg-white p-4">
             <h2 className="mb-3 text-lg font-semibold">Active Medications</h2>
             {view.active_medications.length === 0 ? (
               <p className="text-muted-foreground">None</p>
@@ -162,12 +162,12 @@ export default function EmergencyViewPage() {
             )}
           </div>
 
-          <div className="rounded-lg border p-4">
+          <div className="rounded-lg border border-zinc-200 bg-white p-4">
             <h2 className="mb-3 text-lg font-semibold">Emergencies / Notes</h2>
             <p>{view.emergency_health_info || "No notes recorded"}</p>
           </div>
 
-          <div className="rounded-lg border p-4">
+          <div className="rounded-lg border border-zinc-200 bg-white p-4">
             <h2 className="mb-3 text-lg font-semibold">Emergency Contacts</h2>
             {view.emergency_contacts.length === 0 ? (
               <p className="text-muted-foreground">None recorded</p>

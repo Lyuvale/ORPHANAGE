@@ -129,13 +129,13 @@ export default function EducationAttendanceWidget({
   }
 
   function getStatusStyle(s: string) {
-    return STATUS_OPTIONS.find((o) => o.value === s)?.color ?? "bg-gray-100 text-gray-800";
+    return STATUS_OPTIONS.find((o) => o.value === s)?.color ?? "bg-zinc-100 text-gray-800";
   }
 
   return (
-    <div className="rounded-lg border bg-white p-4">
+    <div className="rounded-lg border border-zinc-200 bg-white p-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-900">School Attendance</h3>
+        <h3 className="text-sm font-semibold text-zinc-900">School Attendance</h3>
         {canRecordAttendance && (
           <button
             type="button"
@@ -155,15 +155,15 @@ export default function EducationAttendanceWidget({
       )}
 
       {showForm && canRecordAttendance && (
-        <form onSubmit={handleSubmit} className="mb-4 space-y-3 rounded-md bg-gray-50 p-3">
+        <form onSubmit={handleSubmit} className="mb-4 space-y-3 rounded-md bg-zinc-50 p-3">
           {mode === "list" && !childId && (
             <div>
-              <label className="block text-sm font-medium text-gray-700">Child</label>
+              <label className="block text-sm font-medium text-zinc-700">Child</label>
               <select
                 value={formChildId}
                 onChange={(e) => setFormChildId(e.target.value)}
                 required
-                className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               >
                 <option value="">Select a child...</option>
                 {children.map((c) => (
@@ -176,21 +176,21 @@ export default function EducationAttendanceWidget({
           )}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Date</label>
+              <label className="block text-sm font-medium text-zinc-700">Date</label>
               <input
                 type="date"
                 value={attendanceDate}
                 onChange={(e) => setAttendanceDate(e.target.value)}
                 required
-                className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Status</label>
+              <label className="block text-sm font-medium text-zinc-700">Status</label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               >
                 {STATUS_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>
@@ -202,31 +202,31 @@ export default function EducationAttendanceWidget({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Arrival Time</label>
+              <label className="block text-sm font-medium text-zinc-700">Arrival Time</label>
               <input
                 type="time"
                 value={arrivalTime}
                 onChange={(e) => setArrivalTime(e.target.value)}
-                className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Departure Time</label>
+              <label className="block text-sm font-medium text-zinc-700">Departure Time</label>
               <input
                 type="time"
                 value={departureTime}
                 onChange={(e) => setDepartureTime(e.target.value)}
-                className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Notes</label>
+            <label className="block text-sm font-medium text-zinc-700">Notes</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
-              className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+              className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
             />
           </div>
           <button
@@ -240,12 +240,12 @@ export default function EducationAttendanceWidget({
       )}
 
       {records.length === 0 ? (
-        <p className="text-sm text-gray-500">No attendance records yet.</p>
+        <p className="text-sm text-zinc-500">No attendance records yet.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="border-b text-left text-xs font-medium text-gray-500 uppercase">
+              <tr className="border-b text-left text-xs font-medium text-zinc-500 uppercase">
                 {mode === "list" && <th className="px-2 py-1">Child</th>}
                 <th className="px-2 py-1">Date</th>
                 <th className="px-2 py-1">Status</th>
@@ -254,15 +254,15 @@ export default function EducationAttendanceWidget({
                 <th className="px-2 py-1">Notes</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-zinc-100">
               {records.slice(0, 30).map((r) => (
                 <tr key={r.id}>
                   {mode === "list" && (
-                    <td className="px-2 py-1 text-gray-900">
+                    <td className="px-2 py-1 text-zinc-900">
                       {r.child ? `${r.child.first_name} ${r.child.last_name}` : "—"}
                     </td>
                   )}
-                  <td className="px-2 py-1 text-gray-900">
+                  <td className="px-2 py-1 text-zinc-900">
                     {new Date(r.attendance_date).toLocaleDateString()}
                   </td>
                   <td className="px-2 py-1">
@@ -270,9 +270,9 @@ export default function EducationAttendanceWidget({
                       {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
                     </span>
                   </td>
-                  <td className="px-2 py-1 text-gray-500">{r.arrival_time ?? "—"}</td>
-                  <td className="px-2 py-1 text-gray-500">{r.departure_time ?? "—"}</td>
-                  <td className="px-2 py-1 text-gray-500 max-w-[200px] truncate">{r.notes ?? "—"}</td>
+                  <td className="px-2 py-1 text-zinc-500">{r.arrival_time ?? "—"}</td>
+                  <td className="px-2 py-1 text-zinc-500">{r.departure_time ?? "—"}</td>
+                  <td className="px-2 py-1 text-zinc-500 max-w-[200px] truncate">{r.notes ?? "—"}</td>
                 </tr>
               ))}
             </tbody>

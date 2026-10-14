@@ -43,9 +43,9 @@ export default async function TeamPage({
       {canManageAccounts && (
         <section>
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-semibold text-gray-900">Manage team</h1>
+            <h1 className="text-2xl font-semibold text-zinc-900">Manage team</h1>
           </div>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-zinc-600 mt-1">
             Create login accounts for your centre&apos;s staff. Each user is linked to{" "}
             <span className="font-medium">{ctx.centre.name}</span> and signed in with
             their email and password.
@@ -58,8 +58,8 @@ export default async function TeamPage({
 
       {canManageAccounts && (
         <section>
-          <h2 className="text-xl font-semibold text-gray-900">Login accounts & password help</h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <h2 className="text-xl font-semibold text-zinc-900">Login accounts & password help</h2>
+          <p className="text-sm text-zinc-600 mt-1">
             Usernames, and password resets for staff who forget theirs.
           </p>
           <div className="mt-4">

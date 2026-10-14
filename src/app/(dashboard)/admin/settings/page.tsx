@@ -46,23 +46,23 @@ export default async function AdminSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold text-gray-900">Platform Settings</h1>
+      <h1 className="text-2xl font-semibold text-zinc-900">Platform Settings</h1>
       <nav className="flex flex-wrap gap-2">
         <Link
           href="/admin"
-          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
         >
           Overview
         </Link>
         <Link
           href="/admin/centres"
-          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
         >
           Centres
         </Link>
         <Link
           href="/admin/payments"
-          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
         >
           Payments
         </Link>
@@ -75,12 +75,12 @@ export default async function AdminSettingsPage() {
       </nav>
 
       {!data ? (
-        <p className="text-sm text-gray-500">Settings unavailable right now.</p>
+        <p className="text-sm text-zinc-500">Settings unavailable right now.</p>
       ) : (
         <div className="space-y-6">
           <div className="rounded-lg bg-white p-5 shadow-sm border">
-            <h2 className="text-sm font-medium text-gray-900">Online contributions</h2>
-            <p className="mt-1 text-sm text-gray-500">
+            <h2 className="text-sm font-medium text-zinc-900">Online contributions</h2>
+            <p className="mt-1 text-sm text-zinc-500">
               Master switch for public support-a-centre donation pages.
             </p>
             <div className="mt-3">
@@ -89,11 +89,11 @@ export default async function AdminSettingsPage() {
           </div>
 
           <div className="rounded-lg bg-white p-5 shadow-sm border">
-            <h2 className="text-sm font-medium text-gray-900 mb-3">
+            <h2 className="text-sm font-medium text-zinc-900 mb-3">
               Centres accepting online contributions ({data.online_contribution_centres.length})
             </h2>
             {data.online_contribution_centres.length === 0 ? (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-zinc-500">
                 No centres have been configured yet.
               </p>
             ) : (
@@ -101,7 +101,7 @@ export default async function AdminSettingsPage() {
                 {data.online_contribution_centres.map((c) => (
                   <li key={c.centre_id} className="py-2 text-sm">
                     <span className="font-medium text-gray-800">{c.centre_id}</span>
-                    <span className="ml-2 text-gray-500">
+                    <span className="ml-2 text-zinc-500">
                       purposes: {(c.purpose_presets ?? []).join(", ")}
                     </span>
                   </li>

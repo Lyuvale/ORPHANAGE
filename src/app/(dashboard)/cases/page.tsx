@@ -169,7 +169,7 @@ export default function CasesPage() {
                           : c.status === "active_plan"
                             ? "bg-green-100 text-green-800"
                             : c.status === "resolved" || c.status === "closed"
-                              ? "bg-gray-100 text-gray-800"
+                              ? "bg-zinc-100 text-gray-800"
                               : "bg-yellow-100 text-yellow-800"
                       }`}
                     >

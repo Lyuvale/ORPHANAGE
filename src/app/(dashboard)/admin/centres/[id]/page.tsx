@@ -178,41 +178,41 @@ export default async function CentreDetailPage({
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <nav className="text-sm text-gray-500 mb-1">
-            <Link href="/admin/centres" className="hover:text-gray-700">Centres</Link>
+          <nav className="text-sm text-zinc-500 mb-1">
+            <Link href="/admin/centres" className="hover:text-zinc-700">Centres</Link>
             <span className="mx-1">/</span>
-            <span className="text-gray-900">{centre.name}</span>
+            <span className="text-zinc-900">{centre.name}</span>
           </nav>
-          <h1 className="text-2xl font-bold text-gray-900">{centre.name}</h1>
-          <p className="text-sm text-gray-500">Code: {centre.code ?? "—"}</p>
+          <h1 className="text-2xl font-bold text-zinc-900">{centre.name}</h1>
+          <p className="text-sm text-zinc-500">Code: {centre.code ?? "—"}</p>
         </div>
         <CentreActions centreId={centre.id} centreName={centre.name} isActive={centre.status === "active"} />
       </div>
 
       <nav className="flex flex-wrap gap-2">
-        <Link href="/admin" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Overview</Link>
+        <Link href="/admin" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Overview</Link>
         <Link href="/admin/centres" className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white">Centres</Link>
-        <Link href="/admin/subscriptions" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Subscriptions</Link>
-        <Link href="/admin/payments" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Payments</Link>
+        <Link href="/admin/subscriptions" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Subscriptions</Link>
+        <Link href="/admin/payments" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Payments</Link>
       </nav>
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <div className="rounded-xl bg-white p-5 shadow-sm border">
-          <p className="text-sm text-gray-500">Staff</p>
-          <p className="mt-1 text-2xl font-bold text-gray-900">{staffCount}</p>
+          <p className="text-sm text-zinc-500">Staff</p>
+          <p className="mt-1 text-2xl font-bold text-zinc-900">{staffCount}</p>
         </div>
         <div className="rounded-xl bg-white p-5 shadow-sm border">
-          <p className="text-sm text-gray-500">Children</p>
-          <p className="mt-1 text-2xl font-bold text-gray-900">{childrenCount}</p>
+          <p className="text-sm text-zinc-500">Children</p>
+          <p className="mt-1 text-2xl font-bold text-zinc-900">{childrenCount}</p>
         </div>
         <div className="rounded-xl bg-white p-5 shadow-sm border">
-          <p className="text-sm text-gray-500">Total Payments</p>
-          <p className="mt-1 text-2xl font-bold text-gray-900">TZS {totalPayments.toLocaleString()}</p>
+          <p className="text-sm text-zinc-500">Total Payments</p>
+          <p className="mt-1 text-2xl font-bold text-zinc-900">TZS {totalPayments.toLocaleString()}</p>
         </div>
         <div className="rounded-xl bg-white p-5 shadow-sm border">
-          <p className="text-sm text-gray-500">Subscriptions</p>
-          <p className="mt-1 text-2xl font-bold text-gray-900">{subscriptions.length}</p>
+          <p className="text-sm text-zinc-500">Subscriptions</p>
+          <p className="mt-1 text-2xl font-bold text-zinc-900">{subscriptions.length}</p>
         </div>
       </div>
 
@@ -221,31 +221,31 @@ export default async function CentreDetailPage({
 
       {/* Managers / Staff */}
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-gray-900">Managers & Staff ({managers.length})</h2>
+        <h2 className="text-lg font-semibold text-zinc-900">Managers & Staff ({managers.length})</h2>
         {managers.length === 0 ? (
-          <div className="rounded-xl border bg-white p-8 text-center">
-            <p className="text-sm text-gray-500">No staff assigned to this centre.</p>
+          <div className="rounded-xl border border-zinc-200 bg-white p-8 text-center">
+            <p className="text-sm text-zinc-500">No staff assigned to this centre.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border bg-white">
+          <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
             <table className="min-w-full text-sm">
               <thead>
-                <tr className="border-b bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
+                <tr className="border-b bg-zinc-50 text-left text-xs font-medium text-zinc-500 uppercase">
                   <th className="px-4 py-3">Name</th>
                   <th className="px-4 py-3">Email</th>
                   <th className="px-4 py-3">Role</th>
                   <th className="px-4 py-3">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-zinc-100">
                 {managers.map((m) => {
                   const user = usersMap.get(m.user_id as string) as { first_name?: string; last_name?: string; email?: string } | undefined;
                   const role = rolesMap.get(m.role_id as string) as { name?: string } | undefined;
                   const fullName = user ? [user.first_name, user.last_name].filter(Boolean).join(" ") : null;
                   return (
-                    <tr key={m.id as string} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-gray-900 font-medium">{fullName || "—"}</td>
-                      <td className="px-4 py-3 text-gray-500">{user?.email ?? "—"}</td>
+                    <tr key={m.id as string} className="hover:bg-zinc-50">
+                      <td className="px-4 py-3 text-zinc-900 font-medium">{fullName || "—"}</td>
+                      <td className="px-4 py-3 text-zinc-500">{user?.email ?? "—"}</td>
                       <td className="px-4 py-3">
                         <span className="inline-block rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
                           {role?.name ?? "—"}
@@ -253,7 +253,7 @@ export default async function CentreDetailPage({
                       </td>
                       <td className="px-4 py-3">
                         <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                          m.status === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
+                          m.status === "active" ? "bg-green-100 text-green-700" : "bg-zinc-100 text-zinc-600"
                         }`}>
                           {m.status as string}
                         </span>
@@ -278,7 +278,7 @@ export default async function CentreDetailPage({
 
       {/* Subscription Manager */}
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-gray-900">Subscription</h2>
+        <h2 className="text-lg font-semibold text-zinc-900">Subscription</h2>
         <CentreSubscriptionManager
           centreId={centre.id}
           centreName={centre.name}
@@ -295,16 +295,16 @@ export default async function CentreDetailPage({
 
       {/* Recent Payments */}
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-gray-900">Recent Payments</h2>
+        <h2 className="text-lg font-semibold text-zinc-900">Recent Payments</h2>
         {payments.length === 0 ? (
-          <div className="rounded-xl border bg-white p-8 text-center">
-            <p className="text-sm text-gray-500">No payments yet.</p>
+          <div className="rounded-xl border border-zinc-200 bg-white p-8 text-center">
+            <p className="text-sm text-zinc-500">No payments yet.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border bg-white">
+          <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
             <table className="min-w-full text-sm">
               <thead>
-                <tr className="border-b bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
+                <tr className="border-b bg-zinc-50 text-left text-xs font-medium text-zinc-500 uppercase">
                   <th className="px-4 py-3">Type</th>
                   <th className="px-4 py-3">Amount</th>
                   <th className="px-4 py-3">Purpose</th>
@@ -312,29 +312,29 @@ export default async function CentreDetailPage({
                   <th className="px-4 py-3">Date</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-zinc-100">
                 {payments.map((p) => (
-                  <tr key={p.id as string} className="hover:bg-gray-50">
+                  <tr key={p.id as string} className="hover:bg-zinc-50">
                     <td className="px-4 py-3">
                       <span className={`font-medium ${p.flow_type === "CONTRIBUTION" ? "text-sky-700" : "text-indigo-700"}`}>
                         {p.flow_type as string}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-900 font-medium">
+                    <td className="px-4 py-3 text-zinc-900 font-medium">
                       {p.currency as string} {Number(p.amount).toLocaleString()}
                     </td>
-                    <td className="px-4 py-3 text-gray-500">{(p.purpose as string) ?? "—"}</td>
+                    <td className="px-4 py-3 text-zinc-500">{(p.purpose as string) ?? "—"}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                         p.status === "SUCCESSFUL" ? "bg-green-100 text-green-700" :
                         p.status === "PENDING" ? "bg-amber-100 text-amber-700" :
                         p.status === "FAILED" ? "bg-red-100 text-red-700" :
-                        "bg-gray-100 text-gray-600"
+                        "bg-zinc-100 text-zinc-600"
                       }`}>
                         {p.status as string}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-gray-500">
+                    <td className="px-4 py-3 text-xs text-zinc-500">
                       {new Date(p.created_at as string).toLocaleDateString("en-GB")}
                     </td>
                   </tr>

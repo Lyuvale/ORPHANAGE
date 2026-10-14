@@ -90,12 +90,12 @@ function StatusBadge({ status }: { status: string }) {
     ACTIVE: "bg-green-100 text-green-800",
     ON_LEAVE: "bg-amber-100 text-amber-800",
     SUSPENDED: "bg-orange-100 text-orange-800",
-    INACTIVE: "bg-gray-100 text-gray-800",
+    INACTIVE: "bg-zinc-100 text-gray-800",
     ENDED: "bg-red-100 text-red-800",
   };
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${colors[status] ?? "bg-gray-100 text-gray-800"}`}
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${colors[status] ?? "bg-zinc-100 text-gray-800"}`}
     >
       {getStaffStatusDisplay(status as (typeof STAFF_STATUSES)[number])}
     </span>
@@ -103,7 +103,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 const inputCls =
-  "mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6";
+  "mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6";
 
 async function handleFetch(url: string, init?: RequestInit) {
   const res = await fetch(url, init);
@@ -116,10 +116,10 @@ async function handleFetch(url: string, init?: RequestInit) {
 
 function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <div className="mb-6 rounded-lg border bg-white shadow-sm">
-      <div className="border-b border-gray-200 px-4 py-4 sm:px-6">
-        <h2 className="text-lg font-medium text-gray-900">{title}</h2>
-        {subtitle && <p className="mt-1 text-sm text-gray-500">{subtitle}</p>}
+    <div className="mb-6 rounded-lg border border-zinc-200 bg-white shadow-sm">
+      <div className="border-b border-zinc-200 px-4 py-4 sm:px-6">
+        <h2 className="text-lg font-medium text-zinc-900">{title}</h2>
+        {subtitle && <p className="mt-1 text-sm text-zinc-500">{subtitle}</p>}
       </div>
       <div className="px-4 py-5 sm:px-6">{children}</div>
     </div>
@@ -286,7 +286,7 @@ export default function StaffProfilePage() {
   }
 
   if (loading) {
-    return <div className="py-12 text-center text-gray-500">Loading...</div>;
+    return <div className="py-12 text-center text-zinc-500">Loading...</div>;
   }
 
   if (!profile) {
@@ -303,7 +303,7 @@ export default function StaffProfilePage() {
   return (
     <div>
       <div className="mb-6">
-        <Link href="/team" className="text-sm font-semibold text-gray-900 hover:text-indigo-600">
+        <Link href="/team" className="text-sm font-semibold text-zinc-900 hover:text-indigo-600">
           &larr; Back to Team
         </Link>
       </div>
@@ -311,14 +311,14 @@ export default function StaffProfilePage() {
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-gray-900">{profile.job_title}</h1>
+            <h1 className="text-2xl font-bold text-zinc-900">{profile.job_title}</h1>
             <StatusBadge status={profile.employment_status} />
           </div>
-          <p className="mt-1 text-sm text-gray-500 font-mono">
+          <p className="mt-1 text-sm text-zinc-500 font-mono">
             {profile.staff_identifier || profile.id}
           </p>
           {profile.department && (
-            <p className="mt-1 text-sm text-gray-600">Department / Unit: {profile.department}</p>
+            <p className="mt-1 text-sm text-zinc-600">Department / Unit: {profile.department}</p>
           )}
         </div>
       </div>
@@ -339,15 +339,15 @@ export default function StaffProfilePage() {
         >
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
-              <label htmlFor="job_title" className="block text-sm font-medium text-gray-900">Job Title</label>
+              <label htmlFor="job_title" className="block text-sm font-medium text-zinc-900">Job Title</label>
               <input type="text" name="job_title" id="job_title" defaultValue={profile.job_title} maxLength={200} className={inputCls} />
             </div>
             <div>
-              <label htmlFor="department" className="block text-sm font-medium text-gray-900">Department / Unit</label>
+              <label htmlFor="department" className="block text-sm font-medium text-zinc-900">Department / Unit</label>
               <input type="text" name="department" id="department" defaultValue={profile.department ?? ""} maxLength={200} className={inputCls} />
             </div>
             <div>
-              <label htmlFor="operational_role" className="block text-sm font-medium text-gray-900">Operational Role</label>
+              <label htmlFor="operational_role" className="block text-sm font-medium text-zinc-900">Operational Role</label>
               <select name="operational_role" id="operational_role" defaultValue={profile.operational_role ?? ""} className={inputCls}>
                 <option value="">No role</option>
                 {CENTRE_ROLES.map((r) => (
@@ -356,25 +356,25 @@ export default function StaffProfilePage() {
               </select>
             </div>
             <div>
-              <label htmlFor="work_phone" className="block text-sm font-medium text-gray-900">Work Phone</label>
+              <label htmlFor="work_phone" className="block text-sm font-medium text-zinc-900">Work Phone</label>
               <input type="text" name="work_phone" id="work_phone" defaultValue={profile.work_phone ?? ""} maxLength={50} className={inputCls} />
             </div>
             <div>
-              <label htmlFor="work_email" className="block text-sm font-medium text-gray-900">Work Email</label>
+              <label htmlFor="work_email" className="block text-sm font-medium text-zinc-900">Work Email</label>
               <input type="email" name="work_email" id="work_email" defaultValue={profile.work_email ?? ""} maxLength={200} className={inputCls} />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="start_date" className="block text-sm font-medium text-gray-900">Start Date</label>
+                <label htmlFor="start_date" className="block text-sm font-medium text-zinc-900">Start Date</label>
                 <input type="date" name="start_date" id="start_date" defaultValue={profile.start_date ?? ""} className={inputCls} />
               </div>
               <div>
-                <label htmlFor="end_date" className="block text-sm font-medium text-gray-900">End Date</label>
+                <label htmlFor="end_date" className="block text-sm font-medium text-zinc-900">End Date</label>
                 <input type="date" name="end_date" id="end_date" defaultValue={profile.end_date ?? ""} className={inputCls} />
               </div>
             </div>
             <div className="sm:col-span-3">
-              <label htmlFor="notes" className="block text-sm font-medium text-gray-900">Notes</label>
+              <label htmlFor="notes" className="block text-sm font-medium text-zinc-900">Notes</label>
               <textarea name="notes" id="notes" rows={2} defaultValue={profile.notes ?? ""} maxLength={2000} className={inputCls} />
             </div>
           </div>
@@ -382,7 +382,7 @@ export default function StaffProfilePage() {
             <button
               type="submit"
               disabled={busy}
-              className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
+              className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-zinc-500 disabled:opacity-50"
             >
               Save Details
             </button>
@@ -394,9 +394,9 @@ export default function StaffProfilePage() {
             e.preventDefault();
             changeStatus(new FormData(e.currentTarget));
           }}
-          className="mt-6 border-t border-gray-200 pt-6"
+          className="mt-6 border-t border-zinc-200 pt-6"
         >
-          <h3 className="text-sm font-semibold text-gray-900">Change Employment Status</h3>
+          <h3 className="text-sm font-semibold text-zinc-900">Change Employment Status</h3>
           <div className="mt-3 flex items-end gap-3">
             <div className="w-full max-w-xs">
               <select name="status" defaultValue={profile.employment_status} className={inputCls} disabled={profile.employment_status === "ENDED"}>
@@ -410,7 +410,7 @@ export default function StaffProfilePage() {
             <button
               type="submit"
               disabled={busy || profile.employment_status === "ENDED"}
-              className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50"
+              className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-zinc-50 disabled:opacity-50"
             >
               Update Status
             </button>
@@ -439,7 +439,7 @@ export default function StaffProfilePage() {
             <button
               type="submit"
               disabled={busy}
-              className="rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
+              className="rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-zinc-500 disabled:opacity-50"
             >
               Assign
             </button>
@@ -447,16 +447,16 @@ export default function StaffProfilePage() {
         </form>
 
         {assignments.length === 0 ? (
-          <p className="text-sm text-gray-500">No assignments recorded yet.</p>
+          <p className="text-sm text-zinc-500">No assignments recorded yet.</p>
         ) : (
-          <ul className="divide-y divide-gray-200">
+          <ul className="divide-y divide-zinc-200">
             {assignments.map((a) => (
               <li key={a.id} className="flex items-center justify-between py-3">
                 <div>
-                  <div className="text-sm font-medium text-gray-900">{a.responsibility_type}</div>
-                  {a.description && <div className="text-sm text-gray-500">{a.description}</div>}
+                  <div className="text-sm font-medium text-zinc-900">{a.responsibility_type}</div>
+                  {a.description && <div className="text-sm text-zinc-500">{a.description}</div>}
                   {a.assigned_date && (
-                    <div className="text-xs text-gray-400">From {new Date(a.assigned_date).toLocaleDateString()}</div>
+                    <div className="text-xs text-zinc-400">From {new Date(a.assigned_date).toLocaleDateString()}</div>
                   )}
                 </div>
                 <div className="flex items-center gap-3">
@@ -501,7 +501,7 @@ export default function StaffProfilePage() {
             <button
               type="submit"
               disabled={busy}
-              className="rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
+              className="rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-zinc-500 disabled:opacity-50"
             >
               Add Training
             </button>
@@ -509,14 +509,14 @@ export default function StaffProfilePage() {
         </form>
 
         {training.length === 0 ? (
-          <p className="text-sm text-gray-500">No training records yet.</p>
+          <p className="text-sm text-zinc-500">No training records yet.</p>
         ) : (
-          <ul className="divide-y divide-gray-200">
+          <ul className="divide-y divide-zinc-200">
             {training.map((t) => (
               <li key={t.id} className="flex items-center justify-between py-3">
                 <div>
-                  <div className="text-sm font-medium text-gray-900">{t.training_title}</div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-sm font-medium text-zinc-900">{t.training_title}</div>
+                  <div className="text-xs text-zinc-500">
                     {t.provider && `${t.provider} · `}
                     {t.training_date && `Trained ${new Date(t.training_date).toLocaleDateString()} · `}
                     {getStaffTrainingStatusDisplay(t.completion_status as "PENDING" | "COMPLETED")}
@@ -558,7 +558,7 @@ export default function StaffProfilePage() {
             <button
               type="submit"
               disabled={busy}
-              className="rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
+              className="rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-zinc-500 disabled:opacity-50"
             >
               Add
             </button>
@@ -566,14 +566,14 @@ export default function StaffProfilePage() {
         </form>
 
         {qualifications.length === 0 ? (
-          <p className="text-sm text-gray-500">No qualifications recorded yet.</p>
+          <p className="text-sm text-zinc-500">No qualifications recorded yet.</p>
         ) : (
-          <ul className="divide-y divide-gray-200">
+          <ul className="divide-y divide-zinc-200">
             {qualifications.map((q) => (
               <li key={q.id} className="flex items-center justify-between py-3">
                 <div>
-                  <div className="text-sm font-medium text-gray-900">{q.qualification}</div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-sm font-medium text-zinc-900">{q.qualification}</div>
+                  <div className="text-xs text-zinc-500">
                     {q.institution && `${q.institution} · `}
                     {q.qualification_year && `${q.qualification_year} · `}
                     {getStaffVerificationStatusDisplay(q.verification_status as "VERIFIED" | "PENDING" | "NOT_VERIFIED")}
@@ -606,7 +606,7 @@ export default function StaffProfilePage() {
             <button
               type="submit"
               disabled={busy}
-              className="rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
+              className="rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-zinc-500 disabled:opacity-50"
             >
               Add
             </button>
@@ -614,16 +614,16 @@ export default function StaffProfilePage() {
         </form>
 
         {emergency.length === 0 ? (
-          <p className="text-sm text-gray-500">No emergency contacts recorded.</p>
+          <p className="text-sm text-zinc-500">No emergency contacts recorded.</p>
         ) : (
-          <ul className="divide-y divide-gray-200">
+          <ul className="divide-y divide-zinc-200">
             {emergency.map((c) => (
               <li key={c.id} className="py-3">
-                <div className="text-sm font-medium text-gray-900">
+                <div className="text-sm font-medium text-zinc-900">
                   {c.contact_name}
-                  {c.relationship && <span className="font-normal text-gray-500"> · {c.relationship}</span>}
+                  {c.relationship && <span className="font-normal text-zinc-500"> · {c.relationship}</span>}
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-zinc-500">
                   {c.phone && `📞 ${c.phone}`}
                   {c.phone && c.email && " · "}
                   {c.email && `✉️ ${c.email}`}
@@ -666,7 +666,7 @@ export default function StaffProfilePage() {
             <button
               type="submit"
               disabled={busy}
-              className="rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
+              className="rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-zinc-500 disabled:opacity-50"
             >
               Upload
             </button>
@@ -674,9 +674,9 @@ export default function StaffProfilePage() {
         </form>
 
         {documents.length === 0 ? (
-          <p className="text-sm text-gray-500">No documents uploaded.</p>
+          <p className="text-sm text-zinc-500">No documents uploaded.</p>
         ) : (
-          <ul className="divide-y divide-gray-200">
+          <ul className="divide-y divide-zinc-200">
             {documents.map((doc) => (
               <li key={doc.id} className="flex items-center justify-between py-3">
                 <div>
@@ -686,12 +686,12 @@ export default function StaffProfilePage() {
                   >
                     {doc.file_name}
                   </button>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-zinc-500">
                     {getStaffDocumentTypeDisplay(doc.document_type as (typeof STAFF_DOCUMENT_TYPES)[number])}
                     {doc.file_size && ` · ${(doc.file_size / 1024).toFixed(1)} KB`}
                   </div>
                 </div>
-                <div className="text-xs text-gray-400">
+                <div className="text-xs text-zinc-400">
                   {new Date(doc.uploaded_at).toLocaleDateString()}
                 </div>
               </li>
@@ -703,16 +703,16 @@ export default function StaffProfilePage() {
       {/* History */}
       <Section title="History" subtitle="Preserved record of role, status and assignment changes">
         {history.length === 0 ? (
-          <p className="text-sm text-gray-500">No history recorded yet.</p>
+          <p className="text-sm text-zinc-500">No history recorded yet.</p>
         ) : (
           <ul className="space-y-3">
             {history.map((entry) => (
               <li key={entry.id} className="border-l-2 border-indigo-200 pl-4">
-                <div className="text-sm font-medium text-gray-900">
+                <div className="text-sm font-medium text-zinc-900">
                   {getStaffHistoryEventDisplay(entry.event_type as (typeof STAFF_HISTORY_EVENTS)[number])}
                 </div>
-                {entry.description && <div className="text-sm text-gray-500">{entry.description}</div>}
-                <div className="text-xs text-gray-400">
+                {entry.description && <div className="text-sm text-zinc-500">{entry.description}</div>}
+                <div className="text-xs text-zinc-400">
                   {new Date(entry.created_at).toLocaleString()}
                 </div>
               </li>

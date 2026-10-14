@@ -29,8 +29,8 @@ export default async function SubscriptionPage() {
     const status = mine?.status ?? "none";
     return (
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Subscription</h2>
-        <p className="text-sm text-gray-500 mt-1">
+        <h2 className="text-2xl font-bold text-zinc-900">Subscription</h2>
+        <p className="text-sm text-zinc-500 mt-1">
           Your centre&apos;s subscription status
         </p>
 
@@ -42,8 +42,8 @@ export default async function SubscriptionPage() {
               {getSubscriptionStatusDisplay(status)}
             </span>
           </div>
-          <p className="mt-4 text-gray-700">{reason}</p>
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-4 text-zinc-700">{reason}</p>
+          <p className="mt-2 text-sm text-zinc-500">
             Your historical data remains safely stored and protected. You are not
             able to use normal services until access is restored by the platform
             administrator.
@@ -60,24 +60,24 @@ export default async function SubscriptionPage() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900">Subscription</h2>
-      <p className="text-sm text-gray-500 mt-1">
+      <h2 className="text-2xl font-bold text-zinc-900">Subscription</h2>
+      <p className="text-sm text-zinc-500 mt-1">
         Your centre&apos;s subscription status
       </p>
 
       <div className="mt-6 grid gap-6 md:grid-cols-2 max-w-3xl">
         <div className="bg-white rounded-lg border p-6">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+          <h3 className="text-sm font-medium text-zinc-500 uppercase tracking-wider">
             Plan
           </h3>
-          <p className="mt-2 text-xl font-semibold text-gray-900">{planName}</p>
+          <p className="mt-2 text-xl font-semibold text-zinc-900">{planName}</p>
           {plan?.description ? (
-            <p className="mt-1 text-sm text-gray-500">{plan.description}</p>
+            <p className="mt-1 text-sm text-zinc-500">{plan.description}</p>
           ) : null}
         </div>
 
         <div className="bg-white rounded-lg border p-6">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+          <h3 className="text-sm font-medium text-zinc-500 uppercase tracking-wider">
             Status
           </h3>
           <div className="mt-2 flex items-center gap-2">
@@ -90,19 +90,19 @@ export default async function SubscriptionPage() {
         </div>
 
         <div className="bg-white rounded-lg border p-6">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+          <h3 className="text-sm font-medium text-zinc-500 uppercase tracking-wider">
             Valid Until
           </h3>
-          <p className="mt-2 text-xl font-semibold text-gray-900">
+          <p className="mt-2 text-xl font-semibold text-zinc-900">
             {formatPlanDate(validUntil)}
           </p>
         </div>
 
         <div className="bg-white rounded-lg border p-6">
-          <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+          <h3 className="text-sm font-medium text-zinc-500 uppercase tracking-wider">
             Includes
           </h3>
-          <ul className="mt-2 text-sm text-gray-700 space-y-1">
+          <ul className="mt-2 text-sm text-zinc-700 space-y-1">
             {(mine.enabledFeatures ?? []).length > 0 ? (
               mine.enabledFeatures.map((f: string) => (
                 <li key={f} className="flex items-center gap-2">
@@ -110,13 +110,13 @@ export default async function SubscriptionPage() {
                 </li>
               ))
             ) : (
-              <li className="text-gray-500">Standard features</li>
+              <li className="text-zinc-500">Standard features</li>
             )}
           </ul>
         </div>
       </div>
 
-      <p className="mt-6 text-sm text-gray-500">
+      <p className="mt-6 text-sm text-zinc-500">
         Questions about your subscription?{" "}
         <Link href="/notifications" className="text-blue-600 hover:text-blue-800">
           Check notifications

@@ -133,35 +133,35 @@ export default function EducationOverviewPage() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             <a
               href={sectionLink("/education/profile")}
-              className="rounded-lg border p-4 text-center shadow-sm hover:bg-gray-50"
+              className="rounded-lg border border-zinc-200 bg-white p-4 text-center shadow-sm hover:bg-zinc-50"
             >
               <div className="text-3xl">🎓</div>
               <div className="mt-2 text-sm font-semibold">Education</div>
             </a>
             <a
               href={sectionLink("/education/support-needs")}
-              className="rounded-lg border p-4 text-center shadow-sm hover:bg-gray-50"
+              className="rounded-lg border border-zinc-200 bg-white p-4 text-center shadow-sm hover:bg-zinc-50"
             >
               <div className="text-3xl">📚</div>
               <div className="mt-2 text-sm font-semibold">Support Needs</div>
             </a>
             <a
               href={sectionLink("/education/goals")}
-              className="rounded-lg border p-4 text-center shadow-sm hover:bg-gray-50"
+              className="rounded-lg border border-zinc-200 bg-white p-4 text-center shadow-sm hover:bg-zinc-50"
             >
               <div className="text-3xl">🎯</div>
               <div className="mt-2 text-sm font-semibold">Goals</div>
             </a>
             <a
               href={sectionLink("/education/progress")}
-              className="rounded-lg border p-4 text-center shadow-sm hover:bg-gray-50"
+              className="rounded-lg border border-zinc-200 bg-white p-4 text-center shadow-sm hover:bg-zinc-50"
             >
               <div className="text-3xl">📈</div>
               <div className="mt-2 text-sm font-semibold">Progress</div>
             </a>
             <a
               href={sectionLink("/education/achievements")}
-              className="rounded-lg border p-4 text-center shadow-sm hover:bg-gray-50"
+              className="rounded-lg border border-zinc-200 bg-white p-4 text-center shadow-sm hover:bg-zinc-50"
             >
               <div className="text-3xl">🏆</div>
               <div className="mt-2 text-sm font-semibold">Achievements</div>
@@ -176,7 +176,7 @@ export default function EducationOverviewPage() {
         overview ? (
           <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2">
             {/* Education summary */}
-            <div className="rounded-lg border p-4">
+            <div className="rounded-lg border border-zinc-200 bg-white p-4">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Education
               </h3>
@@ -203,7 +203,7 @@ export default function EducationOverviewPage() {
             </div>
 
             {/* Support needs summary */}
-            <div className="rounded-lg border p-4">
+            <div className="rounded-lg border border-zinc-200 bg-white p-4">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Support Needs
               </h3>
@@ -222,7 +222,7 @@ export default function EducationOverviewPage() {
             </div>
 
             {/* Goals summary */}
-            <div className="rounded-lg border p-4">
+            <div className="rounded-lg border border-zinc-200 bg-white p-4">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Goals
               </h3>
@@ -240,7 +240,7 @@ export default function EducationOverviewPage() {
             </div>
 
             {/* Progress summary */}
-            <div className="rounded-lg border p-4">
+            <div className="rounded-lg border border-zinc-200 bg-white p-4">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Progress
               </h3>
@@ -250,7 +250,7 @@ export default function EducationOverviewPage() {
             </div>
 
             {/* Achievements summary */}
-            <div className="rounded-lg border p-4 md:col-span-2">
+            <div className="rounded-lg border border-zinc-200 bg-white p-4 md:col-span-2">
               <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Achievements
               </h3>

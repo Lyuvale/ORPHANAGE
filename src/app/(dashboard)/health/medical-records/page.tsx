@@ -134,7 +134,7 @@ export default function MedicalRecordsPage() {
         {canManage && (
           <button
             onClick={() => setShowForm((s) => !s)}
-            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-zinc-500"
           >
             {showForm ? "Cancel" : "Add Record"}
           </button>
@@ -163,7 +163,7 @@ export default function MedicalRecordsPage() {
       </div>
 
       {showForm && childId && canManage && (
-        <div className="mb-6 rounded-lg border p-4">
+        <div className="mb-6 rounded-lg border border-zinc-200 bg-white p-4">
           <h2 className="mb-3 text-lg font-semibold">New Medical Record</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <select
@@ -229,7 +229,7 @@ export default function MedicalRecordsPage() {
             <button
               onClick={handleSubmit}
               disabled={!form.record_type}
-              className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+              className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-500 disabled:opacity-50"
             >
               Save Record
             </button>

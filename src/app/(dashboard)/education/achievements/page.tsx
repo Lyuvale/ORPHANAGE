@@ -142,7 +142,7 @@ export default function EducationAchievementsPage() {
         {childId && canManageAchievements && (
           <button
             onClick={() => setShowForm((s) => !s)}
-            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500"
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white hover:bg-zinc-500"
           >
             {showForm ? "Cancel" : "Add Achievement"}
           </button>
@@ -171,7 +171,7 @@ export default function EducationAchievementsPage() {
       </div>
 
       {showForm && childId && canManageAchievements && (
-        <div className="mb-6 rounded-lg border p-4">
+        <div className="mb-6 rounded-lg border border-zinc-200 bg-white p-4">
           <h2 className="mb-3 text-lg font-semibold">New Achievement</h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <input
@@ -211,7 +211,7 @@ export default function EducationAchievementsPage() {
             <button
               onClick={handleSubmit}
               disabled={!form.title}
-              className="rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+              className="rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-zinc-500 disabled:opacity-50"
             >
               Save Achievement
             </button>
@@ -230,7 +230,7 @@ export default function EducationAchievementsPage() {
       ) : (
         <div className="space-y-3">
           {achievements.map((a) => (
-            <div key={a.id} className="rounded-lg border p-4">
+            <div key={a.id} className="rounded-lg border border-zinc-200 bg-white p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">

@@ -72,8 +72,8 @@ export default function PagesPanel({
     <div className="mt-6">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Pages</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="text-lg font-semibold text-zinc-900">Pages</h2>
+          <p className="text-sm text-zinc-500">
             Pages appear in your public site navigation. Only published pages
             are visible to visitors.
           </p>
@@ -95,7 +95,7 @@ export default function PagesPanel({
       )}
 
       {pages.length === 0 ? (
-        <div className="mt-4 rounded-lg border border-dashed p-10 text-center text-gray-500">
+        <div className="mt-4 rounded-lg border border-dashed p-10 text-center text-zinc-500">
           <p className="text-sm">No pages yet.</p>
           {canManage && (
             <Link
@@ -107,7 +107,7 @@ export default function PagesPanel({
           )}
         </div>
       ) : (
-        <ul className="mt-4 divide-y divide-gray-200 rounded-lg border bg-white">
+        <ul className="mt-4 divide-y divide-zinc-200 rounded-lg border border-zinc-200 bg-white">
           {sorted().map((page) => (
             <li key={page.id} className="px-4 py-3 flex items-center justify-between gap-3">
               <div className="min-w-0">
@@ -127,13 +127,13 @@ export default function PagesPanel({
                     className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
                       page.is_published
                         ? "bg-green-50 text-green-700"
-                        : "bg-gray-100 text-gray-500"
+                        : "bg-zinc-100 text-zinc-500"
                     }`}
                   >
                     {page.is_published ? "Published" : "Draft"}
                   </span>
                 </div>
-                <p className="text-xs text-gray-400 font-mono mt-1">
+                <p className="text-xs text-zinc-400 font-mono mt-1">
                   /{page.slug}
                   {page.show_in_nav ? ` · in nav (order ${page.nav_order})` : " · hidden from nav"}
                 </p>
@@ -144,7 +144,7 @@ export default function PagesPanel({
                     type="button"
                     disabled={busyId === page.id}
                     onClick={() => patch(page, { is_published: !page.is_published })}
-                    className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
                   >
                     {page.is_published ? "Unpublish" : "Publish"}
                   </button>
@@ -153,14 +153,14 @@ export default function PagesPanel({
                       type="button"
                       disabled={busyId === page.id}
                       onClick={() => patch(page, { is_home: true })}
-                      className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                      className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
                     >
                       Set home
                     </button>
                   )}
                   <Link
                     href={`/centre-site/pages/${page.id}`}
-                    className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                    className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
                   >
                     Edit
                   </Link>

@@ -87,7 +87,7 @@ export default function EditChildPage() {
   }
 
   if (fetching) {
-    return <div className="text-sm text-gray-500">Loading...</div>;
+    return <div className="text-sm text-zinc-500">Loading...</div>;
   }
 
   if (!child) {
@@ -99,13 +99,13 @@ export default function EditChildPage() {
       <div className="mb-6">
         <button
           onClick={() => router.back()}
-          className="text-sm font-semibold text-gray-900 hover:text-indigo-600"
+          className="text-sm font-semibold text-zinc-900 hover:text-indigo-600"
         >
           &larr; Back
         </button>
       </div>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit Child</h1>
+      <h1 className="text-2xl font-bold text-zinc-900 mb-6">Edit Child</h1>
 
       {error && (
         <div className="mb-4 rounded-md bg-red-50 p-4">
@@ -118,7 +118,7 @@ export default function EditChildPage() {
           <div>
             <label
               htmlFor="first_name"
-              className="block text-sm font-medium text-gray-900"
+              className="block text-sm font-medium text-zinc-900"
             >
               First Name <span className="text-red-500">*</span>
             </label>
@@ -129,14 +129,14 @@ export default function EditChildPage() {
               required
               maxLength={100}
               defaultValue={child.first_name}
-              className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+              className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
             />
           </div>
 
           <div>
             <label
               htmlFor="middle_name"
-              className="block text-sm font-medium text-gray-900"
+              className="block text-sm font-medium text-zinc-900"
             >
               Middle Name
             </label>
@@ -146,14 +146,14 @@ export default function EditChildPage() {
               id="middle_name"
               maxLength={100}
               defaultValue={child.middle_name ?? ""}
-              className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+              className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
             />
           </div>
 
           <div>
             <label
               htmlFor="last_name"
-              className="block text-sm font-medium text-gray-900"
+              className="block text-sm font-medium text-zinc-900"
             >
               Last Name <span className="text-red-500">*</span>
             </label>
@@ -164,14 +164,14 @@ export default function EditChildPage() {
               required
               maxLength={100}
               defaultValue={child.last_name}
-              className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+              className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
             />
           </div>
 
           <div>
             <label
               htmlFor="preferred_name"
-              className="block text-sm font-medium text-gray-900"
+              className="block text-sm font-medium text-zinc-900"
             >
               Preferred Name
             </label>
@@ -181,14 +181,14 @@ export default function EditChildPage() {
               id="preferred_name"
               maxLength={100}
               defaultValue={child.preferred_name ?? ""}
-              className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+              className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
             />
           </div>
 
           <div>
             <label
               htmlFor="date_of_birth"
-              className="block text-sm font-medium text-gray-900"
+              className="block text-sm font-medium text-zinc-900"
             >
               Date of Birth <span className="text-red-500">*</span>
             </label>
@@ -198,14 +198,14 @@ export default function EditChildPage() {
               id="date_of_birth"
               required
               defaultValue={child.date_of_birth}
-              className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+              className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
             />
           </div>
 
           <div>
             <label
               htmlFor="gender"
-              className="block text-sm font-medium text-gray-900"
+              className="block text-sm font-medium text-zinc-900"
             >
               Gender <span className="text-red-500">*</span>
             </label>
@@ -214,7 +214,7 @@ export default function EditChildPage() {
               id="gender"
               required
               defaultValue={child.gender}
-              className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+              className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
             >
               <option value="male">Male</option>
               <option value="female">Female</option>
@@ -226,7 +226,7 @@ export default function EditChildPage() {
           <div>
             <label
               htmlFor="nationality"
-              className="block text-sm font-medium text-gray-900"
+              className="block text-sm font-medium text-zinc-900"
             >
               Nationality
             </label>
@@ -236,14 +236,14 @@ export default function EditChildPage() {
               id="nationality"
               maxLength={100}
               defaultValue={child.nationality ?? ""}
-              className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+              className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
             />
           </div>
 
           <div>
             <label
               htmlFor="admission_date"
-              className="block text-sm font-medium text-gray-900"
+              className="block text-sm font-medium text-zinc-900"
             >
               Admission Date <span className="text-red-500">*</span>
             </label>
@@ -253,7 +253,7 @@ export default function EditChildPage() {
               id="admission_date"
               required
               defaultValue={child.admission_date}
-              className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+              className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
             />
           </div>
         </div>
@@ -262,14 +262,14 @@ export default function EditChildPage() {
           <button
             type="submit"
             disabled={loading}
-            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-zinc-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
           >
             {loading ? "Saving..." : "Save Changes"}
           </button>
           <button
             type="button"
             onClick={() => router.back()}
-            className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+            className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-zinc-50"
           >
             Cancel
           </button>

@@ -78,8 +78,8 @@ export default function NewBenefitForm() {
   return (
     <form onSubmit={handleSubmit} className="max-w-3xl space-y-6">
       <div>
-        <h2 className="text-lg font-medium text-gray-900">Add Benefit</h2>
-        <p className="text-sm text-gray-500">
+        <h2 className="text-lg font-medium text-zinc-900">Add Benefit</h2>
+        <p className="text-sm text-zinc-500">
           Record support delivered to children. Children are existing records — never duplicated.
         </p>
       </div>
@@ -90,12 +90,12 @@ export default function NewBenefitForm() {
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-gray-700">Expense</label>
+          <label className="block text-sm font-medium text-zinc-700">Expense</label>
           <select
             required
             value={expenseId}
             onChange={(e) => setExpenseId(e.target.value)}
-            className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
           >
             <option value="">Select an approved expense...</option>
             {expenses.map((ex) => (
@@ -106,11 +106,11 @@ export default function NewBenefitForm() {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Benefit Type</label>
+          <label className="block text-sm font-medium text-zinc-700">Benefit Type</label>
           <select
             value={benefitType}
             onChange={(e) => setBenefitType(e.target.value as never)}
-            className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
           >
             {SUPPORT_BENEFIT_TYPES.map((t) => (
               <option key={t} value={t}>
@@ -120,30 +120,30 @@ export default function NewBenefitForm() {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Date</label>
+          <label className="block text-sm font-medium text-zinc-700">Date</label>
           <input
             type="date"
             value={benefitDate}
             onChange={(e) => setBenefitDate(e.target.value)}
-            className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
           />
         </div>
         <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-gray-700">Description</label>
+          <label className="block text-sm font-medium text-zinc-700">Description</label>
           <input
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="e.g. School uniforms and books"
-            className="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            className="mt-1 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
           />
         </div>
       </div>
 
       {/* Children selection */}
-      <div className="rounded-lg border bg-white p-4">
+      <div className="rounded-lg border border-zinc-200 bg-white p-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-gray-900">
+          <h3 className="text-sm font-semibold text-zinc-900">
             Children Benefited ({selectedChildren.length} selected)
           </h3>
         </div>
@@ -152,18 +152,18 @@ export default function NewBenefitForm() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search children..."
-          className="mt-3 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+          className="mt-3 block w-full rounded-md border-0 py-1.5 text-zinc-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
         />
         <div className="mt-3 max-h-72 space-y-2 overflow-y-auto">
           {children.length === 0 && (
-            <p className="text-sm text-gray-400">No children available for this centre.</p>
+            <p className="text-sm text-zinc-400">No children available for this centre.</p>
           )}
           {children.map((c) => {
             const checked = selectedChildren.includes(c.id);
             return (
               <label
                 key={c.id}
-                className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 hover:bg-gray-50"
+                className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 hover:bg-zinc-50"
               >
                 <input
                   type="checkbox"
@@ -171,11 +171,11 @@ export default function NewBenefitForm() {
                   onChange={() => toggleChild(c.id)}
                   className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                 />
-                <span className="text-sm text-gray-900">
+                <span className="text-sm text-zinc-900">
                   {c.first_name} {c.last_name}
                 </span>
                 {c.reference_number && (
-                  <span className="text-xs text-gray-400">{c.reference_number}</span>
+                  <span className="text-xs text-zinc-400">{c.reference_number}</span>
                 )}
               </label>
             );
@@ -187,11 +187,11 @@ export default function NewBenefitForm() {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50"
+          className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-zinc-500 disabled:opacity-50"
         >
           {saving ? "Saving..." : "Save Benefit"}
         </button>
-        <Link href="/resources/benefits" className="text-sm font-semibold text-gray-600 hover:text-gray-900">
+        <Link href="/resources/benefits" className="text-sm font-semibold text-zinc-600 hover:text-zinc-900">
           Cancel
         </Link>
       </div>

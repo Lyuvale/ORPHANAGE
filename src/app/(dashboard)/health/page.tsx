@@ -145,37 +145,37 @@ export default function HealthOverviewPage() {
             <div className="mt-8 flex flex-wrap gap-3 text-sm">
               <a
                 href="/health/medical-records"
-                className="rounded-md bg-indigo-600 px-3.5 py-2.5 font-semibold text-white hover:bg-indigo-500"
+                className="rounded-md bg-indigo-600 px-3.5 py-2.5 font-semibold text-white hover:bg-zinc-500"
               >
                 Medical Records
               </a>
               <a
                 href="/health/medications"
-                className="rounded-md bg-indigo-600 px-3.5 py-2.5 font-semibold text-white hover:bg-indigo-500"
+                className="rounded-md bg-indigo-600 px-3.5 py-2.5 font-semibold text-white hover:bg-zinc-500"
               >
                 Medications
               </a>
               <a
                 href="/health/appointments"
-                className="rounded-md bg-indigo-600 px-3.5 py-2.5 font-semibold text-white hover:bg-indigo-500"
+                className="rounded-md bg-indigo-600 px-3.5 py-2.5 font-semibold text-white hover:bg-zinc-500"
               >
                 Appointments
               </a>
               <a
                 href="/health/immunizations"
-                className="rounded-md bg-indigo-600 px-3.5 py-2.5 font-semibold text-white hover:bg-indigo-500"
+                className="rounded-md bg-indigo-600 px-3.5 py-2.5 font-semibold text-white hover:bg-zinc-500"
               >
                 Immunizations
               </a>
               <a
                 href="/health/screenings"
-                className="rounded-md bg-indigo-600 px-3.5 py-2.5 font-semibold text-white hover:bg-indigo-500"
+                className="rounded-md bg-indigo-600 px-3.5 py-2.5 font-semibold text-white hover:bg-zinc-500"
               >
                 Screenings
               </a>
               <a
                 href="/health/documents"
-                className="rounded-md bg-indigo-600 px-3.5 py-2.5 font-semibold text-white hover:bg-indigo-500"
+                className="rounded-md bg-indigo-600 px-3.5 py-2.5 font-semibold text-white hover:bg-zinc-500"
               >
                 Documents
               </a>

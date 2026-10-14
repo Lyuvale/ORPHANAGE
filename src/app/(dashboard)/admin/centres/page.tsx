@@ -62,10 +62,10 @@ export default async function AdminCentresPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Platform Centres</h1>
+        <h1 className="text-2xl font-semibold text-zinc-900">Platform Centres</h1>
         <Link
           href="/admin/centres/new"
-          className="rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+          className="rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-zinc-500"
         >
           Create Centre
         </Link>
@@ -73,7 +73,7 @@ export default async function AdminCentresPage() {
       <nav className="flex flex-wrap gap-2">
         <Link
           href="/admin"
-          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
         >
           Overview
         </Link>
@@ -85,25 +85,25 @@ export default async function AdminCentresPage() {
         </Link>
         <Link
           href="/admin/payments"
-          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
         >
           Payments
         </Link>
         <Link
           href="/admin/settings"
-          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
         >
           Settings
         </Link>
       </nav>
 
       {centres.length === 0 ? (
-        <p className="text-sm text-gray-500">No centres found.</p>
+        <p className="text-sm text-zinc-500">No centres found.</p>
       ) : (
         <div className="overflow-x-auto rounded-lg bg-white shadow-sm border">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
+          <table className="min-w-full divide-y divide-zinc-200 text-sm">
             <thead>
-              <tr className="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
+              <tr className="bg-zinc-50 text-left text-xs font-medium text-zinc-500 uppercase">
                 <th className="px-4 py-3">Name</th>
                 <th className="px-4 py-3">Code</th>
                 <th className="px-4 py-3">Status</th>
@@ -111,27 +111,27 @@ export default async function AdminCentresPage() {
                 <th className="px-4 py-3">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-zinc-100">
               {centres.map((c) => (
                 <tr key={c.id}>
-                  <td className="px-4 py-2 font-medium text-gray-900">
+                  <td className="px-4 py-2 font-medium text-zinc-900">
                     <Link href={`/admin/centres/${c.id}`} className="text-indigo-600 hover:underline">
                       {c.name}
                     </Link>
                   </td>
-                  <td className="px-4 py-2 text-gray-700">{c.code ?? "—"}</td>
+                  <td className="px-4 py-2 text-zinc-700">{c.code ?? "—"}</td>
                   <td className="px-4 py-2">
                     <span
                       className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                         c.status === "active"
                           ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-600"
+                          : "bg-zinc-100 text-zinc-600"
                       }`}
                     >
                       {c.status === "active" ? "Active" : "Deactivated"}
                     </span>
                   </td>
-                  <td className="px-4 py-2 text-xs text-gray-500">
+                  <td className="px-4 py-2 text-xs text-zinc-500">
                     {new Date(c.created_at).toLocaleDateString("en-GB")}
                   </td>
                   <td className="px-4 py-2">

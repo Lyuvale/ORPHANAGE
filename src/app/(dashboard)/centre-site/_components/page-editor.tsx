@@ -9,7 +9,7 @@ import ImageUploader from "./image-uploader";
 
 const inputCls =
   "mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm";
-const labelCls = "block text-sm font-medium text-gray-700";
+const labelCls = "block text-sm font-medium text-zinc-700";
 
 let idCounter = 0;
 function nextBlockId(): string {
@@ -121,7 +121,7 @@ function BlockEditorFields({
           <label className={labelCls}>Items (one per line)</label>
           <textarea className={inputCls} rows={4} value={(block.data.items ?? []).join("\n")}
             onChange={(e) => set("items", e.target.value.split("\n"))} />
-          <label className="mt-2 inline-flex items-center gap-2 text-sm text-gray-700">
+          <label className="mt-2 inline-flex items-center gap-2 text-sm text-zinc-700">
             <input type="checkbox" className="rounded border-gray-300"
               checked={block.data.ordered === true}
               onChange={(e) => set("ordered", e.target.checked)} />
@@ -145,7 +145,7 @@ function BlockEditorFields({
         </div>
       );
     case "divider":
-      return <p className="text-xs text-gray-400">Horizontal divider — no settings.</p>;
+      return <p className="text-xs text-zinc-400">Horizontal divider — no settings.</p>;
     case "video":
       return (
         <div>
@@ -176,7 +176,7 @@ function BlockEditorFields({
             <textarea className={inputCls} rows={2} value={block.data.description ?? ""}
               onChange={(e) => set("description", e.target.value)} />
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-zinc-500">
             Donations are collected on the visitor&apos;s side of the site and land directly in this centre&apos;s
             Resources &amp; Support for the accountant.
           </p>
@@ -280,10 +280,10 @@ export default function PageEditor({
     <div className="max-w-3xl">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-zinc-900">
             {pageId ? "Edit page" : "New page"}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-zinc-500 mt-1">
             <a href={`/s/${centreCode}`} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-500">
               View site ↗
             </a>
@@ -293,7 +293,7 @@ export default function PageEditor({
           <button
             type="button"
             onClick={() => setPreview((p) => !p)}
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
           >
             {preview ? "Edit" : "Preview"}
           </button>
@@ -322,8 +322,8 @@ export default function PageEditor({
       )}
 
       {preview ? (
-        <div className="mt-6 rounded-lg border bg-white p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Preview ({publicUrl})</h2>
+        <div className="mt-6 rounded-lg border border-zinc-200 bg-white p-6">
+          <h2 className="text-lg font-semibold text-zinc-900 mb-4">Preview ({publicUrl})</h2>
           <BlockRenderer blocks={blocks} centreCode={centreCode} />
         </div>
       ) : (
@@ -342,7 +342,7 @@ export default function PageEditor({
               <input id="slug" className={inputCls} value={slug} disabled={!canManage}
                 onChange={(e) => { setSlug(e.target.value); if (e.target.value) setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "")); }}
                 placeholder="our-story" />
-              <p className="mt-1 text-xs text-gray-400">Auto-generated from title; you can change it.</p>
+              <p className="mt-1 text-xs text-zinc-400">Auto-generated from title; you can change it.</p>
             </div>
           </div>
 
@@ -365,14 +365,14 @@ export default function PageEditor({
                 onChange={(e) => setNavOrder(Number(e.target.value) || 0)} />
             </div>
             <div className="pt-5">
-              <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+              <label className="inline-flex items-center gap-2 text-sm text-zinc-700">
                 <input type="checkbox" className="rounded border-gray-300" checked={showInNav} disabled={!canManage}
                   onChange={(e) => setShowInNav(e.target.checked)} />
                 Show in navigation
               </label>
             </div>
             <div className="pt-5">
-              <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+              <label className="inline-flex items-center gap-2 text-sm text-zinc-700">
                 <input type="checkbox" className="rounded border-gray-300" checked={isPublished} disabled={!canManage}
                   onChange={(e) => setIsPublished(e.target.checked)} />
                 Published (visible to visitors)
@@ -381,7 +381,7 @@ export default function PageEditor({
           </div>
 
           <div className="flex items-center gap-3">
-            <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+            <label className="inline-flex items-center gap-2 text-sm text-zinc-700">
               <input type="checkbox" className="rounded border-gray-300" checked={isHome} disabled={!canManage}
                 onChange={(e) => setIsHome(e.target.checked)} />
               Make this the site home page
@@ -390,10 +390,10 @@ export default function PageEditor({
 
           <div>
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-gray-900">Content blocks</h3>
+              <h3 className="text-sm font-semibold text-zinc-900">Content blocks</h3>
               {canManage && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">Add block:</span>
+                  <span className="text-xs text-zinc-500">Add block:</span>
                   <select
                     className="rounded-md border border-gray-300 px-2 py-1 text-xs"
                     defaultValue=""
@@ -412,24 +412,24 @@ export default function PageEditor({
             </div>
 
             {blocks.length === 0 ? (
-              <p className="mt-3 rounded-lg border border-dashed p-8 text-center text-sm text-gray-400">
+              <p className="mt-3 rounded-lg border border-dashed p-8 text-center text-sm text-zinc-400">
                 No content yet. Add your first block above.
               </p>
             ) : (
               <ul className="mt-3 space-y-3">
                 {blocks.map((block, index) => (
-                  <li key={block.id} className="rounded-lg border bg-white p-4">
+                  <li key={block.id} className="rounded-lg border border-zinc-200 bg-white p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
                         {block.type.replace(/_/g, " ")}
                       </span>
                       <div className="flex items-center gap-1">
                         <button type="button" disabled={!canManage || index === 0}
                           onClick={() => move(index, -1)}
-                          className="rounded border border-gray-300 px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-40">↑</button>
+                          className="rounded border border-gray-300 px-2 py-0.5 text-xs text-zinc-600 hover:bg-zinc-50 disabled:opacity-40">↑</button>
                         <button type="button" disabled={!canManage || index === blocks.length - 1}
                           onClick={() => move(index, 1)}
-                          className="rounded border border-gray-300 px-2 py-0.5 text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-40">↓</button>
+                          className="rounded border border-gray-300 px-2 py-0.5 text-xs text-zinc-600 hover:bg-zinc-50 disabled:opacity-40">↓</button>
                         <button type="button" disabled={!canManage}
                           onClick={() => setBlocks((prev) => prev.filter((_, i) => i !== index))}
                           className="rounded border border-red-200 px-2 py-0.5 text-xs text-red-600 hover:bg-red-50 disabled:opacity-40">Remove</button>
@@ -438,7 +438,7 @@ export default function PageEditor({
                     {canManage ? (
                       <BlockEditorFields block={block} onChange={(b) => updateBlock(index, b)} />
                     ) : (
-                      <p className="text-xs text-gray-500">Editing is disabled for your role.</p>
+                      <p className="text-xs text-zinc-500">Editing is disabled for your role.</p>
                     )}
                   </li>
                 ))}
