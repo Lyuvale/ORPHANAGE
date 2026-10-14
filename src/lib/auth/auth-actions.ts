@@ -16,7 +16,7 @@ import {
  * Self-service sign-up is DISABLED. Accounts are created only by:
  *  - A PLATFORM_ADMINISTRATOR, who can provision any CENTRE_ROLE (including
  *    CENTRE_MANAGER) for any active centre.
- *  - A CENTRE_MANAGER, who can provision staff (non-manager CENTRE_ROLES) for
+ *  - A CENTRE_MANAGER, who can provision staff (non-manager CENTRE_ROLES + custom roles) for
  *    their own centre only.
  *
  * All role/centre decisions are resolved server-side from the acting user's
@@ -25,8 +25,10 @@ import {
  * assignable here; it is granted exclusively by existing administrators.
  */
 
-/** Roles a CENTRE_MANAGER may create for staff in their own centre. */
-const MANAGER_CREATABLE_ROLES = CENTRE_ROLES.filter((r) => r !== "CENTRE_MANAGER");
+/** System roles a CENTRE_MANAGER may create for staff in their own centre. */
+const MANAGER_CREATABLE_SYSTEM_ROLES = CENTRE_ROLES.filter(
+  (r) => r !== "CENTRE_MANAGER",
+);
 
 export interface ProvisionUserResult {
   ok: true;
@@ -55,7 +57,10 @@ export async function provisionUser(
     return { ok: false, error: "Password must be at least 10 characters." };
   }
   if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
-    return { ok: false, error: "Password must contain at least one letter and one number." };
+    return {
+      ok: false,
+      error: "Password must contain at least one letter and one number.",
+    };
   }
 
   // ── Authenticate + authorise the caller ────────────────────────────────
@@ -74,28 +79,39 @@ export async function provisionUser(
     return { ok: false, error: "You are not allowed to create users." };
   }
 
+  // ── Fetch custom roles for manager's centre ────────────────────────────
+  const admin = createAdminClient();
+  let customRoles: { name: string }[] = [];
+  if (isManager) {
+    const { data } = await admin
+      .from("roles")
+      .select("name")
+      .eq("centre_id", ctx.centre.id)
+      .eq("is_system", false);
+    customRoles = (data ?? []) as { name: string }[];
+  }
+
   // ── Decide allowed role + target centre (server-controlled) ────────────
-  let allowedRoles: readonly string[];
+  let allowedRoles: string[];
   let targetCentreId: string;
 
   if (isAdmin) {
-    allowedRoles = CENTRE_ROLES;
+    allowedRoles = [...CENTRE_ROLES];
     if (!requestedCentreId) {
       return { ok: false, error: "Please select a centre." };
     }
     targetCentreId = requestedCentreId;
   } else {
-    // Manager: force their own centre, never a new manager.
-    allowedRoles = MANAGER_CREATABLE_ROLES;
+    // Manager: force their own centre, allow system roles + custom roles
+    allowedRoles = [...MANAGER_CREATABLE_SYSTEM_ROLES, ...customRoles.map((r) => r.name)];
     targetCentreId = ctx.centre.id;
   }
 
-  if (!(allowedRoles as readonly string[]).includes(requestedRole)) {
+  if (!allowedRoles.includes(requestedRole)) {
     return { ok: false, error: "You are not permitted to assign that role." };
   }
 
   // ── Validate the target centre is active (and exists) ──────────────────
-  const admin = createAdminClient();
   const { data: centre } = await admin
     .from("centres")
     .select("id, status")

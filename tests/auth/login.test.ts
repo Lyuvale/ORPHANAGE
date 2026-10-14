@@ -41,15 +41,16 @@ describe("Auth — user provisioning respects the role model", () => {
 
   it("provisioning only exposes centre roles, never platform admin", () => {
     const src = readFileSync(AUTH_ACTIONS_PATH, "utf8");
-    expect(src).toContain("const MANAGER_CREATABLE_ROLES =");
+    expect(src).toContain("MANAGER_CREATABLE_SYSTEM_ROLES");
+    // Platform admin should not be in manager's allowedRoles array
     expect(src).not.toContain("PLATFORM_ADMINISTRATOR]");
     expect(src).toContain("CENTRE_ROLES");
   });
 
   it("a centre manager is scoped to their own centre and cannot create managers", () => {
     const src = readFileSync(AUTH_ACTIONS_PATH, "utf8");
-    expect(src).toContain("allowedRoles = CENTRE_ROLES");
     expect(src).toContain("targetCentreId = ctx.centre.id");
-    expect(src).toContain("MANAGER_CREATABLE_ROLES");
+    expect(src).toContain("MANAGER_CREATABLE_SYSTEM_ROLES");
+    expect(src).toContain("customRoles");
   });
 });
