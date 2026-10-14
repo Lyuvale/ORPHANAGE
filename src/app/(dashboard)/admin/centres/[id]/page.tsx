@@ -7,6 +7,7 @@ import { getUserRoleName } from "@/lib/auth/authorization.service";
 import CentreEditForm from "./CentreEditForm";
 import CentreActions from "./CentreActions";
 import CentreSubscriptionManager from "./CentreSubscriptionManager";
+import { AssignManagerForm } from "./AssignManagerForm";
 
 export const dynamic = "force-dynamic";
 
@@ -112,6 +113,20 @@ export default async function CentreDetailPage({
 
   const managers = (rolesData ?? []) as Record<string, unknown>[];
 
+  // Load user profiles for assign-manager form (all staff at this centre)
+  const { data: allProfilesData } = await admin
+    .from("user_profiles")
+    .select("id, first_name, last_name, email, phone")
+    .eq("centre_id", id)
+    .order("last_name", { ascending: true });
+  const allProfiles = (allProfilesData ?? []) as Array<{
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string | null;
+    phone: string | null;
+  }>;
+
   // Load user profiles for each manager
   const userIds = [...new Set(managers.map((m) => m.user_id).filter(Boolean))] as string[];
   const usersMap = new Map<string, Record<string, unknown>>();
@@ -137,6 +152,19 @@ export default async function CentreDetailPage({
       rolesMap.set(r.id as string, r);
     }
   }
+
+  // Current manager profile (for assign-manager form)
+  const currentManagerProfile =
+    managers
+      .filter((m) => rolesMap.get(m.role_id as string)?.name === "CENTRE_MANAGER")
+      .map((m) => usersMap.get(m.user_id as string))
+      .filter(Boolean)
+      .map((u) => ({
+        id: u!.id as string,
+        first_name: u!.first_name as string,
+        last_name: u!.last_name as string,
+        email: (u!.email as string) ?? null,
+      }))[0] ?? null;
 
   const staffCount = ((staffRes.data ?? []) as { role_id?: string }[]).filter(
     (r) => staffRoleNames.get(r.role_id ?? "") !== "PLATFORM_ADMINISTRATOR",
@@ -237,6 +265,15 @@ export default async function CentreDetailPage({
             </table>
           </div>
         )}
+      </section>
+
+      {/* Assign Centre Manager */}
+      <section className="space-y-3">
+        <AssignManagerForm
+          centreId={centre.id}
+          users={allProfiles}
+          currentManager={currentManagerProfile}
+        />
       </section>
 
       {/* Subscription Manager */}
