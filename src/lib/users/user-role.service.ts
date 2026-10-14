@@ -236,5 +236,14 @@ export async function getRoleHistory(
 
   if (error) throw new Error(`Failed to get role history: ${error.message}`);
 
-  return (data as any[]) ?? [];
+  return (data as Array<{
+    id: string;
+    user_id: string;
+    centre_id: string;
+    previous_role_id: string | null;
+    new_role_id: string | null;
+    changed_by: string | null;
+    changed_at: string;
+    reason: string | null;
+  }>) ?? [];
 }
