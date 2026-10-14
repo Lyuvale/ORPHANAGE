@@ -23,9 +23,10 @@ export type RoleName = CentreRole | PlatformRole;
 
 export interface Role {
   id: string;
-  name: RoleName;
+  name: string;
   description: string | null;
   is_system: boolean;
+  centre_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -269,6 +270,11 @@ export const PERMISSIONS = {
 
   NOTIFICATIONS_VIEW: "notifications.view" as const,
   NOTIFICATIONS_MANAGE: "notifications.manage" as const,
+
+  ROLES_VIEW: "roles.view" as const,
+  ROLES_CREATE: "roles.create" as const,
+  ROLES_UPDATE: "roles.update" as const,
+  ROLES_DELETE: "roles.delete" as const,
 
   SITE_VIEW: "site.view" as const,
   SITE_PAGES_MANAGE: "site.pages.manage" as const,

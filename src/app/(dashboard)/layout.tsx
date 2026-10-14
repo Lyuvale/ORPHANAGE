@@ -91,6 +91,7 @@ export default async function DashboardLayout({
         { href: "/admin", label: "Overview", icon: "dashboard" },
         { href: "/admin/centres", label: "Centres", icon: "children" },
         { href: "/admin/users", label: "Create Manager", icon: "team" },
+        { href: "/roles", label: "Roles", icon: "audit" },
         { href: "/admin/payments", label: "Payments", icon: "subscriptions" },
         { href: "/admin/subscriptions", label: "Subscriptions", icon: "subscriptions" },
         { href: "/admin/settings", label: "Settings", icon: "audit" },
@@ -115,6 +116,9 @@ export default async function DashboardLayout({
           : []),
         ...(perms.has("staff.view")
           ? [{ href: "/team", label: "Team", icon: "team" }]
+          : []),
+        ...(perms.has("roles.view") || perms.has("roles.create")
+          ? [{ href: "/roles", label: "Roles", icon: "audit" }]
           : []),
         ...(perms.has("health.view")
           ? [{ href: "/health", label: "Health", icon: "health" }]

@@ -106,6 +106,7 @@ export interface Database {
           name: string;
           description: string | null;
           is_system: boolean;
+          centre_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -114,6 +115,7 @@ export interface Database {
           name: string;
           description?: string | null;
           is_system?: boolean;
+          centre_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -122,6 +124,7 @@ export interface Database {
           name?: string;
           description?: string | null;
           is_system?: boolean;
+          centre_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };

@@ -185,11 +185,12 @@ export async function assignRole(
   adminSupabase: SupabaseClient,
   input: AssignRoleInput,
 ): Promise<UserRole> {
-  // 1. Look up the role
+  // 1. Look up the role (system role or centre's custom role)
   const { data: role, error: roleError } = await adminSupabase
     .from("roles")
-    .select("id, name")
+    .select("id, name, is_system, centre_id")
     .eq("name", input.roleName)
+    .or(`is_system.eq.true,centre_id.eq.${input.centreId}`)
     .single();
 
   if (roleError || !role) {
