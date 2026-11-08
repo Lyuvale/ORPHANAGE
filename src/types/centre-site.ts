@@ -6,6 +6,8 @@
  * Only published pages are exposed publicly.
  */
 
+import type { PublicCentreNeed } from "@/types/centre-need";
+
 export type SiteBlockBase = {
   id: string;
   type: string;
@@ -137,6 +139,8 @@ export interface PublicSite {
   };
   theme: SiteTheme;
   pages: SitePage[];
+  /** Public needs + computed progress. Never contains contribution details. */
+  needs: PublicCentreNeed[];
 }
 
 export const SITE_FONT_OPTIONS = [

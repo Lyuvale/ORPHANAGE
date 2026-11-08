@@ -5,8 +5,9 @@ import Link from "next/link";
 import type { SitePage, SiteTheme } from "@/types/centre-site";
 import ThemePanel from "@/app/(dashboard)/centre-site/_components/theme-panel";
 import PagesPanel from "@/app/(dashboard)/centre-site/_components/pages-panel";
+import NeedsPanel from "@/app/(dashboard)/centre-site/_components/needs-panel";
 
-type Tab = "pages" | "appearance";
+type Tab = "pages" | "appearance" | "needs";
 
 export default function SiteManager({
   initialTheme,
@@ -16,6 +17,8 @@ export default function SiteManager({
   publicBaseUrl,
   canManagePages,
   canManageTheme,
+  canViewNeeds,
+  canManageNeeds,
   roleLabel,
 }: {
   initialTheme: SiteTheme;
@@ -25,6 +28,8 @@ export default function SiteManager({
   publicBaseUrl: string;
   canManagePages: boolean;
   canManageTheme: boolean;
+  canViewNeeds: boolean;
+  canManageNeeds: boolean;
   roleLabel: string;
 }) {
   const [tab, setTab] = useState<Tab>("pages");
@@ -78,6 +83,19 @@ export default function SiteManager({
           >
             Appearance
           </button>
+          {(canViewNeeds || canManageNeeds) && (
+            <button
+              type="button"
+              onClick={() => setTab("needs")}
+              className={`px-1 py-2 text-sm font-medium border-b-2 ${
+                tab === "needs"
+                  ? "border-indigo-600 text-indigo-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Needs
+            </button>
+          )}
         </nav>
       </div>
 
@@ -87,8 +105,14 @@ export default function SiteManager({
           canManage={canManagePages}
           siteUrl={siteUrl}
         />
-      ) : (
+      ) : tab === "appearance" ? (
         <ThemePanel initialTheme={initialTheme} canManage={canManageTheme} />
+      ) : (
+        <NeedsPanel
+          canManage={canManageNeeds}
+          centreCode={centreCode}
+          publicBaseUrl={publicBaseUrl}
+        />
       )}
     </div>
   );

@@ -34,11 +34,12 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     const ctx = await requireAppAccess(supabase as unknown as SupabaseClient);
 
-    const canPages =
+    const canUpload =
       (await can(supabase as unknown as SupabaseClient, ctx, "site.pages.manage").catch(() => false)) ||
-      (await can(supabase as unknown as SupabaseClient, ctx, "site.theme.manage").catch(() => false));
+      (await can(supabase as unknown as SupabaseClient, ctx, "site.theme.manage").catch(() => false)) ||
+      (await can(supabase as unknown as SupabaseClient, ctx, "site.needs.manage").catch(() => false));
 
-    if (!canPages) {
+    if (!canUpload) {
       return NextResponse.json({ error: "Access denied." }, { status: 403 });
     }
 
