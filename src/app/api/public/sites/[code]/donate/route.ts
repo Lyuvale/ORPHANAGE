@@ -95,7 +95,6 @@ export async function POST(
       purpose?: unknown;
       name?: unknown;
       email?: unknown;
-      needId?: unknown;
     };
 
     const amount = parseAmount(body.amount);
@@ -106,55 +105,19 @@ export async function POST(
       );
     }
 
-    // Optional: donate to a specific published need. When present the need's
-    // title becomes the purpose (server-side, never trusted from the client)
-    // and the preset-purpose check is skipped. The need is stored in
-    // payment_transactions.metadata so confirmation can link the contribution.
-    let needId: string | null = null;
-    let needTitle: string | null = null;
-
-    if (typeof body.needId === "string" && body.needId.trim()) {
-      const { data: need, error: needError } = await admin
-        .from("centre_needs")
-        .select("id, centre_id, title, status, is_public")
-        .eq("id", body.needId.trim())
-        .maybeSingle();
-
-      if (needError) throw new Error(`Failed to load need: ${needError.message}`);
-      if (
-        !need ||
-        need.centre_id !== centre.id ||
-        need.status !== "active" ||
-        need.is_public !== true
-      ) {
-        return NextResponse.json(
-          { error: "Need not available" },
-          { status: 404 },
-        );
-      }
-
-      needId = String(need.id);
-      needTitle = String(need.title);
-    }
-
     const presets: string[] = Array.isArray(contribCfg.purpose_presets)
       ? (contribCfg.purpose_presets as unknown[]).map((p) => String(p))
       : [];
     const defaultPurpose = String(contribCfg.default_purpose ?? "General Support");
 
-    let purpose: string;
-    if (needId && needTitle) {
-      purpose = needTitle.slice(0, 300);
-    } else {
-      purpose = typeof body.purpose === "string" && body.purpose.trim()
-        ? body.purpose.trim().slice(0, 300)
-        : defaultPurpose;
-      if (purpose !== defaultPurpose && !presets.includes(purpose)) {
-        return NextResponse.json(
-          { error: "Please choose one of the centre's listed donation purposes." },
-          { status: 400 },
-        );
-      }
+    const purpose = typeof body.purpose === "string" && body.purpose.trim()
+      ? body.purpose.trim().slice(0, 300)
+      : defaultPurpose;
+    if (purpose !== defaultPurpose && !presets.includes(purpose)) {
+      return NextResponse.json(
+        { error: "Please choose one of the centre's listed donation purposes." },
+        { status: 400 },
+      );
     }
 
     const name = typeof body.name === "string" ? body.name.trim().slice(0, 200) : "";
@@ -192,7 +155,6 @@ export async function POST(
       contributorName: name || null,
       contributorEmail: email,
       createdBy: null,
-      metadata: needId ? { needId } : null,
     });
 
     return NextResponse.json(

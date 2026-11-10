@@ -279,52 +279,6 @@ async function handleContributionConfirmation(
     .update({ fund_id: fund.id })
     .eq("id", row.id);
 
-  // Optional: link this contribution to a centre need for progress tracking.
-  // PaymentRow.metadata is set when the donor chose a specific need. The
-  // UNIQUE(payment_transaction_id) + ignoreDuplicates make webhook retries safe.
-  const needId =
-    row.metadata && typeof row.metadata.needId === "string"
-      ? row.metadata.needId
-      : null;
-
-  if (needId) {
-    const { data: need } = await admin
-      .from("centre_needs")
-      .select("id")
-      .eq("id", needId)
-      .eq("centre_id", row.centre_id)
-      .maybeSingle();
-
-    if (need) {
-      const { error: needContributionError } = await admin
-        .from("centre_need_contributions")
-        .upsert(
-          {
-            need_id: need.id,
-            centre_id: row.centre_id,
-            amount: Number(row.amount),
-            source: "ONLINE",
-            payment_transaction_id: row.id,
-            note: purpose,
-            created_by: actorUserId ?? null,
-          },
-          {
-            onConflict: "payment_transaction_id",
-            ignoreDuplicates: true,
-          },
-        );
-
-      if (needContributionError) {
-        // Never fail the confirmed payment because optional progress tracking
-        // failed; the Source/Fund remain the financial source of truth.
-        console.error(
-          "[PAYMENT] Failed to record centre need contribution:",
-          needContributionError.message,
-        );
-      }
-    }
-  }
-
   // Centre notifications.
   await notifyRole(admin, row.centre_id, ["CENTRE_MANAGER", "ACCOUNTANT_BURSAR"], {
     title: "Online contribution received",
@@ -384,7 +338,6 @@ export async function initiatePayment(
     contributorContact?: string | null;
     subscriptionId?: string | null;
     createdBy?: string | null;
-    metadata?: Record<string, unknown> | null;
   },
 ): Promise<PaymentRow> {
   const { data, error } = await admin
@@ -403,7 +356,6 @@ export async function initiatePayment(
       contributor_contact: input.contributorContact ?? null,
       subscription_id: input.subscriptionId ?? null,
       created_by: input.createdBy ?? null,
-      metadata: input.metadata ?? null,
     })
     .select()
     .single();

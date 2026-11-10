@@ -20,16 +20,8 @@ export default async function CentreSitePage() {
   const role = await getUserRoleName(supabase as never, ctx);
   const canManagePages = perms.has("site.pages.manage");
   const canManageTheme = perms.has("site.theme.manage");
-  const canViewNeeds = perms.has("site.needs.view");
-  const canManageNeeds = perms.has("site.needs.manage");
 
-  if (
-    !perms.has("site.view") &&
-    !canManagePages &&
-    !canManageTheme &&
-    !canViewNeeds &&
-    !canManageNeeds
-  ) {
+  if (!perms.has("site.view") && !canManagePages && !canManageTheme) {
     redirect("/dashboard");
   }
 
@@ -50,8 +42,6 @@ export default async function CentreSitePage() {
       publicBaseUrl={publicUrl}
       canManagePages={canManagePages}
       canManageTheme={canManageTheme}
-      canViewNeeds={canViewNeeds}
-      canManageNeeds={canManageNeeds}
       roleLabel={role?.replace(/_/g, " ") ?? ""}
     />
   );
