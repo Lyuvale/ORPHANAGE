@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getPublicSite } from "@/lib/centre-site/centre-site.service";
 import BlockRenderer from "@/components/centre-site/block-renderer";
+import NeedsShowcase from "@/components/centre-site/needs-showcase";
 import type { PublicSite, SitePage } from "@/types/centre-site";
 
 export const dynamic = "force-dynamic";
@@ -40,13 +41,16 @@ export default async function CentreSiteHome({
 
   if (!page) {
     return (
-      <div className="text-center py-24">
-        <h1 className="text-2xl font-semibold text-gray-800">
-          {site.theme.site_name || site.centre.name}
-        </h1>
-        <p className="mt-3 text-gray-500">
-          This website is still under construction.
-        </p>
+      <div>
+        <div className="text-center py-24">
+          <h1 className="text-2xl font-semibold text-gray-800">
+            {site.theme.site_name || site.centre.name}
+          </h1>
+          <p className="mt-3 text-gray-500">
+            This website is still under construction.
+          </p>
+        </div>
+        <NeedsShowcase needs={site.needs ?? []} />
       </div>
     );
   }
@@ -57,6 +61,7 @@ export default async function CentreSiteHome({
         <p className="mb-6 text-gray-500 text-sm">{page.meta_description}</p>
       )}
       <BlockRenderer blocks={page.content} centreCode={code} />
+      <NeedsShowcase needs={site.needs ?? []} />
     </article>
   );
 }

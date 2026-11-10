@@ -6,6 +6,7 @@ import type {
   SitePageBlock,
 } from "@/types/centre-site";
 import { DEFAULT_SITE_THEME } from "@/types/centre-site";
+import { listPublicNeeds } from "@/lib/centre-site/centre-needs.service";
 import type { SitePageInput, SitePagePatch, SiteThemeInput } from "@/lib/centre-site/centre-site.validation";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -265,10 +266,12 @@ export async function getPublicSite(admin: AdminClient, centreCode: string): Pro
 
   const theme = await getSiteTheme(admin, centre.id);
   const pages = await listSitePages(admin, centre.id, { publishedOnly: true });
+  const needs = await listPublicNeeds(admin, centre.id);
 
   return {
     centre: { id: centre.id, name: centre.name, code: centre.code },
     theme,
     pages: pages.data,
+    needs,
   };
 }
