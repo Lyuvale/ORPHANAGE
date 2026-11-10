@@ -1,4 +1,4 @@
-# Children's Care Management & Accountability Platform
+# qChildren's Care Management & Accountability Platform
 
 A production-grade multi-tenant SaaS platform for managing children's care centres, resources, and accountability.
 
