@@ -122,10 +122,21 @@ const contributionReference = z
 const contributorName = z
   .string()
   .trim()
-  .max(200, "Contributor name must be 200 characters or fewer")
+  .max(200, "Jina la Mchangiaji must be 200 characters or fewer")
   .optional()
   .nullable()
   .or(z.literal("").transform(() => null));
+
+const contributorPhone = z
+  .string()
+  .trim()
+  .max(32, "Namba ya simu must be 32 characters or fewer")
+  .regex(/^[0-9+()\-\s]{5,32}$|^$/, "Namba ya simu si sahihi")
+  .optional()
+  .nullable()
+  .transform((value) =>
+    typeof value === "string" && value.trim() ? value.trim() : null,
+  );
 
 /** Public "record my transfer" submission (created as pending). */
 export const publicContributionSchema = z.object({
@@ -133,6 +144,7 @@ export const publicContributionSchema = z.object({
   amount: contributionAmount,
   transaction_reference: contributionReference,
   contributor_name: contributorName,
+  contributor_phone: contributorPhone,
 });
 
 /** Manager manual entry (created as verified immediately). */
@@ -143,6 +155,7 @@ export const manualContributionSchema = z.object({
     .optional()
     .nullable()
     .or(z.literal("").transform(() => null)),
+  contributor_phone: contributorPhone,
   contributor_name: contributorName,
   note: optionalText(1000, "Note"),
 });

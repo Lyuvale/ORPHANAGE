@@ -73,6 +73,7 @@ export interface CentreNeedContribution {
   status: CentreNeedContributionStatus;
   transaction_reference: string | null;
   contributor_name: string | null;
+  contributor_phone: string | null;
   payment_transaction_id: string | null;
   note: string | null;
   verified_by: string | null;
@@ -135,6 +136,7 @@ export interface PublicContributionInput {
   amount: number;
   transactionReference: string;
   contributorName?: string | null;
+  contributorPhone?: string | null;
 }
 
 export interface ManualContributionInput {
@@ -142,6 +144,7 @@ export interface ManualContributionInput {
   amount: number;
   transactionReference?: string | null;
   contributorName?: string | null;
+  contributorPhone?: string | null;
   note?: string | null;
 }
 

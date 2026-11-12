@@ -89,6 +89,7 @@ export async function POST(
       needId?: unknown;
       transaction_reference?: unknown;
       contributor_name?: unknown;
+      contributor_phone?: unknown;
     };
 
     const amount = parseAmount(body.amount);
@@ -118,6 +119,8 @@ export async function POST(
             : typeof body.name === "string"
               ? body.name
               : null,
+        contributor_phone:
+          typeof body.contributor_phone === "string" ? body.contributor_phone : null,
       });
 
       if (!parsed.success) {
@@ -136,6 +139,7 @@ export async function POST(
           amount: parsed.data.amount,
           transactionReference: parsed.data.transaction_reference,
           contributorName: parsed.data.contributor_name,
+          contributorPhone: parsed.data.contributor_phone,
         });
         return NextResponse.json(
           {

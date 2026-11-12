@@ -111,6 +111,7 @@ export default function VerificationPanel() {
               <tr className="border-b border-gray-100 bg-zinc-50/60 text-left text-xs font-medium uppercase tracking-wide text-zinc-500">
                 <th className="px-5 py-3">Need</th>
                 <th className="px-5 py-3">Jina la Mchangiaji</th>
+                <th className="px-5 py-3">Simu</th>
                 <th className="px-5 py-3">Jina la Muamala</th>
                 <th className="px-5 py-3">Amount</th>
                 <th className="px-5 py-3">Date</th>
@@ -125,6 +126,9 @@ export default function VerificationPanel() {
                   </td>
                   <td className="px-5 py-3 text-zinc-600">
                     {item.contributor_name || "—"}
+                  </td>
+                  <td className="px-5 py-3 text-zinc-600">
+                    {item.contributor_phone || "—"}
                   </td>
                   <td className="px-5 py-3 font-mono text-xs text-zinc-600">
                     {item.transaction_reference || "—"}

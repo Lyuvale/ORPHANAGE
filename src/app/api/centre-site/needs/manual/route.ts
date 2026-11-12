@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
         amount: parsed.data.amount,
         transactionReference: parsed.data.transaction_reference,
         contributorName: parsed.data.contributor_name,
+        contributorPhone: parsed.data.contributor_phone,
         note: parsed.data.note,
       },
       ctx.authUserId,
@@ -56,6 +57,7 @@ export async function POST(request: NextRequest) {
       status: contribution.status,
       transaction_reference: contribution.transaction_reference,
       contributor_name: contribution.contributor_name,
+      contributor_phone: contribution.contributor_phone,
     });
 
     return NextResponse.json({ data: contribution }, { status: 201 });

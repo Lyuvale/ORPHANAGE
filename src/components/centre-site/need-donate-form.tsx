@@ -26,6 +26,7 @@ export default function NeedDonateForm({
   const [amount, setAmount] = useState("");
   const [reference, setReference] = useState("");
   const [contributorName, setContributorName] = useState("");
+  const [contributorPhone, setContributorPhone] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -54,6 +55,7 @@ export default function NeedDonateForm({
           amount: numericAmount,
           transaction_reference: reference.trim(),
           contributor_name: contributorName.trim() || null,
+          contributor_phone: contributorPhone.trim() || null,
         }),
       });
       const json = await res.json().catch(() => ({}));
@@ -61,6 +63,10 @@ export default function NeedDonateForm({
         throw new Error(json.details || json.error || "Could not submit contribution.");
       }
       setSuccess(true);
+      setAmount("");
+      setReference("");
+      setContributorName("");
+      setContributorPhone("");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not submit contribution.");
     } finally {
@@ -125,7 +131,7 @@ export default function NeedDonateForm({
       ) : null}
 
       <div className="mt-3">
-        <span className={labelCls}>Chagua kiasi (TZS)</span>
+        <span className={labelCls}>Amount (TZS)</span>
         <div className="mt-2 flex flex-wrap gap-2">
           {QUICK_AMOUNTS.map((quick) => {
             const active = Number(amount) === quick;
@@ -168,7 +174,7 @@ export default function NeedDonateForm({
 
       <div className="mt-3">
         <label className={labelCls} htmlFor={`donate-ref-${needId}`}>
-          Jina la Muamala / Receipt No
+          Jina la Muamala (Transaction Number)
         </label>
         <input
           id={`donate-ref-${needId}`}
@@ -183,7 +189,7 @@ export default function NeedDonateForm({
 
       <div className="mt-3">
         <label className={labelCls} htmlFor={`donate-name-${needId}`}>
-          Jina la Mchangiaji
+          Jina la Mchangiaji (Contributor Name)
         </label>
         <input
           id={`donate-name-${needId}`}
@@ -192,6 +198,22 @@ export default function NeedDonateForm({
           className={`${inputCls} mt-1.5`}
           placeholder="Hiari, lakini hutusaidia kushukuru"
           autoComplete="name"
+        />
+      </div>
+
+      <div className="mt-3">
+        <label className={labelCls} htmlFor={`donate-phone-${needId}`}>
+          Namba ya Simu ya Mchangiaji (Contributor Phone Number)
+        </label>
+        <input
+          id={`donate-phone-${needId}`}
+          type="tel"
+          inputMode="tel"
+          value={contributorPhone}
+          onChange={(e) => setContributorPhone(e.target.value)}
+          className={`${inputCls} mt-1.5`}
+          placeholder="07XXXXXXXX"
+          autoComplete="tel"
         />
       </div>
 

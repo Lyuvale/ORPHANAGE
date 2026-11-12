@@ -32,7 +32,7 @@ const PUBLIC_NEED_COLUMNS =
  * never expose `payment_transaction_id` on the public path.
  */
 const CONTRIBUTION_COLUMNS =
-  "id, need_id, centre_id, amount, source, status, transaction_reference, contributor_name, payment_transaction_id, note, verified_by, verified_at, created_by, created_at";
+  "id, need_id, centre_id, amount, source, status, transaction_reference, contributor_name, contributor_phone, payment_transaction_id, note, verified_by, verified_at, created_by, created_at";
 
 interface ContributionAmountRow {
   need_id: string;
@@ -318,6 +318,7 @@ export async function createPublicContribution(
       status: "pending",
       transaction_reference: input.transactionReference.trim(),
       contributor_name: input.contributorName?.trim() || null,
+      contributor_phone: input.contributorPhone?.trim() || null,
       created_by: null,
     })
     .select(CONTRIBUTION_COLUMNS)
@@ -349,6 +350,7 @@ export async function createManualContribution(
       status: "verified",
       transaction_reference: input.transactionReference?.trim() || null,
       contributor_name: input.contributorName?.trim() || null,
+      contributor_phone: input.contributorPhone?.trim() || null,
       note: input.note ?? null,
       verified_by: createdBy,
       verified_at: now,

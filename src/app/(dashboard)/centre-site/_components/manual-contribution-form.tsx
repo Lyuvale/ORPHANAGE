@@ -18,6 +18,7 @@ export default function ManualContributionForm({
   const [needId, setNeedId] = useState(needs[0]?.id ?? "");
   const [amount, setAmount] = useState("");
   const [contributorName, setContributorName] = useState("");
+  const [contributorPhone, setContributorPhone] = useState("");
   const [reference, setReference] = useState("");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
@@ -46,6 +47,7 @@ export default function ManualContributionForm({
           needId,
           amount: numericAmount,
           contributor_name: contributorName.trim() || null,
+          contributor_phone: contributorPhone.trim() || null,
           transaction_reference: reference.trim() || null,
           note: note.trim() || null,
         }),
@@ -133,8 +135,24 @@ export default function ManualContributionForm({
         </div>
 
         <div>
+          <label className={labelCls} htmlFor="manual-phone">
+            Namba ya Simu ya Mchangiaji
+          </label>
+          <input
+            id="manual-phone"
+            type="tel"
+            inputMode="tel"
+            value={contributorPhone}
+            onChange={(e) => setContributorPhone(e.target.value)}
+            className={inputCls}
+            placeholder="07XXXXXXXX"
+            autoComplete="tel"
+          />
+        </div>
+
+        <div>
           <label className={labelCls} htmlFor="manual-ref">
-            Jina la Muamala / Receipt No
+            Jina la Muamala (Transaction Number)
           </label>
           <input
             id="manual-ref"

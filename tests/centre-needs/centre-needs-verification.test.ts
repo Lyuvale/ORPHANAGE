@@ -39,6 +39,7 @@ describe("Centre Needs — verification migration", () => {
     expect(lower).toContain("add column status text not null default 'pending'");
     expect(lower).toContain("add column transaction_reference text");
     expect(lower).toContain("add column contributor_name text");
+    expect(lower).toContain("add column contributor_phone text");
     expect(lower).toContain("add column verified_by uuid");
     expect(lower).toContain("add column verified_at timestamptz");
   });

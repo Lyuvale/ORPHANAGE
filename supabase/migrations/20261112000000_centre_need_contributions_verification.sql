@@ -19,12 +19,16 @@
 -- -----------------------------------------------------------------------------
 -- 1. Verification columns
 -- -----------------------------------------------------------------------------
+-- If this migration has ALREADY been applied, do NOT re-run it — only run:
+--   ALTER TABLE centre_need_contributions ADD COLUMN contributor_phone TEXT;
+-- -----------------------------------------------------------------------------
 
 ALTER TABLE centre_need_contributions
   ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending', 'verified', 'rejected')),
   ADD COLUMN transaction_reference TEXT,
   ADD COLUMN contributor_name TEXT,
+  ADD COLUMN contributor_phone TEXT,
   ADD COLUMN verified_by UUID,
   ADD COLUMN verified_at TIMESTAMPTZ;
 
