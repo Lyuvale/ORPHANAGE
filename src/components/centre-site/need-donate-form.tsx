@@ -9,8 +9,9 @@ const labelCls = "block text-sm font-medium text-gray-700";
 /**
  * Public "record my transfer" form.
  *
- * Submits a PENDING contribution with a bank / M-Pesa reference. It only
- * counts towards the need after the centre accountant verifies it.
+ * Submits a PENDING contribution with a bank / M-Pesa transaction name
+ * (Jina la Muamala). It only counts towards the need after the accountant
+ * verifies it.
  */
 export default function NeedDonateForm({
   centreCode,
@@ -37,7 +38,7 @@ export default function NeedDonateForm({
       return;
     }
     if (!reference.trim()) {
-      setError("Enter the transaction reference.");
+      setError("Weka jina la muamala.");
       return;
     }
 
@@ -128,34 +129,34 @@ export default function NeedDonateForm({
         </div>
         <div>
           <label className={labelCls} htmlFor={`donate-ref-${needId}`}>
-            Transaction reference
+            Jina la Muamala / Receipt No
           </label>
           <input
             id={`donate-ref-${needId}`}
             value={reference}
             onChange={(e) => setReference(e.target.value)}
             className={inputCls}
-            placeholder="Bank or M-Pesa reference"
+            placeholder="Bank au M-Pesa transaction code"
             required
           />
         </div>
         <div>
           <label className={labelCls} htmlFor={`donate-name-${needId}`}>
-            Your name
+            Jina la Mchangiaji
           </label>
           <input
             id={`donate-name-${needId}`}
             value={contributorName}
             onChange={(e) => setContributorName(e.target.value)}
             className={inputCls}
-            placeholder="Optional, but helps us thank you"
+            placeholder="Hiari, lakini hutusaidia kushukuru"
           />
         </div>
       </div>
 
       <p className="mt-3 text-xs text-gray-500">
-        Your contribution appears after the centre accountant verifies the
-        reference.
+        Mchango wako utaonekana baada ya mhasibu wa kituo kuthibitisha jina la
+        muamala.
       </p>
 
       <button

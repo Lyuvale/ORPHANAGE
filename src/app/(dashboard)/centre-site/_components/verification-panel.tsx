@@ -110,8 +110,8 @@ export default function VerificationPanel() {
             <thead>
               <tr className="border-b border-gray-100 bg-zinc-50/60 text-left text-xs font-medium uppercase tracking-wide text-zinc-500">
                 <th className="px-5 py-3">Need</th>
-                <th className="px-5 py-3">Contributor</th>
-                <th className="px-5 py-3">Reference</th>
+                <th className="px-5 py-3">Jina la Mchangiaji</th>
+                <th className="px-5 py-3">Jina la Muamala</th>
                 <th className="px-5 py-3">Amount</th>
                 <th className="px-5 py-3">Date</th>
                 <th className="px-5 py-3 text-right">Actions</th>

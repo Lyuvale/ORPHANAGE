@@ -121,27 +121,27 @@ export default function ManualContributionForm({
 
         <div>
           <label className={labelCls} htmlFor="manual-name">
-            Contributor name
+            Jina la Mchangiaji
           </label>
           <input
             id="manual-name"
             value={contributorName}
             onChange={(e) => setContributorName(e.target.value)}
             className={inputCls}
-            placeholder="Optional"
+            placeholder="Hiari"
           />
         </div>
 
         <div>
           <label className={labelCls} htmlFor="manual-ref">
-            Transaction reference (Namba ya mchango)
+            Jina la Muamala / Receipt No
           </label>
           <input
             id="manual-ref"
             value={reference}
             onChange={(e) => setReference(e.target.value)}
             className={inputCls}
-            placeholder="Bank / M-Pesa reference"
+            placeholder="Bank au M-Pesa transaction code"
           />
         </div>
 

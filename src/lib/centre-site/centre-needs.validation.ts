@@ -116,8 +116,8 @@ const contributionAmount = z
 const contributionReference = z
   .string()
   .trim()
-  .min(1, "Transaction reference is required")
-  .max(120, "Transaction reference must be 120 characters or fewer");
+  .min(1, "Jina la Muamala is required")
+  .max(120, "Jina la Muamala must be 120 characters or fewer");
 
 const contributorName = z
   .string()
