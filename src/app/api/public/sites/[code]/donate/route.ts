@@ -19,11 +19,19 @@ const donateLimiter = createRateLimiter(30, 10 * 60 * 1000); // 30 per 10 min / 
  * CONTRIBUTION Source + Fund in that centre's Resources — visible to the
  * accountant/bursar immediately, with a notification.
  *
+ * Two modes:
+ *   1. Manual transfer (body.transaction_reference present): record a PENDING
+ *      contribution for accountant verification. This is a bank / M-Pesa
+ *      transfer, NOT a gateway payment, so online-donation switches are NOT
+ *      required.
+ *   2. Auto-checkout (no transaction_reference): create a provider checkout.
+ *      This path requires the centre's online contributions to be enabled and
+ *      the platform-wide donations switch to be ON.
+ *
  * Guards (all server-side, service role):
- *   - Centre must exist, be ACTIVE and have online contributions enabled.
- *   - The platform-wide donations switch must be ON.
- *   - amount within [1, 100,000,000] TZS; purpose must be one of the centre's
- *     configured presets (or the default); email validated when provided.
+ *   - Centre must exist and be ACTIVE.
+ *   - amount within [1, 100,000,000] TZS; for checkout, purpose must be one of
+ *     the centre's configured presets (or the default); email validated.
  */
 
 const MIN_AMOUNT = 1;
@@ -71,25 +79,6 @@ export async function POST(
     if (centreError) throw new Error(`Failed to load centre: ${centreError.message}`);
     if (!centre || centre.status !== "active") {
       return NextResponse.json({ error: "Centre not found." }, { status: 404 });
-    }
-
-    const { data: contribCfg } = await admin
-      .from("centre_online_contributions")
-      .select("enabled, purpose_presets, default_purpose")
-      .eq("centre_id", centre.id)
-      .maybeSingle();
-
-    if (!contribCfg || contribCfg.enabled !== true) {
-      return NextResponse.json(
-        { error: "Online donations are not enabled for this centre." },
-        { status: 403 },
-      );
-    }
-    if (!(await platformDonationsEnabled(admin))) {
-      return NextResponse.json(
-        { error: "Online donations are currently paused." },
-        { status: 403 },
-      );
     }
 
     const body = (await request.json().catch(() => ({}))) as {
@@ -169,6 +158,29 @@ export async function POST(
         }
         throw error;
       }
+    }
+
+    // ── Auto-checkout gateway mode (no transaction reference) ─────────────
+    // Manual transfers returned above never reach the payment gateway, so the
+    // centre's online-contribution switch and the platform switch are enforced
+    // ONLY for this gateway path.
+    const { data: contribCfg } = await admin
+      .from("centre_online_contributions")
+      .select("enabled, purpose_presets, default_purpose")
+      .eq("centre_id", centre.id)
+      .maybeSingle();
+
+    if (!contribCfg || contribCfg.enabled !== true) {
+      return NextResponse.json(
+        { error: "Online donations are not enabled for this centre." },
+        { status: 403 },
+      );
+    }
+    if (!(await platformDonationsEnabled(admin))) {
+      return NextResponse.json(
+        { error: "Online donations are currently paused." },
+        { status: 403 },
+      );
     }
 
     // Optional: donate to a specific published need. When present the need's

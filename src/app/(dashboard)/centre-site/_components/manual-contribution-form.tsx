@@ -134,14 +134,14 @@ export default function ManualContributionForm({
 
         <div>
           <label className={labelCls} htmlFor="manual-ref">
-            Transaction reference
+            Transaction reference (Namba ya mchango)
           </label>
           <input
             id="manual-ref"
             value={reference}
             onChange={(e) => setReference(e.target.value)}
             className={inputCls}
-            placeholder="Bank / M-Pesa reference (optional)"
+            placeholder="Bank / M-Pesa reference"
           />
         </div>
 

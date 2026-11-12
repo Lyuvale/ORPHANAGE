@@ -25,6 +25,14 @@ const service = readFileSync(
   join(process.cwd(), "src/lib/centre-site/centre-needs.service.ts"),
   "utf-8",
 );
+const donateRoute = readFileSync(
+  join(process.cwd(), "src/app/api/public/sites/[code]/donate/route.ts"),
+  "utf-8",
+);
+const manualRoute = readFileSync(
+  join(process.cwd(), "src/app/api/centre-site/needs/manual/route.ts"),
+  "utf-8",
+);
 
 describe("Centre Needs — verification migration", () => {
   it("adds the verification columns", () => {
@@ -95,6 +103,29 @@ describe("Centre Needs — verification permission", () => {
     expect(ROLE_PERMISSIONS.ACCOUNTANT_BURSAR).not.toContain(
       "site.needs.manage",
     );
+  });
+});
+
+describe("Centre Needs — public donate manual mode", () => {
+  it("records a pending contribution without the payment gateway", () => {
+    const manualBranch = donateRoute.indexOf("if (transactionReference)");
+    const configCheck = donateRoute.indexOf(
+      "Online donations are not enabled for this centre.",
+    );
+    expect(manualBranch).toBeGreaterThan(-1);
+    expect(configCheck).toBeGreaterThan(-1);
+    // Manual branch must run BEFORE the gateway-only config check.
+    expect(manualBranch).toBeLessThan(configCheck);
+    expect(donateRoute).toContain("createPublicContribution");
+    expect(donateRoute).toContain("status: contribution.status");
+  });
+});
+
+describe("Centre Needs — manager manual reference", () => {
+  it("accepts and saves transaction_reference", () => {
+    expect(manualRoute).toContain("manualContributionSchema");
+    expect(manualRoute).toContain("transactionReference: parsed.data.transaction_reference");
+    expect(manualRoute).toContain("transaction_reference: contribution.transaction_reference");
   });
 });
 
