@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { CentreNeed, CentreNeedProgress } from "@/types/centre-need";
 import NeedEditor from "./need-editor";
+import ManualContributionForm from "./manual-contribution-form";
 
 interface NeedWithProgress {
   need: CentreNeed;
@@ -62,6 +63,7 @@ export default function NeedsPanel({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [editor, setEditor] = useState<EditorState>(null);
+  const [manualOpen, setManualOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const trimmedBase = publicBaseUrl.replace(/\/+$/, "");
@@ -153,22 +155,38 @@ export default function NeedsPanel({
 
   return (
     <div className="mt-6">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-gray-100 pb-4">
         <div>
           <h2 className="text-lg font-semibold text-zinc-900">Needs</h2>
           <p className="text-sm text-zinc-500">
-            Publish what your centre needs. Progress updates automatically as
-            contributions are received.
+            Publish what your centre needs. Verified contributions update
+            progress automatically.
           </p>
         </div>
         {canManage && (
-          <button
-            type="button"
-            onClick={() => setEditor({ mode: "create" })}
-            className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700"
-          >
-            New need
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              disabled={items.length === 0}
+              onClick={() => {
+                setEditor(null);
+                setManualOpen((prev) => !prev);
+              }}
+              className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+            >
+              Log manual contribution
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setManualOpen(false);
+                setEditor({ mode: "create" });
+              }}
+              className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700"
+            >
+              New need
+            </button>
+          </div>
         )}
       </div>
 
@@ -224,6 +242,17 @@ export default function NeedsPanel({
           onCancel={() => setEditor(null)}
           onSaved={() => {
             setEditor(null);
+            void load();
+          }}
+        />
+      )}
+
+      {manualOpen && canManage && (
+        <ManualContributionForm
+          needs={items.map(({ need }) => ({ id: need.id, title: need.title }))}
+          onCancel={() => setManualOpen(false)}
+          onSaved={() => {
+            setManualOpen(false);
             void load();
           }}
         />

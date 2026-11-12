@@ -64,9 +64,9 @@ export default function CentreEditForm({ centre }: { centre: Centre }) {
 
   if (!editing) {
     return (
-      <section className="rounded-lg border bg-white p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-medium text-gray-900">Centre Details</h2>
+      <section className="rounded-xl border border-zinc-200 bg-white p-5 space-y-4">
+        <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+          <h2 className="text-sm font-semibold text-zinc-900">Centre Details</h2>
           <button
             onClick={() => setEditing(true)}
             className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500"
@@ -95,9 +95,9 @@ export default function CentreEditForm({ centre }: { centre: Centre }) {
   }
 
   return (
-    <section className="rounded-lg border bg-white p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium text-gray-900">Edit Centre</h2>
+    <section className="rounded-xl border border-zinc-200 bg-white p-5 space-y-4">
+      <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+        <h2 className="text-sm font-semibold text-zinc-900">Edit Centre</h2>
         <button
           onClick={() => { setEditing(false); setError(null); setSuccess(null); }}
           className="text-sm text-gray-500 hover:text-gray-700"

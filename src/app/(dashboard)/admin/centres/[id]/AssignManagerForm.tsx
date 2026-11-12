@@ -70,9 +70,9 @@ export function AssignManagerForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900">Centre manager</h3>
+    <form onSubmit={handleSubmit} className="space-y-5 rounded-xl border border-zinc-200 bg-white p-5">
+      <div className="border-b border-gray-100 pb-4">
+        <h3 className="text-sm font-semibold text-zinc-900">Centre manager</h3>
         <p className="mt-1 text-sm text-gray-500">
           Choose a staff member already attached to this centre and assign them as manager.
         </p>

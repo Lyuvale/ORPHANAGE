@@ -281,6 +281,7 @@ export const PERMISSIONS = {
   SITE_THEME_MANAGE: "site.theme.manage" as const,
   SITE_NEEDS_VIEW: "site.needs.view" as const,
   SITE_NEEDS_MANAGE: "site.needs.manage" as const,
+  SITE_NEEDS_VERIFY: "site.needs.verify" as const,
 } as const;
 
 export const ALL_PERMISSIONS: PermissionString[] = Object.values(PERMISSIONS);
@@ -350,6 +351,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "site.view",
     "site.needs.view",
     "site.needs.manage",
+    "site.needs.verify",
   ],
   SOCIAL_WORKER: [
     "children.view",
@@ -477,6 +479,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "payments.view",
     "site.view",
     "site.needs.view",
+    "site.needs.verify",
   ],
   CENTRE_IT: [
     "children.view",
@@ -485,6 +488,7 @@ export const ROLE_PERMISSIONS: Record<CentreRole, readonly PermissionString[]> =
     "site.theme.manage",
     "site.needs.view",
     "site.needs.manage",
+    "site.needs.verify",
     "notifications.view",
     "subscriptions.view_own",
   ],

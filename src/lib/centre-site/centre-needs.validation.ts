@@ -82,3 +82,80 @@ export const updateCentreNeedSchema = createCentreNeedSchema
 
 export type CreateCentreNeedData = z.infer<typeof createCentreNeedSchema>;
 export type UpdateCentreNeedData = z.infer<typeof updateCentreNeedSchema>;
+
+// ─── Contribution validation ────────────────────────────────────────────────
+
+const contributionAmount = z
+  .union([z.number().finite(), z.string()])
+  .transform((value, ctx) => {
+    const n = typeof value === "string" ? Number(value) : value;
+    if (!Number.isFinite(n)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Amount must be a number",
+      });
+      return z.NEVER;
+    }
+    if (n <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Amount must be greater than 0",
+      });
+      return z.NEVER;
+    }
+    if (n > 100_000_000) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Amount is too large",
+      });
+      return z.NEVER;
+    }
+    return Math.round(n * 100) / 100;
+  });
+
+const contributionReference = z
+  .string()
+  .trim()
+  .min(1, "Transaction reference is required")
+  .max(120, "Transaction reference must be 120 characters or fewer");
+
+const contributorName = z
+  .string()
+  .trim()
+  .max(200, "Contributor name must be 200 characters or fewer")
+  .optional()
+  .nullable()
+  .or(z.literal("").transform(() => null));
+
+/** Public "record my transfer" submission (created as pending). */
+export const publicContributionSchema = z.object({
+  needId: z.string().uuid("Invalid need id"),
+  amount: contributionAmount,
+  transaction_reference: contributionReference,
+  contributor_name: contributorName,
+});
+
+/** Manager manual entry (created as verified immediately). */
+export const manualContributionSchema = z.object({
+  needId: z.string().uuid("Invalid need id"),
+  amount: contributionAmount,
+  transaction_reference: contributionReference
+    .optional()
+    .nullable()
+    .or(z.literal("").transform(() => null)),
+  contributor_name: contributorName,
+  note: optionalText(1000, "Note"),
+});
+
+/** Accountant verify / reject action. */
+export const verifyContributionSchema = z.object({
+  contributionId: z.string().uuid("Invalid contribution id"),
+  action: z.enum(["verify", "reject"], {
+    errorMap: () => ({ message: "Action must be verify or reject" }),
+  }),
+  note: optionalText(500, "Note"),
+});
+
+export type PublicContributionData = z.infer<typeof publicContributionSchema>;
+export type ManualContributionData = z.infer<typeof manualContributionSchema>;
+export type VerifyContributionData = z.infer<typeof verifyContributionSchema>;

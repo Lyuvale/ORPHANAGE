@@ -2,9 +2,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   computeNeedProgress,
   type CentreNeed,
+  type CentreNeedContribution,
+  type CentreNeedContributionStatus,
+  type CentreNeedContributionWithNeed,
   type CentreNeedProgress,
   type CreateCentreNeedInput,
+  type ManualContributionInput,
   type PublicCentreNeed,
+  type PublicContributionInput,
   type UpdateCentreNeedInput,
 } from "@/types/centre-need";
 
@@ -21,6 +26,13 @@ type AdminClient = SupabaseClient<any, "public", any>;
  */
 const PUBLIC_NEED_COLUMNS =
   "id, title, description, image_url, target_amount, status, sort_order, created_at";
+
+/**
+ * Explicit column list for contribution reads. Never select `*` here, and
+ * never expose `payment_transaction_id` on the public path.
+ */
+const CONTRIBUTION_COLUMNS =
+  "id, need_id, centre_id, amount, source, status, transaction_reference, contributor_name, payment_transaction_id, note, verified_by, verified_at, created_by, created_at";
 
 interface ContributionAmountRow {
   need_id: string;
@@ -50,10 +62,13 @@ async function sumRaisedByNeed(
   const totals = new Map<string, number>();
   if (needIds.length === 0) return totals;
 
+  // Progress is computed from VERIFIED contributions only. Pending public
+  // submissions and rejected rows must never inflate the amount raised.
   const { data, error } = await admin
     .from(CONTRIBUTIONS_TABLE)
     .select("need_id, amount")
     .eq("centre_id", centreId)
+    .eq("status", "verified")
     .in("need_id", needIds);
 
   if (error) {
@@ -221,6 +236,185 @@ export async function deleteNeed(
 
   if (error) throw new Error(`Failed to delete centre need: ${error.message}`);
   return Boolean(data);
+}
+
+// ─── Contribution reads ─────────────────────────────────────────────────────
+
+export async function getContribution(
+  admin: AdminClient,
+  centreId: string,
+  contributionId: string,
+): Promise<CentreNeedContribution | null> {
+  const { data, error } = await admin
+    .from(CONTRIBUTIONS_TABLE)
+    .select(CONTRIBUTION_COLUMNS)
+    .eq("id", contributionId)
+    .eq("centre_id", centreId)
+    .maybeSingle();
+
+  if (error && error.code !== "PGRST116") {
+    throw new Error(`Failed to load contribution: ${error.message}`);
+  }
+  return (data as CentreNeedContribution | null) ?? null;
+}
+
+export async function listContributionsByStatus(
+  admin: AdminClient,
+  centreId: string,
+  status: CentreNeedContributionStatus,
+): Promise<CentreNeedContributionWithNeed[]> {
+  const { data, error } = await admin
+    .from(CONTRIBUTIONS_TABLE)
+    .select(CONTRIBUTION_COLUMNS)
+    .eq("centre_id", centreId)
+    .eq("status", status)
+    .order("created_at", { ascending: false })
+    .limit(200);
+
+  if (error) {
+    throw new Error(`Failed to list ${status} contributions: ${error.message}`);
+  }
+
+  const rows = (data ?? []) as CentreNeedContribution[];
+  if (rows.length === 0) return [];
+
+  const needIds = [...new Set(rows.map((row) => row.need_id))];
+  const { data: needs } = await admin
+    .from(TABLE)
+    .select("id, title")
+    .eq("centre_id", centreId)
+    .in("id", needIds);
+
+  const titles = new Map<string, string>();
+  for (const need of (needs ?? []) as { id: string; title: string }[]) {
+    titles.set(need.id, need.title);
+  }
+
+  return rows.map((row) => ({
+    ...row,
+    need_title: titles.get(row.need_id) ?? null,
+  }));
+}
+
+// ─── Contribution writes ────────────────────────────────────────────────────
+
+export async function createPublicContribution(
+  admin: AdminClient,
+  centreId: string,
+  input: PublicContributionInput,
+): Promise<CentreNeedContribution> {
+  const need = await getNeed(admin, centreId, input.needId);
+  if (!need || need.status !== "active" || !need.is_public) {
+    throw new Error("Need not available");
+  }
+
+  const { data, error } = await admin
+    .from(CONTRIBUTIONS_TABLE)
+    .insert({
+      need_id: need.id,
+      centre_id: centreId,
+      amount: round2(input.amount),
+      source: "PUBLIC",
+      status: "pending",
+      transaction_reference: input.transactionReference.trim(),
+      contributor_name: input.contributorName?.trim() || null,
+      created_by: null,
+    })
+    .select(CONTRIBUTION_COLUMNS)
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to record contribution: ${error.message}`);
+  }
+  return data as CentreNeedContribution;
+}
+
+export async function createManualContribution(
+  admin: AdminClient,
+  centreId: string,
+  input: ManualContributionInput,
+  createdBy: string,
+): Promise<CentreNeedContribution> {
+  const need = await getNeed(admin, centreId, input.needId);
+  if (!need) throw new Error("Need not found");
+
+  const now = new Date().toISOString();
+  const { data, error } = await admin
+    .from(CONTRIBUTIONS_TABLE)
+    .insert({
+      need_id: need.id,
+      centre_id: centreId,
+      amount: round2(input.amount),
+      source: "MANUAL",
+      status: "verified",
+      transaction_reference: input.transactionReference?.trim() || null,
+      contributor_name: input.contributorName?.trim() || null,
+      note: input.note ?? null,
+      verified_by: createdBy,
+      verified_at: now,
+      created_by: createdBy,
+    })
+    .select(CONTRIBUTION_COLUMNS)
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to record manual contribution: ${error.message}`);
+  }
+  return data as CentreNeedContribution;
+}
+
+export async function verifyContribution(
+  admin: AdminClient,
+  centreId: string,
+  contributionId: string,
+  verifiedBy: string,
+): Promise<CentreNeedContribution | null> {
+  const { data, error } = await admin
+    .from(CONTRIBUTIONS_TABLE)
+    .update({
+      status: "verified",
+      verified_by: verifiedBy,
+      verified_at: new Date().toISOString(),
+    })
+    .eq("id", contributionId)
+    .eq("centre_id", centreId)
+    .eq("status", "pending")
+    .select(CONTRIBUTION_COLUMNS)
+    .maybeSingle();
+
+  if (error && error.code !== "PGRST116") {
+    throw new Error(`Failed to verify contribution: ${error.message}`);
+  }
+  return (data as CentreNeedContribution | null) ?? null;
+}
+
+export async function rejectContribution(
+  admin: AdminClient,
+  centreId: string,
+  contributionId: string,
+  rejectedBy: string,
+  note?: string | null,
+): Promise<CentreNeedContribution | null> {
+  const patch: Record<string, unknown> = {
+    status: "rejected",
+    verified_by: rejectedBy,
+    verified_at: new Date().toISOString(),
+  };
+  if (note !== undefined) patch.note = note;
+
+  const { data, error } = await admin
+    .from(CONTRIBUTIONS_TABLE)
+    .update(patch)
+    .eq("id", contributionId)
+    .eq("centre_id", centreId)
+    .eq("status", "pending")
+    .select(CONTRIBUTION_COLUMNS)
+    .maybeSingle();
+
+  if (error && error.code !== "PGRST116") {
+    throw new Error(`Failed to reject contribution: ${error.message}`);
+  }
+  return (data as CentreNeedContribution | null) ?? null;
 }
 
 // ─── Public read (safe shape only) ──────────────────────────────────────────
