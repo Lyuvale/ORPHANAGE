@@ -95,6 +95,15 @@ export default async function CentreSiteLayout({
                   {p.nav_label || p.title}
                 </Link>
               ))}
+              {site.needs && site.needs.length > 0 ? (
+                <a
+                  href="#needs"
+                  className="ml-2 inline-flex shrink-0 items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                  style={{ backgroundColor: theme.primary_color }}
+                >
+                  Changia sasa
+                </a>
+              ) : null}
             </nav>
           </div>
         </header>

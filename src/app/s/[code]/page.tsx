@@ -50,7 +50,12 @@ export default async function CentreSiteHome({
             This website is still under construction.
           </p>
         </div>
-        <NeedsShowcase needs={site.needs ?? []} centreCode={code} />
+        <NeedsShowcase
+          needs={site.needs ?? []}
+          centreCode={code}
+          primaryColor={site.theme.primary_color}
+          headingFont={site.theme.heading_font}
+        />
       </div>
     );
   }
@@ -61,7 +66,12 @@ export default async function CentreSiteHome({
         <p className="mb-6 text-gray-500 text-sm">{page.meta_description}</p>
       )}
       <BlockRenderer blocks={page.content} centreCode={code} />
-      <NeedsShowcase needs={site.needs ?? []} centreCode={code} />
+      <NeedsShowcase
+          needs={site.needs ?? []}
+          centreCode={code}
+          primaryColor={site.theme.primary_color}
+          headingFont={site.theme.heading_font}
+        />
     </article>
   );
 }
