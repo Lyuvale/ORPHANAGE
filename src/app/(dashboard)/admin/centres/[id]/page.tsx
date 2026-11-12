@@ -8,6 +8,10 @@ import CentreEditForm from "./CentreEditForm";
 import CentreActions from "./CentreActions";
 import CentreSubscriptionManager from "./CentreSubscriptionManager";
 import { AssignManagerForm } from "./AssignManagerForm";
+import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard } from "@/components/ui/stat-card";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export const dynamic = "force-dynamic";
 
@@ -175,175 +179,174 @@ export default async function CentreDetailPage({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <nav className="text-sm text-zinc-500 mb-1">
-            <Link href="/admin/centres" className="hover:text-zinc-700">Centres</Link>
+      <PageHeader
+        breadcrumb={
+          <>
+            <Link href="/admin/centres" className="hover:text-zinc-700">
+              Centres
+            </Link>
             <span className="mx-1">/</span>
             <span className="text-zinc-900">{centre.name}</span>
-          </nav>
-          <h1 className="text-2xl font-bold text-zinc-900">{centre.name}</h1>
-          <p className="text-sm text-zinc-500">Code: {centre.code ?? "—"}</p>
-        </div>
-        <CentreActions centreId={centre.id} centreName={centre.name} isActive={centre.status === "active"} />
-      </div>
+          </>
+        }
+        title={centre.name}
+        subtitle={`Code: ${centre.code ?? "—"}`}
+        actions={
+          <CentreActions
+            centreId={centre.id}
+            centreName={centre.name}
+            isActive={centre.status === "active"}
+          />
+        }
+      />
 
       <nav className="flex flex-wrap gap-2">
-        <Link href="/admin" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Overview</Link>
+        <Link href="/admin" className="rounded-md border bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Overview</Link>
         <Link href="/admin/centres" className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white">Centres</Link>
-        <Link href="/admin/subscriptions" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Subscriptions</Link>
-        <Link href="/admin/payments" className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Payments</Link>
+        <Link href="/admin/subscriptions" className="rounded-md border bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Subscriptions</Link>
+        <Link href="/admin/payments" className="rounded-md border bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50">Payments</Link>
       </nav>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div className="rounded-xl bg-white p-5 shadow-sm border">
-          <p className="text-sm text-zinc-500">Staff</p>
-          <p className="mt-1 text-2xl font-bold text-zinc-900">{staffCount}</p>
-        </div>
-        <div className="rounded-xl bg-white p-5 shadow-sm border">
-          <p className="text-sm text-zinc-500">Children</p>
-          <p className="mt-1 text-2xl font-bold text-zinc-900">{childrenCount}</p>
-        </div>
-        <div className="rounded-xl bg-white p-5 shadow-sm border">
-          <p className="text-sm text-zinc-500">Total Payments</p>
-          <p className="mt-1 text-2xl font-bold text-zinc-900">TZS {totalPayments.toLocaleString()}</p>
-        </div>
-        <div className="rounded-xl bg-white p-5 shadow-sm border">
-          <p className="text-sm text-zinc-500">Subscriptions</p>
-          <p className="mt-1 text-2xl font-bold text-zinc-900">{subscriptions.length}</p>
-        </div>
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard label="Staff" value={staffCount} />
+        <StatCard label="Children" value={childrenCount} />
+        <StatCard label="Total payments" value={`TZS ${totalPayments.toLocaleString()}`} />
+        <StatCard label="Subscriptions" value={subscriptions.length} />
       </div>
 
-      {/* Edit Centre */}
-      <CentreEditForm centre={centre} />
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <CentreEditForm centre={centre} />
 
-      {/* Managers / Staff */}
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-zinc-900">Managers & Staff ({managers.length})</h2>
-        {managers.length === 0 ? (
-          <div className="rounded-xl border border-zinc-200 bg-white p-8 text-center">
-            <p className="text-sm text-zinc-500">No staff assigned to this centre.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="border-b bg-zinc-50 text-left text-xs font-medium text-zinc-500 uppercase">
-                  <th className="px-4 py-3">Name</th>
-                  <th className="px-4 py-3">Email</th>
-                  <th className="px-4 py-3">Role</th>
-                  <th className="px-4 py-3">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-100">
-                {managers.map((m) => {
-                  const user = usersMap.get(m.user_id as string) as { first_name?: string; last_name?: string; email?: string } | undefined;
-                  const role = rolesMap.get(m.role_id as string) as { name?: string } | undefined;
-                  const fullName = user ? [user.first_name, user.last_name].filter(Boolean).join(" ") : null;
-                  return (
-                    <tr key={m.id as string} className="hover:bg-zinc-50">
-                      <td className="px-4 py-3 text-zinc-900 font-medium">{fullName || "—"}</td>
-                      <td className="px-4 py-3 text-zinc-500">{user?.email ?? "—"}</td>
-                      <td className="px-4 py-3">
-                        <span className="inline-block rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
-                          {role?.name ?? "—"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                          m.status === "active" ? "bg-green-100 text-green-700" : "bg-zinc-100 text-zinc-600"
-                        }`}>
-                          {m.status as string}
-                        </span>
-                      </td>
+          <Card>
+            <CardHeader
+              title={`Managers & staff (${managers.length})`}
+              description="Active staff assigned to this centre."
+            />
+            {managers.length === 0 ? (
+              <CardBody>
+                <EmptyState
+                  title="No staff assigned"
+                  description="Assign staff to this centre to get started."
+                />
+              </CardBody>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 bg-zinc-50/60 text-left text-xs font-medium uppercase tracking-wide text-zinc-500">
+                      <th className="px-5 py-3">Name</th>
+                      <th className="px-5 py-3">Email</th>
+                      <th className="px-5 py-3">Role</th>
+                      <th className="px-5 py-3">Status</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-100">
+                    {managers.map((m) => {
+                      const user = usersMap.get(m.user_id as string) as { first_name?: string; last_name?: string; email?: string } | undefined;
+                      const role = rolesMap.get(m.role_id as string) as { name?: string } | undefined;
+                      const fullName = user ? [user.first_name, user.last_name].filter(Boolean).join(" ") : null;
+                      return (
+                        <tr key={m.id as string} className="hover:bg-zinc-50/60">
+                          <td className="px-5 py-3 font-medium text-zinc-900">{fullName || "—"}</td>
+                          <td className="px-5 py-3 text-zinc-500">{user?.email ?? "—"}</td>
+                          <td className="px-5 py-3">
+                            <span className="inline-block rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
+                              {role?.name ?? "—"}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3">
+                            <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                              m.status === "active" ? "bg-green-100 text-green-700" : "bg-zinc-100 text-zinc-600"
+                            }`}>
+                              {m.status as string}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Card>
 
-      {/* Assign Centre Manager */}
-      <section className="space-y-3">
-        <AssignManagerForm
-          centreId={centre.id}
-          users={allProfiles}
-          currentManager={currentManagerProfile}
-        />
-      </section>
+          <Card>
+            <CardHeader
+              title="Recent payments"
+              description="The last 10 payments recorded for this centre."
+            />
+            {payments.length === 0 ? (
+              <CardBody>
+                <EmptyState title="No payments yet" />
+              </CardBody>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 bg-zinc-50/60 text-left text-xs font-medium uppercase tracking-wide text-zinc-500">
+                      <th className="px-5 py-3">Type</th>
+                      <th className="px-5 py-3">Amount</th>
+                      <th className="px-5 py-3">Purpose</th>
+                      <th className="px-5 py-3">Status</th>
+                      <th className="px-5 py-3">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-100">
+                    {payments.map((p) => (
+                      <tr key={p.id as string} className="hover:bg-zinc-50/60">
+                        <td className="px-5 py-3">
+                          <span className={`font-medium ${p.flow_type === "CONTRIBUTION" ? "text-sky-700" : "text-indigo-700"}`}>
+                            {p.flow_type as string}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3 font-medium text-zinc-900">
+                          {p.currency as string} {Number(p.amount).toLocaleString()}
+                        </td>
+                        <td className="px-5 py-3 text-zinc-500">{(p.purpose as string) ?? "—"}</td>
+                        <td className="px-5 py-3">
+                          <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                            p.status === "SUCCESSFUL" ? "bg-green-100 text-green-700" :
+                            p.status === "PENDING" ? "bg-amber-100 text-amber-700" :
+                            p.status === "FAILED" ? "bg-red-100 text-red-700" :
+                            "bg-zinc-100 text-zinc-600"
+                          }`}>
+                            {p.status as string}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3 text-xs text-zinc-500">
+                          {new Date(p.created_at as string).toLocaleDateString("en-GB")}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Card>
+        </div>
 
-      {/* Subscription Manager */}
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-zinc-900">Subscription</h2>
-        <CentreSubscriptionManager
-          centreId={centre.id}
-          centreName={centre.name}
-          plans={allPlans as unknown as { id: string; name: string; price: number; billing_period: string }[]}
-          existingSub={subscriptions.length > 0 ? {
-            id: subscriptions[0].id as string,
-            plan_id: subscriptions[0].plan_id as string,
-            status: subscriptions[0].status as string,
-            start_date: subscriptions[0].start_date as string | null,
-            end_date: subscriptions[0].end_date as string | null,
-          } : null}
-        />
-      </section>
+        <div className="space-y-6">
+          <AssignManagerForm
+            centreId={centre.id}
+            users={allProfiles}
+            currentManager={currentManagerProfile}
+          />
 
-      {/* Recent Payments */}
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-zinc-900">Recent Payments</h2>
-        {payments.length === 0 ? (
-          <div className="rounded-xl border border-zinc-200 bg-white p-8 text-center">
-            <p className="text-sm text-zinc-500">No payments yet.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto rounded-xl border border-zinc-200 bg-white">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="border-b bg-zinc-50 text-left text-xs font-medium text-zinc-500 uppercase">
-                  <th className="px-4 py-3">Type</th>
-                  <th className="px-4 py-3">Amount</th>
-                  <th className="px-4 py-3">Purpose</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-100">
-                {payments.map((p) => (
-                  <tr key={p.id as string} className="hover:bg-zinc-50">
-                    <td className="px-4 py-3">
-                      <span className={`font-medium ${p.flow_type === "CONTRIBUTION" ? "text-sky-700" : "text-indigo-700"}`}>
-                        {p.flow_type as string}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-zinc-900 font-medium">
-                      {p.currency as string} {Number(p.amount).toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-500">{(p.purpose as string) ?? "—"}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                        p.status === "SUCCESSFUL" ? "bg-green-100 text-green-700" :
-                        p.status === "PENDING" ? "bg-amber-100 text-amber-700" :
-                        p.status === "FAILED" ? "bg-red-100 text-red-700" :
-                        "bg-zinc-100 text-zinc-600"
-                      }`}>
-                        {p.status as string}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-zinc-500">
-                      {new Date(p.created_at as string).toLocaleDateString("en-GB")}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+          <CentreSubscriptionManager
+            centreId={centre.id}
+            centreName={centre.name}
+            plans={allPlans as unknown as { id: string; name: string; price: number; billing_period: string }[]}
+            existingSub={subscriptions.length > 0 ? {
+              id: subscriptions[0].id as string,
+              plan_id: subscriptions[0].plan_id as string,
+              status: subscriptions[0].status as string,
+              start_date: subscriptions[0].start_date as string | null,
+              end_date: subscriptions[0].end_date as string | null,
+            } : null}
+          />
+        </div>
+      </div>
     </div>
   );
 }

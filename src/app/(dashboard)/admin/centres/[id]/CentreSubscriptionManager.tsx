@@ -130,8 +130,8 @@ export default function CentreSubscriptionManager({
   const selectedPlan = plans.find((p) => p.id === planId);
 
   return (
-    <div className="rounded-xl border bg-white p-4">
-      <div className="flex items-center justify-between mb-3">
+    <div className="rounded-xl border border-zinc-200 bg-white p-5">
+      <div className="flex items-center justify-between border-b border-gray-100 pb-3 mb-3">
         <h3 className="text-sm font-semibold text-gray-900">Subscription for {centreName}</h3>
         {mode === "view" && (
           <div className="flex gap-2">

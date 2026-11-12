@@ -5,7 +5,7 @@
  * support. Money raised is tracked as contributions, never as a stored total.
  *
  * PROGRESS MODEL (computed, never stored):
- *   raised    = SUM(centre_need_contributions.amount)
+ *   raised    = SUM(amount) for contributions where status = 'verified'
  *   remaining = max(0, target - raised)
  *   percent   = min(100, raised / target * 100)
  *   completed = raised >= target
@@ -24,10 +24,25 @@ export type CentreNeedStatus = (typeof CENTRE_NEED_STATUSES)[number];
 
 // ─── Contribution source ────────────────────────────────────────────────────
 
-export const CENTRE_NEED_CONTRIBUTION_SOURCES = ["ONLINE", "MANUAL"] as const;
+export const CENTRE_NEED_CONTRIBUTION_SOURCES = [
+  "ONLINE",
+  "MANUAL",
+  "PUBLIC",
+] as const;
 
 export type CentreNeedContributionSource =
   (typeof CENTRE_NEED_CONTRIBUTION_SOURCES)[number];
+
+// ─── Contribution verification status ───────────────────────────────────────
+
+export const CENTRE_NEED_CONTRIBUTION_STATUSES = [
+  "pending",
+  "verified",
+  "rejected",
+] as const;
+
+export type CentreNeedContributionStatus =
+  (typeof CENTRE_NEED_CONTRIBUTION_STATUSES)[number];
 
 // ─── Centre need record ─────────────────────────────────────────────────────
 
@@ -55,10 +70,20 @@ export interface CentreNeedContribution {
   centre_id: string;
   amount: number;
   source: CentreNeedContributionSource;
+  status: CentreNeedContributionStatus;
+  transaction_reference: string | null;
+  contributor_name: string | null;
   payment_transaction_id: string | null;
   note: string | null;
+  verified_by: string | null;
+  verified_at: string | null;
   created_by: string | null;
   created_at: string;
+}
+
+/** Contribution row enriched with the parent need's title (verification queue). */
+export interface CentreNeedContributionWithNeed extends CentreNeedContribution {
+  need_title: string | null;
 }
 
 // ─── Computed progress ──────────────────────────────────────────────────────
@@ -102,6 +127,23 @@ export interface CreateCentreNeedInput {
 }
 
 export type UpdateCentreNeedInput = Partial<CreateCentreNeedInput>;
+
+// ─── Contribution inputs ────────────────────────────────────────────────────
+
+export interface PublicContributionInput {
+  needId: string;
+  amount: number;
+  transactionReference: string;
+  contributorName?: string | null;
+}
+
+export interface ManualContributionInput {
+  needId: string;
+  amount: number;
+  transactionReference?: string | null;
+  contributorName?: string | null;
+  note?: string | null;
+}
 
 // ─── Progress helper ────────────────────────────────────────────────────────
 

@@ -304,8 +304,12 @@ async function handleContributionConfirmation(
             centre_id: row.centre_id,
             amount: Number(row.amount),
             source: "ONLINE",
+            // Provider-confirmed payments are already verified: they must
+            // count towards progress immediately, never wait in the queue.
+            status: "verified",
             payment_transaction_id: row.id,
             note: purpose,
+            verified_at: new Date().toISOString(),
             created_by: actorUserId ?? null,
           },
           {

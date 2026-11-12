@@ -22,13 +22,15 @@ export default async function CentreSitePage() {
   const canManageTheme = perms.has("site.theme.manage");
   const canViewNeeds = perms.has("site.needs.view");
   const canManageNeeds = perms.has("site.needs.manage");
+  const canVerifyNeeds = perms.has("site.needs.verify");
 
   if (
     !perms.has("site.view") &&
     !canManagePages &&
     !canManageTheme &&
     !canViewNeeds &&
-    !canManageNeeds
+    !canManageNeeds &&
+    !canVerifyNeeds
   ) {
     redirect("/dashboard");
   }
@@ -52,6 +54,7 @@ export default async function CentreSitePage() {
       canManageTheme={canManageTheme}
       canViewNeeds={canViewNeeds}
       canManageNeeds={canManageNeeds}
+      canVerifyNeeds={canVerifyNeeds}
       roleLabel={role?.replace(/_/g, " ") ?? ""}
     />
   );

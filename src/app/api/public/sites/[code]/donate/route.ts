@@ -4,6 +4,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { initiatePayment } from "@/lib/payments/payment-confirmation.service";
 import { getPaymentProvider } from "@/lib/payments/payment-provider";
 import { createRateLimiter, clientIp } from "@/lib/security/rate-limit";
+import { createPublicContribution } from "@/lib/centre-site/centre-needs.service";
+import { publicContributionSchema } from "@/lib/centre-site/centre-needs.validation";
 
 const donateLimiter = createRateLimiter(30, 10 * 60 * 1000); // 30 per 10 min / IP
 
@@ -96,6 +98,8 @@ export async function POST(
       name?: unknown;
       email?: unknown;
       needId?: unknown;
+      transaction_reference?: unknown;
+      contributor_name?: unknown;
     };
 
     const amount = parseAmount(body.amount);
@@ -104,6 +108,67 @@ export async function POST(
         { error: `Amount must be between TZS ${MIN_AMOUNT.toLocaleString()} and TZS ${MAX_AMOUNT.toLocaleString()}.` },
         { status: 400 },
       );
+    }
+
+    // ── Transfer mode (bank / M-Pesa reference supplied) ──────────────────
+    // The donor says they transferred money outside the platform. Record a
+    // PENDING contribution; the accountant verifies it before it counts.
+    const transactionReference =
+      typeof body.transaction_reference === "string"
+        ? body.transaction_reference.trim()
+        : "";
+
+    if (transactionReference) {
+      const parsed = publicContributionSchema.safeParse({
+        needId: body.needId,
+        amount,
+        transaction_reference: transactionReference,
+        contributor_name:
+          typeof body.contributor_name === "string"
+            ? body.contributor_name
+            : typeof body.name === "string"
+              ? body.name
+              : null,
+      });
+
+      if (!parsed.success) {
+        return NextResponse.json(
+          {
+            error: "Validation failed",
+            details: parsed.error.issues.map((issue) => issue.message).join("; "),
+          },
+          { status: 400 },
+        );
+      }
+
+      try {
+        const contribution = await createPublicContribution(admin, centre.id, {
+          needId: parsed.data.needId,
+          amount: parsed.data.amount,
+          transactionReference: parsed.data.transaction_reference,
+          contributorName: parsed.data.contributor_name,
+        });
+        return NextResponse.json(
+          {
+            data: {
+              id: contribution.id,
+              status: contribution.status,
+            },
+          },
+          { status: 201 },
+        );
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message === "Need not available"
+        ) {
+          return NextResponse.json(
+            { error: "Need not available" },
+            { status: 404 },
+          );
+        }
+        throw error;
+      }
     }
 
     // Optional: donate to a specific published need. When present the need's
