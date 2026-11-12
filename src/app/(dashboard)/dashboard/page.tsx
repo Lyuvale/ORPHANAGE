@@ -8,49 +8,13 @@ import { getSiteTheme, listSitePages } from "@/lib/centre-site/centre-site.servi
 import ApproveRejectButtons from "@/app/(dashboard)/_components/approve-reject-buttons";
 import PackageApproveButtons from "@/app/(dashboard)/dashboard/_components/package-approve-buttons";
 import WithdrawButton from "@/app/(dashboard)/_components/withdraw-button";
-import { serverFetch } from "@/lib/server-fetch";
-
-function baseUrl() {
-  return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-}
-
-async function fetchCount(path: string): Promise<number | null> {
-  try {
-    const res = await serverFetch(`${baseUrl()}${path}`, { cache: "no-store" });
-    if (!res.ok) return null;
-    const json = await res.json();
-    if (typeof json.count === "number") return json.count;
-    if (Array.isArray(json.data)) return json.data.length;
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-async function fetchSubscriptionStatus(): Promise<string | null> {
-  try {
-    const res = await serverFetch(`${baseUrl()}/api/subscriptions/mine`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    const json = await res.json();
-    const sub = json.data?.subscription;
-    return (sub?.status as string | undefined) ?? (json.data ? "unknown" : null);
-  } catch {
-    return null;
-  }
-}
-
-async function fetchList(path: string): Promise<Record<string, unknown>[]> {
-  try {
-    const res = await serverFetch(`${baseUrl()}${path}`, { cache: "no-store" });
-    if (!res.ok) return [];
-    const json = await res.json();
-    return Array.isArray(json.data) ? json.data : [];
-  } catch {
-    return [];
-  }
-}
+import {
+  countCentreRows,
+  latestSubscriptionStatus,
+  listDashAdmissions,
+  listDashGuardiansByReferral,
+  listDashReferrals,
+} from "./dashboard-data";
 
 export type PendingItem = {
   id: string;
@@ -184,21 +148,21 @@ export default async function DashboardPage() {
       )}
 
       {roleName === "CENTRE_MANAGER" && (
-        <ManagerSection restricted={restricted} />
+        <ManagerSection restricted={restricted} centreId={ctx.centre.id} />
       )}
 
       {roleName === "SOCIAL_WORKER" && (
-        <SocialWorkerSection restricted={restricted} />
+        <SocialWorkerSection restricted={restricted} centreId={ctx.centre.id} />
       )}
 
       {roleName === "CAREGIVER" && <CaregiverSection />}
 
       {roleName === "RECORDS_OFFICER" && (
-        <RecordsSection restricted={restricted} />
+        <RecordsSection restricted={restricted} centreId={ctx.centre.id} />
       )}
 
       {roleName === "ACCOUNTANT_BURSAR" && (
-        <AccountantSection restricted={restricted} />
+        <AccountantSection restricted={restricted} centreId={ctx.centre.id} />
       )}
 
       {roleName === "CENTRE_IT" && <ItSection />}
@@ -271,18 +235,29 @@ async function ItSection() {
   );
 }
 
-async function SocialWorkerSection({ restricted }: { restricted: boolean }) {
+async function SocialWorkerSection({
+  restricted,
+  centreId,
+}: {
+  restricted: boolean;
+  centreId: string;
+}) {
   const supabase = await createClient();
   const ctx = await requireAppAccess(supabase as never, {
     allowInactiveSubscription: true,
   });
   const [refSubmitted, refUnderReview, openCases, openSafeguarding, upcomingVisits, swCanReview, swCanReject, swCanWithdraw] =
     await Promise.all([
-      fetchList("/api/referrals?status=submitted&limit=20"),
-      fetchList("/api/referrals?status=under_review&limit=20"),
-      fetchCount("/api/cases?status=open&limit=1"),
-      fetchCount("/api/safeguarding?status=open&limit=1"),
-      fetchCount("/api/visits?status=scheduled&limit=1"),
+      listDashReferrals(centreId, "submitted", 20),
+      listDashReferrals(centreId, "under_review", 20),
+      countCentreRows("cases", centreId, { status: "open" }),
+      countCentreRows(
+        "safeguarding_concerns",
+        centreId,
+        {},
+        { column: "status", values: ["resolved", "closed"] },
+      ),
+      countCentreRows("visits", centreId, { status: "scheduled" }),
       can(supabase as never, ctx, "referrals.review").catch(() => false),
       can(supabase as never, ctx, "referrals.reject").catch(() => false),
       can(supabase as never, ctx, "referrals.update").catch(() => false),
@@ -355,49 +330,53 @@ async function SocialWorkerSection({ restricted }: { restricted: boolean }) {
   );
 }
 
-async function ManagerSection({ restricted }: { restricted: boolean }) {
+async function ManagerSection({
+  restricted,
+  centreId,
+}: {
+  restricted: boolean;
+  centreId: string;
+}) {
   const [childrenCount, staffCount, subStatus, refSubmitted, refUnderReview, admPending] =
     await Promise.all([
-      fetchCount("/api/children?limit=1"),
-      fetchCount("/api/staff?limit=1"),
-      fetchSubscriptionStatus(),
-      fetchList("/api/referrals?status=submitted&limit=20"),
-      fetchList("/api/referrals?status=under_review&limit=20"),
-      fetchList("/api/admissions?status=pending&limit=20"),
+      countCentreRows("children", centreId),
+      countCentreRows("staff_profiles", centreId),
+      latestSubscriptionStatus(centreId),
+      listDashReferrals(centreId, "submitted", 20),
+      listDashReferrals(centreId, "under_review", 20),
+      listDashAdmissions(centreId, "pending", 20),
     ]);
 
   const allReferrals = [...refSubmitted, ...refUnderReview];
   const admissionByReferral = new Map(
     admPending.map((a) => [String(a.referral_id), a]),
   );
-  // Guardians submitted with each referral (shown inside the package).
-  const guardiansByReferral = new Map<string, string[]>();
-  await Promise.all(
-    allReferrals.map(async (r) => {
-      const list = await fetchList(
-        `/api/guardians?referral_id=${String(r.id)}&limit=20`,
-      );
-      guardiansByReferral.set(
-        String(r.id),
-        list.map((g) =>
-          `${String(g.first_name ?? "")} ${String(g.last_name ?? "")}`.trim(),
-        ),
-      );
-    }),
+  // Guardians for all referrals in ONE query (previously N HTTP calls).
+  const guardianRows = await listDashGuardiansByReferral(
+    centreId,
+    allReferrals.map((r) => String(r.id)),
   );
+  const guardiansByReferral = new Map<string, string[]>();
+  for (const g of guardianRows) {
+    const key = String(g.referral_id);
+    const name = `${g.first_name ?? ""} ${g.last_name ?? ""}`.trim();
+    const list = guardiansByReferral.get(key) ?? [];
+    list.push(name);
+    guardiansByReferral.set(key, list);
+  }
 
   const packages = allReferrals.map((r) => {
     const refId = String(r.id);
-    const adm = admissionByReferral.get(refId) as Record<string, unknown> | undefined;
+    const adm = admissionByReferral.get(refId);
     return {
       referralId: refId,
-      admissionId: adm ? String(adm.id) : null,
+      admissionId: adm ? adm.id : null,
       childName:
         `${String(r.child_first_name ?? "")} ${String(r.child_last_name ?? "")}`.trim() ||
         "Unnamed referral",
       referralRef: String(r.reference_number ?? ""),
       referralStatus: String(r.status ?? ""),
-      admissionRef: adm ? String(adm.reference_number ?? "") : null,
+      admissionRef: adm ? (adm.reference_number ?? "") : null,
       guardians: guardiansByReferral.get(refId) ?? [],
     };
   });
@@ -479,15 +458,21 @@ async function ManagerSection({ restricted }: { restricted: boolean }) {
   );
 }
 
-async function RecordsSection({ restricted }: { restricted: boolean }) {
+async function RecordsSection({
+  restricted,
+  centreId,
+}: {
+  restricted: boolean;
+  centreId: string;
+}) {
   const [childrenCount, approvedAdmissions] = await Promise.all([
-    fetchCount("/api/children?limit=1"),
-    fetchList("/api/admissions?status=approved&limit=50"),
+    countCentreRows("children", centreId),
+    listDashAdmissions(centreId, "approved", 50),
   ]);
 
   void restricted;
 
-  const awaiting = approvedAdmissions.filter((a) => !(a.child_id as string | null));
+  const awaiting = approvedAdmissions.filter((a) => !a.child_id);
 
   return (
     <div className="mt-6 grid gap-5 md:grid-cols-2 max-w-4xl">
@@ -524,11 +509,19 @@ async function RecordsSection({ restricted }: { restricted: boolean }) {
   );
 }
 
-async function AccountantSection({ restricted }: { restricted: boolean }) {
+async function AccountantSection({
+  restricted,
+  centreId,
+}: {
+  restricted: boolean;
+  centreId: string;
+}) {
   const [pendingExpenses, fundsCount, assetsCount] = await Promise.all([
-    fetchCount("/api/resources/expenses?status=PENDING&limit=1"),
-    fetchCount("/api/resources/funds?limit=1"),
-    fetchCount("/api/resources/assets?limit=1"),
+    countCentreRows("support_expenses", centreId, {
+      approval_status: "PENDING",
+    }),
+    countCentreRows("support_funds", centreId),
+    countCentreRows("support_assets", centreId),
   ]);
 
   void restricted;

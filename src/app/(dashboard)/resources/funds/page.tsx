@@ -1,20 +1,10 @@
 import Link from "next/link";
-import { formatTsh } from "@/types/resources";
-import { serverFetch } from "@/lib/server-fetch";
+import { formatTsh, type SupportFundDetail } from "@/types/resources";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { can } from "@/lib/auth/authorization.service";
-
-async function getFunds(searchParams: Record<string, string | undefined>) {
-  const params = new URLSearchParams();
-  if (searchParams.source_id) params.set("source_id", searchParams.source_id);
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/resources/funds?${params.toString()}`,
-    { cache: "no-store" },
-  );
-  if (!res.ok) return { data: [] };
-  return res.json();
-}
+import { listFunds } from "@/lib/resources/resources.service";
 
 export default async function FundsPage({
   searchParams,
@@ -22,17 +12,23 @@ export default async function FundsPage({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const params = await searchParams;
-  const { data: funds } = await getFunds(params);
 
-  // Creation is the Accountant's duty (resources.manage).
+  let funds: SupportFundDetail[] = [];
   let canCreate = false;
   try {
     const supabase = await createClient();
     const ctx = await requireAppAccess(supabase as never, {
       allowInactiveSubscription: true,
     });
-    canCreate = await can(supabase as never, ctx, "resources.manage");
+    const admin = createAdminClient();
+    const [result, allowed] = await Promise.all([
+      listFunds(admin, ctx.centre.id, params.source_id),
+      can(supabase as never, ctx, "resources.manage"),
+    ]);
+    funds = result.data;
+    canCreate = allowed;
   } catch {
+    funds = [];
     canCreate = false;
   }
 

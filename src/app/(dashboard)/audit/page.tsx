@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { ALL_AUDIT_ACTIONS } from "@/types/audit";
-import { serverFetch } from "@/lib/server-fetch";
+import { createClient } from "@/lib/supabase/server";
+import { requireAppAccess } from "@/lib/auth/app-user-context";
+import { can } from "@/lib/auth/authorization.service";
+import { buildAuditFilters } from "@/lib/audit/audit-query";
 
 const ENTITY_LABELS: Record<string, string> = {
   child: "Child",
@@ -74,25 +77,46 @@ interface AuditRow {
 async function getAudit(
   searchParams: Record<string, string | undefined>,
 ): Promise<{ data: AuditRow[]; total: number; offset: number }> {
-  const params = new URLSearchParams();
-  if (searchParams.action) params.set("action", searchParams.action);
-  if (searchParams.entity_type) params.set("entity_type", searchParams.entity_type);
-  if (searchParams.actor_email) params.set("actor_email", searchParams.actor_email);
-  if (searchParams.from) params.set("from", searchParams.from);
-  if (searchParams.to) params.set("to", searchParams.to);
-  if (searchParams.limit) params.set("limit", searchParams.limit);
-  if (searchParams.offset) params.set("offset", searchParams.offset);
+  try {
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as never, {
+      allowInactiveSubscription: true,
+    });
+    if (!(await can(supabase as never, ctx, "audit.view"))) {
+      return { data: [], total: 0, offset: 0 };
+    }
 
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/audit?${params.toString()}`,
-    { cache: "no-store" },
-  );
+    const f = buildAuditFilters({
+      from: searchParams.from,
+      to: searchParams.to,
+      action: searchParams.action,
+      entity_type: searchParams.entity_type,
+      actor_email: searchParams.actor_email,
+      limit: searchParams.limit,
+      offset: searchParams.offset,
+    });
 
-  if (!res.ok) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let q: any = supabase
+      .from("audit_logs")
+      .select("*", { count: "exact" })
+      .eq("centre_id", ctx.centre.id);
+    if (f.from) q = q.gte("created_at", f.from);
+    if (f.to) q = q.lte("created_at", f.to);
+    if (f.action) q = q.eq("action", f.action);
+    if (f.entity_type) q = q.eq("entity_type", f.entity_type);
+    if (f.actor_email) q = q.ilike("actor_email", `%${f.actor_email}%`);
+    q = q.order("created_at", { ascending: false });
+    q = q.range(f.offset, f.offset + f.limit - 1);
+
+    const { data, count, error } = await q;
+    if (error) return { data: [], total: 0, offset: 0 };
+
+    const rows = (data ?? []) as AuditRow[];
+    return { data: rows, total: count ?? rows.length, offset: f.offset };
+  } catch {
     return { data: [], total: 0, offset: 0 };
   }
-
-  return res.json();
 }
 
 function formatValue(value: unknown): string {

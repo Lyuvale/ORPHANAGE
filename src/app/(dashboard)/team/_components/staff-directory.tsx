@@ -2,7 +2,8 @@ import Link from "next/link";
 import { STAFF_STATUSES, getStaffStatusDisplay } from "@/types/staff";
 import { CENTRE_ROLES } from "@/types/role";
 import ReportExportDialog from "@/app/(dashboard)/_components/report-export-dialog";
-import { serverFetch } from "@/lib/server-fetch";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getStaffOverview, listStaff } from "@/lib/staff/staff.service";
 
 const REPORT_OPTIONS = [
   { value: "summary", label: "Staff Summary" },
@@ -11,33 +12,33 @@ const REPORT_OPTIONS = [
   { value: "assignments", label: "Staff Assignments" },
 ];
 
-async function getOverview() {
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/staff/overview`,
-    { cache: "no-store" },
-  );
-  if (!res.ok) return null;
-  const json = await res.json();
-  return json.data;
+async function getOverview(centreId: string) {
+  try {
+    const admin = createAdminClient();
+    return await getStaffOverview(admin, centreId);
+  } catch {
+    return null;
+  }
 }
 
-async function getStaff(searchParams: Record<string, string | undefined>) {
-  const params = new URLSearchParams();
-  if (searchParams.search) params.set("search", searchParams.search);
-  if (searchParams.employment_status) params.set("employment_status", searchParams.employment_status);
-  if (searchParams.operational_role) params.set("operational_role", searchParams.operational_role);
-  if (searchParams.department) params.set("department", searchParams.department);
-
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/staff?${params.toString()}`,
-    { cache: "no-store" },
-  );
-
-  if (!res.ok) {
+async function getStaff(
+  centreId: string,
+  searchParams: Record<string, string | undefined>,
+) {
+  try {
+    const admin = createAdminClient();
+    return await listStaff(admin, {
+      centre_id: centreId,
+      search: searchParams.search || undefined,
+      employment_status: searchParams.employment_status as never,
+      operational_role: searchParams.operational_role || undefined,
+      department: searchParams.department || undefined,
+      limit: 50,
+      offset: 0,
+    });
+  } catch {
     return { data: [], count: 0 };
   }
-
-  return res.json();
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -61,13 +62,15 @@ function StatusBadge({ status }: { status: string }) {
 export default async function StaffDirectory({
   searchParams,
   canCreate,
+  centreId,
 }: {
   searchParams: Record<string, string | undefined>;
   canCreate: boolean;
+  centreId: string;
 }) {
   const [overview, { data: staff, count }] = await Promise.all([
-    getOverview(),
-    getStaff(searchParams),
+    getOverview(centreId),
+    getStaff(centreId, searchParams),
   ]);
 
   return (

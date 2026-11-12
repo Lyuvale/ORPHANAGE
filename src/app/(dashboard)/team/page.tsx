@@ -70,7 +70,11 @@ export default async function TeamPage({
 
       {canViewDirectory && (
         <section>
-          <StaffDirectory searchParams={params} canCreate={canManageAccounts} />
+          <StaffDirectory
+            searchParams={params}
+            canCreate={canManageAccounts}
+            centreId={ctx.centre.id}
+          />
         </section>
       )}
     </div>

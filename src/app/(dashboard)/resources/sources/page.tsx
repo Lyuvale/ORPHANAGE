@@ -1,20 +1,10 @@
 import Link from "next/link";
-import { SUPPORT_SOURCE_TYPES, getSourceTypeDisplay, formatTsh } from "@/types/resources";
-import { serverFetch } from "@/lib/server-fetch";
+import { SUPPORT_SOURCE_TYPES, getSourceTypeDisplay, formatTsh, type SupportSource } from "@/types/resources";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { can } from "@/lib/auth/authorization.service";
-
-async function getSources(searchParams: Record<string, string | undefined>) {
-  const params = new URLSearchParams();
-  if (searchParams.type && searchParams.type !== "ALL") params.set("type", searchParams.type);
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/resources/sources?${params.toString()}`,
-    { cache: "no-store" },
-  );
-  if (!res.ok) return { data: [], count: 0 };
-  return res.json();
-}
+import { listSources } from "@/lib/resources/resources.service";
 
 export default async function SourcesPage({
   searchParams,
@@ -22,17 +12,27 @@ export default async function SourcesPage({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const params = await searchParams;
-  const { data: sources, count } = await getSources(params);
 
-  // Creation is the Accountant's duty (resources.manage).
+  let sources: SupportSource[] = [];
+  let count = 0;
   let canCreate = false;
   try {
     const supabase = await createClient();
     const ctx = await requireAppAccess(supabase as never, {
       allowInactiveSubscription: true,
     });
-    canCreate = await can(supabase as never, ctx, "resources.manage");
+    const admin = createAdminClient();
+    const type = params.type && params.type !== "ALL" ? params.type : undefined;
+    const [result, allowed] = await Promise.all([
+      listSources(admin, ctx.centre.id, type),
+      can(supabase as never, ctx, "resources.manage"),
+    ]);
+    sources = result.data;
+    count = result.count;
+    canCreate = allowed;
   } catch {
+    sources = [];
+    count = 0;
     canCreate = false;
   }
 

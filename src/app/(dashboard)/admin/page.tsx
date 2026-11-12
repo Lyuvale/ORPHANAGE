@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { getUserRoleName } from "@/lib/auth/authorization.service";
+import { PageHeader } from "@/components/ui/page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -201,16 +202,15 @@ export default async function AdminPage() {
 
   return (
     <div className="space-y-8">
-      {/* ── Header ──────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-900">Platform Dashboard</h1>
-          <p className="text-sm text-zinc-500">Overview of all centres, subscriptions and payments</p>
-        </div>
-        <span className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
-          PLATFORM ADMIN
-        </span>
-      </div>
+      <PageHeader
+        title="Platform Dashboard"
+        subtitle="Overview of all centres, subscriptions and payments."
+        actions={
+          <span className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700">
+            PLATFORM ADMIN
+          </span>
+        }
+      />
 
       {/* ── KPI Grid ────────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">

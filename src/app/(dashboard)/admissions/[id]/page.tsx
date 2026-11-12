@@ -1,19 +1,12 @@
 import Link from "next/link";
-import { serverFetch } from "@/lib/server-fetch";
-
-async function getAdmission(id: string) {
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/admissions/${id}`,
-    { cache: "no-store" },
-  );
-
-  if (!res.ok) {
-    return null;
-  }
-
-  const result = await res.json();
-  return result.data;
-}
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAppAccess } from "@/lib/auth/app-user-context";
+import { can } from "@/lib/auth/authorization.service";
+import {
+  getAdmissionById,
+  getAdmissionHistory,
+} from "@/lib/admissions/admission.service";
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
@@ -38,7 +31,28 @@ export default async function AdmissionDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const admission = await getAdmission(id);
+
+  let admission:
+    | (NonNullable<Awaited<ReturnType<typeof getAdmissionById>>> & {
+        status_history?: Awaited<ReturnType<typeof getAdmissionHistory>>;
+      })
+    | null = null;
+  try {
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as never, {
+      allowInactiveSubscription: true,
+    });
+    if (await can(supabase as never, ctx, "admissions.view")) {
+      const admin = createAdminClient();
+      const row = await getAdmissionById(admin, id);
+      if (row && row.centre_id === ctx.centre.id) {
+        const statusHistory = await getAdmissionHistory(admin, id);
+        admission = { ...row, status_history: statusHistory };
+      }
+    }
+  } catch {
+    admission = null;
+  }
 
   if (!admission) {
     return (

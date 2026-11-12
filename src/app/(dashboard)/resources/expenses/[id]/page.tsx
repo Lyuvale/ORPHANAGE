@@ -4,20 +4,11 @@ import { formatTsh, getExpenseStatusDisplay, getBenefitTypeDisplay } from "@/typ
 import ApprovalActions from "./_components/approval-actions";
 import ExpenseEditForm from "./_components/expense-edit-form";
 import AuditHistory from "../../../_components/audit-history";
-import { serverFetch } from "@/lib/server-fetch";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { can } from "@/lib/auth/authorization.service";
-
-async function getExpense(id: string) {
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/resources/expenses/${id}`,
-    { cache: "no-store" },
-  );
-  if (!res.ok) return null;
-  const json = await res.json();
-  return json.data;
-}
+import { getExpenseDetail } from "@/lib/resources/resources.service";
 
 export default async function ExpenseDetailPage({
   params,
@@ -25,9 +16,8 @@ export default async function ExpenseDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const expense = await getExpense(id);
-  if (!expense) notFound();
 
+  let expense: Awaited<ReturnType<typeof getExpenseDetail>> = null;
   let canManage = false;
   let canApprove = false;
   try {
@@ -35,12 +25,21 @@ export default async function ExpenseDetailPage({
     const ctx = await requireAppAccess(supabase as never, {
       allowInactiveSubscription: true,
     });
-    canManage = await can(supabase as never, ctx, "resources.manage");
-    canApprove = await can(supabase as never, ctx, "resources.approve");
+    const admin = createAdminClient();
+    const [detail, manage, approve] = await Promise.all([
+      getExpenseDetail(admin, id, ctx.centre.id),
+      can(supabase as never, ctx, "resources.manage"),
+      can(supabase as never, ctx, "resources.approve"),
+    ]);
+    expense = detail;
+    canManage = manage;
+    canApprove = approve;
   } catch {
+    expense = null;
     canManage = false;
     canApprove = false;
   }
+  if (!expense) notFound();
 
   return (
     <div>

@@ -2,10 +2,18 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatTsh, getBenefitTypeDisplay } from "@/types/resources";
 import AuditHistory from "../../_components/audit-history";
-import { serverFetch } from "@/lib/server-fetch";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { can, getUserRoleName } from "@/lib/auth/authorization.service";
+import { caregiverAssignmentScope } from "@/lib/caregivers/caregiver.service";
+import { getChildById, getChildStatusHistory } from "@/lib/children/child.service";
+import { listChildBenefits } from "@/lib/resources/resources.service";
+import { listRelationships } from "@/lib/guardians/guardian.service";
+import { listReferrals } from "@/lib/referrals/referral.service";
+import { listAdmissions } from "@/lib/admissions/admission.service";
+import { listPlacements } from "@/lib/placements/placement.service";
+import { getEmergencyHealthView } from "@/lib/health/health.service";
 import CaregiverAssignment from "./_components/caregiver-assignment";
 import AddPlacementForm from "./_components/add-placement-form";
 import LinkGuardianForm from "./_components/link-guardian-form";
@@ -56,76 +64,6 @@ function HealthSummary({ health }: { health: Record<string, unknown> }) {
   );
 }
 
-async function getChild(id: string) {
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/children/${id}`,
-    { cache: "no-store" },
-  );
-
-  if (!res.ok) return null;
-  return res.json();
-}
-
-async function getChildBenefits(childId: string) {
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/resources/children/${childId}/benefits`,
-    { cache: "no-store" },
-  );
-  if (!res.ok) return null;
-  const json = await res.json();
-  return json.data;
-}
-
-async function getChildGuardians(childId: string) {
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/guardians/relationships?child_id=${childId}&is_active=true`,
-    { cache: "no-store" },
-  );
-  if (!res.ok) return null;
-  const json = await res.json();
-  return json.data ?? [];
-}
-
-async function getChildReferrals(childId: string) {
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/referrals?child_id=${childId}&limit=20`,
-    { cache: "no-store" },
-  );
-  if (!res.ok) return null;
-  const json = await res.json();
-  return json.data ?? [];
-}
-
-async function getChildAdmissions(childId: string) {
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/admissions?child_id=${childId}&limit=20`,
-    { cache: "no-store" },
-  );
-  if (!res.ok) return null;
-  const json = await res.json();
-  return json.data ?? [];
-}
-
-async function getChildPlacements(childId: string) {
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/placements?child_id=${childId}&limit=20`,
-    { cache: "no-store" },
-  );
-  if (!res.ok) return null;
-  const json = await res.json();
-  return json.data ?? [];
-}
-
-async function getChildHealth(childId: string) {
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/health/emergency?child_id=${childId}`,
-    { cache: "no-store" },
-  );
-  if (!res.ok) return null;
-  const json = await res.json();
-  return json.data ?? null;
-}
-
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
     active: "bg-green-100 text-green-800",
@@ -150,28 +88,16 @@ export default async function ChildProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const result = await getChild(id);
 
-  if (!result?.data) {
-    notFound();
-  }
+  let child: Awaited<ReturnType<typeof getChildById>> = null;
+  let history: Awaited<ReturnType<typeof getChildStatusHistory>> = [];
+  let benefits: Awaited<ReturnType<typeof listChildBenefits>> | null = null;
+  let guardians: Awaited<ReturnType<typeof listRelationships>>["data"] | null = null;
+  let referrals: Awaited<ReturnType<typeof listReferrals>>["data"] | null = null;
+  let admissions: Awaited<ReturnType<typeof listAdmissions>>["data"] | null = null;
+  let placements: Awaited<ReturnType<typeof listPlacements>>["data"] | null = null;
+  let health: Awaited<ReturnType<typeof getEmergencyHealthView>> | null = null;
 
-  const child = result.data;
-  const history = child.status_history ?? [];
-  const benefits = await getChildBenefits(id);
-  const guardians = await getChildGuardians(id);
-  const referrals = await getChildReferrals(id);
-  const admissions = await getChildAdmissions(id);
-  const placements = await getChildPlacements(id);
-  const health = await getChildHealth(id);
-
-  // Assignment management (manager assigning child -> caregiver) is visible
-  // only to roles holding staff.assignments.manage. This also keeps the
-  // centre staff list out of reach for caregivers.
-  // Child editing is the Records Officer's duty (children.update).
-  // Section visibility below additionally follows each view permission:
-  // a null fetch result means "no access" and hides the section, while an
-  // empty list renders an empty state.
   let canManageAssignments = false;
   let canEditChild = false;
   let canAddPlacement = false;
@@ -183,37 +109,122 @@ export default async function ChildProfilePage({
   let canReviewAdmission = false;
   let canArchiveChild = false;
   let isManager = false;
+
   try {
     const supabase = await createClient();
     const actx = await requireAppAccess(supabase as never, {
       allowInactiveSubscription: true,
     });
-    canManageAssignments = await can(supabase as never, actx, "staff.assignments.manage");
-    canEditChild = await can(supabase as never, actx, "children.update");
-    canAddPlacement = await can(supabase as never, actx, "placements.create");
-    canLinkGuardian = await can(supabase as never, actx, "guardians.relationship.manage");
-    canViewHealthModule = await can(supabase as never, actx, "health.view");
-    canReviewReferral = await can(supabase as never, actx, "referrals.review");
-    canRejectReferral = await can(supabase as never, actx, "referrals.reject");
-    canWithdrawReferral =
-      (await can(supabase as never, actx, "referrals.update")) &&
-      !canReviewReferral &&
-      !canRejectReferral;
-    canReviewAdmission = await can(supabase as never, actx, "admissions.review");
-    canArchiveChild = await can(supabase as never, actx, "children.archive");
-    isManager = (await getUserRoleName(supabase as never, actx)) === "CENTRE_MANAGER";
+    const admin = createAdminClient();
+
+    const { assignedIds } = await caregiverAssignmentScope(
+      admin,
+      supabase as never,
+      actx,
+    );
+    child = await getChildById(admin, id);
+    if (
+      !child ||
+      child.centre_id !== actx.centre.id ||
+      (assignedIds && !assignedIds.includes(id))
+    ) {
+      notFound();
+    }
+    history = await getChildStatusHistory(admin, id);
+
+    const [
+      canBenefits,
+      canGuardians,
+      canReferrals,
+      canAdmissions,
+      canPlacements,
+      canHealth,
+      canAssign,
+      canEdit,
+      canPlacement,
+      canLink,
+      canReviewRef,
+      canRejectRef,
+      canUpdateRef,
+      canReviewAdm,
+      canArchive,
+      manager,
+    ] = await Promise.all([
+      can(supabase as never, actx, "resources.view"),
+      can(supabase as never, actx, "guardians.view"),
+      can(supabase as never, actx, "referrals.view"),
+      can(supabase as never, actx, "admissions.view"),
+      can(supabase as never, actx, "placements.view"),
+      can(supabase as never, actx, "health.view"),
+      can(supabase as never, actx, "staff.assignments.manage"),
+      can(supabase as never, actx, "children.update"),
+      can(supabase as never, actx, "placements.create"),
+      can(supabase as never, actx, "guardians.relationship.manage"),
+      can(supabase as never, actx, "referrals.review"),
+      can(supabase as never, actx, "referrals.reject"),
+      can(supabase as never, actx, "referrals.update"),
+      can(supabase as never, actx, "admissions.review"),
+      can(supabase as never, actx, "children.archive"),
+      getUserRoleName(supabase as never, actx),
+    ]);
+
+    canManageAssignments = canAssign;
+    canEditChild = canEdit;
+    canAddPlacement = canPlacement;
+    canLinkGuardian = canLink;
+    canViewHealthModule = canHealth;
+    canReviewReferral = canReviewRef;
+    canRejectReferral = canRejectRef;
+    canWithdrawReferral = canUpdateRef && !canReviewRef && !canRejectRef;
+    canReviewAdmission = canReviewAdm;
+    canArchiveChild = canArchive;
+    isManager = manager === "CENTRE_MANAGER";
+
+    const [b, g, r, a, p, h] = await Promise.all([
+      canBenefits ? listChildBenefits(admin, id, actx.centre.id) : null,
+      canGuardians
+        ? listRelationships(admin, {
+            centre_id: actx.centre.id,
+            child_id: id,
+            is_active: true,
+            limit: 50,
+            offset: 0,
+          }).then((res) => res.data)
+        : null,
+      canReferrals
+        ? listReferrals(admin, {
+            centre_id: actx.centre.id,
+            child_id: id,
+            limit: 20,
+            offset: 0,
+          }).then((res) => res.data)
+        : null,
+      canAdmissions
+        ? listAdmissions(admin, {
+            centre_id: actx.centre.id,
+            child_id: id,
+            limit: 20,
+            offset: 0,
+          }).then((res) => res.data)
+        : null,
+      canPlacements
+        ? listPlacements(admin, {
+            centre_id: actx.centre.id,
+            child_id: id,
+            limit: 20,
+            offset: 0,
+          }).then((res) => res.data)
+        : null,
+      canHealth ? getEmergencyHealthView(admin, actx.centre.id, id) : null,
+    ]);
+    benefits = b;
+    guardians = g;
+    referrals = r;
+    admissions = a;
+    placements = p;
+    health = h;
   } catch {
-    canManageAssignments = false;
-    canEditChild = false;
-    canAddPlacement = false;
-    canLinkGuardian = false;
-    canViewHealthModule = false;
-    canReviewReferral = false;
-    canRejectReferral = false;
-    canWithdrawReferral = false;
-    canReviewAdmission = false;
-    canArchiveChild = false;
-    isManager = false;
+    if (!child) notFound();
   }
 
   return (
@@ -614,7 +625,7 @@ export default async function ChildProfilePage({
             )}
           </div>
           <div className="border-t border-zinc-200 px-4 py-5 sm:px-6">
-            <HealthSummary health={health} />
+            <HealthSummary health={health as unknown as Record<string, unknown>} />
           </div>
         </div>
       )}

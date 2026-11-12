@@ -173,10 +173,11 @@ describe("Intake sections live together on the child; standalone lists removed",
     for (const h of ["Referral", "Admission", "Placement", "Guardians", "Health"]) {
       expect(page).toContain(h);
     }
-    expect(page).toContain("/api/referrals?child_id=");
-    expect(page).toContain("/api/admissions?child_id=");
-    expect(page).toContain("/api/placements?child_id=");
-    expect(page).toContain("/api/health/emergency?child_id=");
+    // The profile now loads these directly from the services (no self-HTTP).
+    expect(page).toContain("listReferrals");
+    expect(page).toContain("listAdmissions");
+    expect(page).toContain("listPlacements");
+    expect(page).toContain("getEmergencyHealthView");
   });
 
   it("child profile offers in-place placement recording and guardian linking by permission", () => {

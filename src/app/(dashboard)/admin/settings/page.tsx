@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { getUserRoleName, can } from "@/lib/auth/authorization.service";
 import SettingsClient from "./SettingsClient";
-import { serverFetch } from "@/lib/server-fetch";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 interface SettingsData {
   settings: { key: string; value: unknown }[];
@@ -16,11 +16,18 @@ interface SettingsData {
 }
 
 async function loadSettings(): Promise<SettingsData | null> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   try {
-    const res = await serverFetch(`${baseUrl}/api/platform/settings`, { cache: "no-store" });
-    if (!res.ok) return null;
-    return (await res.json()).data as SettingsData;
+    const admin = createAdminClient();
+    const [{ data: settings }, { data: centres }] = await Promise.all([
+      admin.from("platform_settings").select("key, value"),
+      admin
+        .from("centre_online_contributions")
+        .select("centre_id, enabled, purpose_presets"),
+    ]);
+    return {
+      settings: (settings ?? []) as { key: string; value: unknown }[],
+      online_contribution_centres: (centres ?? []) as SettingsData["online_contribution_centres"],
+    };
   } catch {
     return null;
   }

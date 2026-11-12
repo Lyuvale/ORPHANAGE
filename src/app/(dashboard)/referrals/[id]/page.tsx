@@ -1,24 +1,11 @@
 import Link from "next/link";
-import { serverFetch } from "@/lib/server-fetch";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { can } from "@/lib/auth/authorization.service";
 import ApproveRejectButtons from "@/app/(dashboard)/_components/approve-reject-buttons";
 import ReferralEditForm from "./_components/referral-edit-form";
-
-async function getReferral(id: string) {
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/referrals/${id}`,
-    { cache: "no-store" },
-  );
-
-  if (!res.ok) {
-    return null;
-  }
-
-  const result = await res.json();
-  return result.data;
-}
+import { getReferralById } from "@/lib/referrals/referral.service";
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
@@ -44,7 +31,32 @@ export default async function ReferralDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const referral = await getReferral(id);
+
+  let referral: Awaited<ReturnType<typeof getReferralById>> = null;
+  let canEdit = false;
+  let canReview = false;
+  let canReject = false;
+  try {
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as never, {
+      allowInactiveSubscription: true,
+    });
+    const admin = createAdminClient();
+    if (await can(supabase as never, ctx, "referrals.view")) {
+      const [row, edit, review, reject] = await Promise.all([
+        getReferralById(admin, id),
+        can(supabase as never, ctx, "referrals.update"),
+        can(supabase as never, ctx, "referrals.review"),
+        can(supabase as never, ctx, "referrals.reject"),
+      ]);
+      referral = row && row.centre_id === ctx.centre.id ? row : null;
+      canEdit = edit;
+      canReview = review;
+      canReject = reject;
+    }
+  } catch {
+    referral = null;
+  }
 
   if (!referral) {
     return (
@@ -55,23 +67,6 @@ export default async function ReferralDetailPage({
         </Link>
       </div>
     );
-  }
-
-  let canEdit = false;
-  let canReview = false;
-  let canReject = false;
-  try {
-    const supabase = await createClient();
-    const ctx = await requireAppAccess(supabase as never, {
-      allowInactiveSubscription: true,
-    });
-    canEdit = await can(supabase as never, ctx, "referrals.update");
-    canReview = await can(supabase as never, ctx, "referrals.review");
-    canReject = await can(supabase as never, ctx, "referrals.reject");
-  } catch {
-    canEdit = false;
-    canReview = false;
-    canReject = false;
   }
 
   return (

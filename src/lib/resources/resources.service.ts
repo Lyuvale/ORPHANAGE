@@ -533,6 +533,7 @@ export async function getFundDetail(
   admin: AdminClient,
   id: string,
   centreId: string,
+  options: { includeExpenses?: boolean } = {},
 ): Promise<SupportFundDetail | null> {
   const fund = await getFundById(admin, id);
   if (!fund || fund.centre_id !== centreId) return null;
@@ -552,11 +553,16 @@ export async function getFundDetail(
   if (eErr) throw new Error(`Failed to load fund expenses: ${eErr.message}`);
 
   let used = 0;
+  const includeExpenses = options.includeExpenses !== false;
   const expenseDetails: SupportExpenseDetail[] = [];
   for (const exp of (expenses ?? []) as SupportExpense[]) {
     if (exp.approval_status === "APPROVED") used += Number(exp.amount) || 0;
-    const detail = await getExpenseDetail(admin, exp.id, centreId, fund);
-    if (detail) expenseDetails.push(detail);
+    // Guard against the Fund → Expense → Fund cycle: callers that already
+    // hold the fund can request the balance without re-expanding expenses.
+    if (includeExpenses) {
+      const detail = await getExpenseDetail(admin, exp.id, centreId, fund);
+      if (detail) expenseDetails.push(detail);
+    }
   }
 
   return {
@@ -579,8 +585,17 @@ export async function getExpenseDetail(
   if (!expense || expense.centre_id !== centreId) return null;
 
   let fundRow: SupportFundDetail | null = null;
-  if (fund) fundRow = await getFundDetail(admin, fund.id, centreId);
-  else if (expense.fund_id) fundRow = await getFundDetail(admin, expense.fund_id, centreId);
+  // Never re-expand the fund's expenses here: Fund → Expense → Fund would
+  // cycle forever (and was doing so before).
+  if (fund) {
+    fundRow = await getFundDetail(admin, fund.id, centreId, {
+      includeExpenses: false,
+    });
+  } else if (expense.fund_id) {
+    fundRow = await getFundDetail(admin, expense.fund_id, centreId, {
+      includeExpenses: false,
+    });
+  }
 
   const { data: benefits, error: bErr } = await admin
     .from("support_benefits")
@@ -591,11 +606,28 @@ export async function getExpenseDetail(
 
   const benefitDetails: SupportBenefitDetail[] = [];
   for (const ben of (benefits ?? []) as SupportBenefit[]) {
-    const detail = await getBenefitDetail(admin, ben.id, centreId);
+    // Shallow benefit: do NOT re-load this expense through getBenefitDetail,
+    // which would cycle Expense → Benefit → Expense forever.
+    const detail = await getBenefitWithChildren(admin, ben.id, centreId);
     if (detail) benefitDetails.push(detail);
   }
 
   return { ...expense, fund: fundRow, benefits: benefitDetails };
+}
+
+/**
+ * Benefit with its children but WITHOUT expanding the parent expense.
+ * Used inside expense/fund traversal to break the cyclic detail graph.
+ */
+async function getBenefitWithChildren(
+  admin: AdminClient,
+  id: string,
+  centreId: string,
+): Promise<SupportBenefitDetail | null> {
+  const benefit = await getBenefitById(admin, id);
+  if (!benefit || benefit.centre_id !== centreId) return null;
+  const children = await getBenefitChildren(admin, id, centreId);
+  return { ...benefit, expense: null, children };
 }
 
 export async function getBenefitDetail(

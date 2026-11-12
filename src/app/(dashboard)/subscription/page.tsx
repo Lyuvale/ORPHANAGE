@@ -4,15 +4,27 @@ import {
   getSubscriptionStatusBadge,
   formatPlanDate,
 } from "@/types/subscription";
-import { serverFetch } from "@/lib/server-fetch";
+import { createClient } from "@/lib/supabase/server";
+import { requireAppAccess } from "@/lib/auth/app-user-context";
+import { loadSubscriptionForContext } from "@/lib/subscriptions/subscription-access.service";
 
 async function getMySubscription() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   try {
-    const res = await serverFetch(`${baseUrl}/api/subscriptions/mine`, { cache: "no-store" });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return json.data ?? null;
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as never, {
+      allowInactiveSubscription: true,
+    });
+    const access = await loadSubscriptionForContext(
+      supabase as never,
+      ctx.centre.id,
+    );
+    return {
+      approved: access.isSubscriptionValid,
+      reason: access.reason,
+      status: access.status,
+      subscription: access.subscription,
+      enabledFeatures: Array.from(access.enabledFeatures),
+    };
   } catch {
     return null;
   }
@@ -56,7 +68,8 @@ export default async function SubscriptionPage() {
   const sub = mine.subscription;
   const plan = sub?.plan;
   const planName = plan?.name ?? "Standard";
-  const validUntil = sub?.status === "trial" ? sub.trial_ends_at : sub.end_date;
+  const validUntil =
+    sub?.status === "trial" ? sub.trial_ends_at : sub?.end_date;
 
   return (
     <div>

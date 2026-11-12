@@ -1,17 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatTsh, getExpenseStatusDisplay } from "@/types/resources";
-import { serverFetch } from "@/lib/server-fetch";
-
-async function getFund(id: string) {
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/resources/funds/${id}`,
-    { cache: "no-store" },
-  );
-  if (!res.ok) return null;
-  const json = await res.json();
-  return json.data;
-}
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAppAccess } from "@/lib/auth/app-user-context";
+import { can } from "@/lib/auth/authorization.service";
+import { getFundDetail } from "@/lib/resources/resources.service";
 
 export default async function FundDetailPage({
   params,
@@ -19,7 +13,20 @@ export default async function FundDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const fund = await getFund(id);
+
+  let fund: Awaited<ReturnType<typeof getFundDetail>> = null;
+  try {
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as never, {
+      allowInactiveSubscription: true,
+    });
+    if (await can(supabase as never, ctx, "resources.view")) {
+      const admin = createAdminClient();
+      fund = await getFundDetail(admin, id, ctx.centre.id);
+    }
+  } catch {
+    fund = null;
+  }
   if (!fund) notFound();
 
   return (

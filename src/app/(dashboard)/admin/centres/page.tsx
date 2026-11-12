@@ -5,6 +5,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { getUserRoleName, can } from "@/lib/auth/authorization.service";
 import CentreListActions from "./CentreListActions";
+import { PageHeader } from "@/components/ui/page-header";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface CentreRecord {
   id: string;
@@ -61,19 +64,22 @@ export default async function AdminCentresPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-zinc-900">Platform Centres</h1>
-        <Link
-          href="/admin/centres/new"
-          className="rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-zinc-500"
-        >
-          Create Centre
-        </Link>
-      </div>
+      <PageHeader
+        title="Platform Centres"
+        subtitle="Every tenant centre on the platform."
+        actions={
+          <Link
+            href="/admin/centres/new"
+            className="rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+          >
+            Create Centre
+          </Link>
+        }
+      />
       <nav className="flex flex-wrap gap-2">
         <Link
           href="/admin"
-          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+          className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
         >
           Overview
         </Link>
@@ -85,63 +91,68 @@ export default async function AdminCentresPage() {
         </Link>
         <Link
           href="/admin/payments"
-          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+          className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
         >
           Payments
         </Link>
         <Link
           href="/admin/settings"
-          className="rounded-md bg-white border px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+          className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
         >
           Settings
         </Link>
       </nav>
 
       {centres.length === 0 ? (
-        <p className="text-sm text-zinc-500">No centres found.</p>
+        <EmptyState
+          title="No centres found"
+          description="Create the first centre to get started."
+        />
       ) : (
-        <div className="overflow-x-auto rounded-lg bg-white shadow-sm border">
-          <table className="min-w-full divide-y divide-zinc-200 text-sm">
-            <thead>
-              <tr className="bg-zinc-50 text-left text-xs font-medium text-zinc-500 uppercase">
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3">Code</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Created</th>
-                <th className="px-4 py-3">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-100">
-              {centres.map((c) => (
-                <tr key={c.id}>
-                  <td className="px-4 py-2 font-medium text-zinc-900">
-                    <Link href={`/admin/centres/${c.id}`} className="text-indigo-600 hover:underline">
-                      {c.name}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2 text-zinc-700">{c.code ?? "—"}</td>
-                  <td className="px-4 py-2">
-                    <span
-                      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                        c.status === "active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-zinc-100 text-zinc-600"
-                      }`}
-                    >
-                      {c.status === "active" ? "Active" : "Deactivated"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2 text-xs text-zinc-500">
-                    {new Date(c.created_at).toLocaleDateString("en-GB")}
-                  </td>
-                  <td className="px-4 py-2">
-                    <CentreListActions centreId={c.id} centreName={c.name} isActive={c.status === "active"} />
-                  </td>
+        <Card>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-zinc-200 text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 bg-zinc-50/60 text-left text-xs font-medium uppercase tracking-wide text-zinc-500">
+                  <th className="px-5 py-3">Name</th>
+                  <th className="px-5 py-3">Code</th>
+                  <th className="px-5 py-3">Status</th>
+                  <th className="px-5 py-3">Created</th>
+                  <th className="px-5 py-3">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-zinc-100">
+                {centres.map((c) => (
+                  <tr key={c.id} className="hover:bg-zinc-50/60">
+                    <td className="px-5 py-3 font-medium text-zinc-900">
+                      <Link href={`/admin/centres/${c.id}`} className="text-indigo-600 hover:underline">
+                        {c.name}
+                      </Link>
+                    </td>
+                    <td className="px-5 py-3 text-zinc-700">{c.code ?? "—"}</td>
+                    <td className="px-5 py-3">
+                      <span
+                        className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                          c.status === "active"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-zinc-100 text-zinc-600"
+                        }`}
+                      >
+                        {c.status === "active" ? "Active" : "Deactivated"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-xs text-zinc-500">
+                      {new Date(c.created_at).toLocaleDateString("en-GB")}
+                    </td>
+                    <td className="px-5 py-3">
+                      <CentreListActions centreId={c.id} centreName={c.name} isActive={c.status === "active"} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
       )}
     </div>
   );

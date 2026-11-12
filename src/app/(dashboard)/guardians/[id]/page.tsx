@@ -1,37 +1,11 @@
 import Link from "next/link";
-import { serverFetch } from "@/lib/server-fetch";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { can } from "@/lib/auth/authorization.service";
 import ApproveRejectButtons from "@/app/(dashboard)/_components/approve-reject-buttons";
 import GuardianEditForm from "./_components/guardian-edit-form";
-
-async function getGuardian(id: string) {
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/guardians/${id}`,
-    { cache: "no-store" },
-  );
-
-  if (!res.ok) {
-    return null;
-  }
-
-  const result = await res.json();
-  return result.data;
-}
-
-async function getGuardianRelationships(guardianId: string) {
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/guardians/relationships?guardian_id=${guardianId}`,
-    { cache: "no-store" },
-  );
-
-  if (!res.ok) {
-    return { data: [], count: 0 };
-  }
-
-  return res.json();
-}
+import { getGuardianById, listRelationships } from "@/lib/guardians/guardian.service";
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
@@ -56,7 +30,39 @@ export default async function GuardianDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const guardian = await getGuardian(id);
+
+  let guardian: Awaited<ReturnType<typeof getGuardianById>> = null;
+  let relationships: { data: Awaited<ReturnType<typeof listRelationships>>["data"] } = {
+    data: [],
+  };
+  let canDeactivate = false;
+  let canEditGuardian = false;
+  try {
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as never, {
+      allowInactiveSubscription: true,
+    });
+    const admin = createAdminClient();
+    if (await can(supabase as never, ctx, "guardians.view")) {
+      const [row, rels, deactivate, edit] = await Promise.all([
+        getGuardianById(admin, id),
+        listRelationships(admin, {
+          centre_id: ctx.centre.id,
+          guardian_id: id,
+          limit: 50,
+          offset: 0,
+        }),
+        can(supabase as never, ctx, "guardians.deactivate"),
+        can(supabase as never, ctx, "guardians.update"),
+      ]);
+      guardian = row && row.centre_id === ctx.centre.id ? row : null;
+      relationships = { data: guardian ? rels.data : [] };
+      canDeactivate = deactivate;
+      canEditGuardian = edit;
+    }
+  } catch {
+    guardian = null;
+  }
 
   if (!guardian) {
     return (
@@ -67,25 +73,6 @@ export default async function GuardianDetailPage({
         </Link>
       </div>
     );
-  }
-
-  const relationships = await getGuardianRelationships(id);
-
-  // Guardian deactivation is manager-only (guardians.deactivate).
-  // Field editing is open to guardians.update holders (records, manager,
-  // social worker).
-  let canDeactivate = false;
-  let canEditGuardian = false;
-  try {
-    const supabase = await createClient();
-    const ctx = await requireAppAccess(supabase as never, {
-      allowInactiveSubscription: true,
-    });
-    canDeactivate = await can(supabase as never, ctx, "guardians.deactivate");
-    canEditGuardian = await can(supabase as never, ctx, "guardians.update");
-  } catch {
-    canDeactivate = false;
-    canEditGuardian = false;
   }
 
   return (

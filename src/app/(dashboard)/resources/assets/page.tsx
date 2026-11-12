@@ -5,24 +5,13 @@ import {
   getAssetConditionDisplay,
   getAssetLocationDisplay,
   formatTsh,
+  type SupportAsset,
 } from "@/types/resources";
-import { serverFetch } from "@/lib/server-fetch";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { can } from "@/lib/auth/authorization.service";
-
-async function getAssets(searchParams: Record<string, string | undefined>) {
-  const params = new URLSearchParams();
-  if (searchParams.category) params.set("category", searchParams.category);
-  if (searchParams.status) params.set("status", searchParams.status);
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/resources/assets?${params.toString()}`,
-    { cache: "no-store" },
-  );
-  if (!res.ok) return [];
-  const json = await res.json();
-  return json.data ?? [];
-}
+import { listAssets } from "@/lib/resources/resources.service";
 
 export default async function AssetsPage({
   searchParams,
@@ -30,17 +19,23 @@ export default async function AssetsPage({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const params = await searchParams;
-  const assets = await getAssets(params);
 
-  // Asset creation is the Accountant's duty (resources.assets.manage).
+  let assets: SupportAsset[] = [];
   let canCreate = false;
   try {
     const supabase = await createClient();
     const ctx = await requireAppAccess(supabase as never, {
       allowInactiveSubscription: true,
     });
-    canCreate = await can(supabase as never, ctx, "resources.assets.manage");
+    const admin = createAdminClient();
+    const [result, allowed] = await Promise.all([
+      listAssets(admin, ctx.centre.id, params.category, params.status),
+      can(supabase as never, ctx, "resources.assets.manage"),
+    ]);
+    assets = result.data;
+    canCreate = allowed;
   } catch {
+    assets = [];
     canCreate = false;
   }
 

@@ -1,22 +1,11 @@
 import Link from "next/link";
-import { formatTsh, getExpenseStatusDisplay } from "@/types/resources";
-import { serverFetch } from "@/lib/server-fetch";
+import { formatTsh, getExpenseStatusDisplay, type SupportExpenseDetail } from "@/types/resources";
 import ApproveRejectButtons from "@/app/(dashboard)/_components/approve-reject-buttons";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAppAccess } from "@/lib/auth/app-user-context";
 import { can } from "@/lib/auth/authorization.service";
-
-async function getExpenses(searchParams: Record<string, string | undefined>) {
-  const params = new URLSearchParams();
-  if (searchParams.fund_id) params.set("fund_id", searchParams.fund_id);
-  if (searchParams.status) params.set("status", searchParams.status);
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/resources/expenses?${params.toString()}`,
-    { cache: "no-store" },
-  );
-  if (!res.ok) return { data: [] };
-  return res.json();
-}
+import { listExpenses } from "@/lib/resources/resources.service";
 
 export default async function ExpensesPage({
   searchParams,
@@ -24,10 +13,8 @@ export default async function ExpensesPage({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const params = await searchParams;
-  const { data: expenses } = await getExpenses(params);
 
-  // Approval buttons are visible only to roles holding resources.approve.
-  // Creation is the Accountant's duty (resources.manage).
+  let expenses: SupportExpenseDetail[] = [];
   let canApproveExp = false;
   let canCreateExp = false;
   try {
@@ -35,9 +22,17 @@ export default async function ExpensesPage({
     const ctx = await requireAppAccess(supabase as never, {
       allowInactiveSubscription: true,
     });
-    canApproveExp = await can(supabase as never, ctx, "resources.approve");
-    canCreateExp = await can(supabase as never, ctx, "resources.manage");
+    const admin = createAdminClient();
+    const [result, canApprove, canCreate] = await Promise.all([
+      listExpenses(admin, ctx.centre.id, params.fund_id, params.status),
+      can(supabase as never, ctx, "resources.approve"),
+      can(supabase as never, ctx, "resources.manage"),
+    ]);
+    expenses = result.data;
+    canApproveExp = canApprove;
+    canCreateExp = canCreate;
   } catch {
+    expenses = [];
     canApproveExp = false;
     canCreateExp = false;
   }

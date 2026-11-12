@@ -1,17 +1,10 @@
 import Link from "next/link";
-import { getBenefitTypeDisplay } from "@/types/resources";
-import { serverFetch } from "@/lib/server-fetch";
-
-async function getBenefits(searchParams: Record<string, string | undefined>) {
-  const params = new URLSearchParams();
-  if (searchParams.expense_id) params.set("expense_id", searchParams.expense_id);
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/resources/benefits?${params.toString()}`,
-    { cache: "no-store" },
-  );
-  if (!res.ok) return { data: [] };
-  return res.json();
-}
+import { getBenefitTypeDisplay, type SupportBenefitDetail } from "@/types/resources";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAppAccess } from "@/lib/auth/app-user-context";
+import { can } from "@/lib/auth/authorization.service";
+import { listBenefits } from "@/lib/resources/resources.service";
 
 export default async function BenefitsPage({
   searchParams,
@@ -19,7 +12,21 @@ export default async function BenefitsPage({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const params = await searchParams;
-  const { data: benefits } = await getBenefits(params);
+
+  let benefits: SupportBenefitDetail[] = [];
+  try {
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as never, {
+      allowInactiveSubscription: true,
+    });
+    if (await can(supabase as never, ctx, "resources.view")) {
+      const admin = createAdminClient();
+      const result = await listBenefits(admin, ctx.centre.id, params.expense_id);
+      benefits = result.data;
+    }
+  } catch {
+    benefits = [];
+  }
 
   return (
     <div>

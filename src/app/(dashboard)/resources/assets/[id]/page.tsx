@@ -13,21 +13,28 @@ import AddCost from "./_components/add-cost";
 import UpdateStatus from "./_components/update-status";
 import DisposeAsset from "./_components/dispose-asset";
 import AuditHistory from "../../../_components/audit-history";
-import { serverFetch } from "@/lib/server-fetch";
-
-async function getAsset(id: string) {
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/resources/assets/${id}`,
-    { cache: "no-store" },
-  );
-  if (!res.ok) return null;
-  const json = await res.json();
-  return json.data;
-}
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAppAccess } from "@/lib/auth/app-user-context";
+import { can } from "@/lib/auth/authorization.service";
+import { getAssetDetail } from "@/lib/resources/resources.service";
 
 export default async function AssetDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const asset = await getAsset(id);
+
+  let asset: Awaited<ReturnType<typeof getAssetDetail>> = null;
+  try {
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as never, {
+      allowInactiveSubscription: true,
+    });
+    if (await can(supabase as never, ctx, "resources.assets.view")) {
+      const admin = createAdminClient();
+      asset = await getAssetDetail(admin, id, ctx.centre.id);
+    }
+  } catch {
+    asset = null;
+  }
   if (!asset) notFound();
 
   const source = asset.source;

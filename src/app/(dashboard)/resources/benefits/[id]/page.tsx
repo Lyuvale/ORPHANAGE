@@ -2,17 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getBenefitTypeDisplay, formatTsh } from "@/types/resources";
 import ManageChildren from "./_components/manage-children";
-import { serverFetch } from "@/lib/server-fetch";
-
-async function getBenefit(id: string) {
-  const res = await serverFetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/resources/benefits/${id}`,
-    { cache: "no-store" },
-  );
-  if (!res.ok) return null;
-  const json = await res.json();
-  return json.data;
-}
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAppAccess } from "@/lib/auth/app-user-context";
+import { can } from "@/lib/auth/authorization.service";
+import { getBenefitDetail } from "@/lib/resources/resources.service";
 
 export default async function BenefitDetailPage({
   params,
@@ -20,7 +14,20 @@ export default async function BenefitDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const benefit = await getBenefit(id);
+
+  let benefit: Awaited<ReturnType<typeof getBenefitDetail>> = null;
+  try {
+    const supabase = await createClient();
+    const ctx = await requireAppAccess(supabase as never, {
+      allowInactiveSubscription: true,
+    });
+    if (await can(supabase as never, ctx, "resources.view")) {
+      const admin = createAdminClient();
+      benefit = await getBenefitDetail(admin, id, ctx.centre.id);
+    }
+  } catch {
+    benefit = null;
+  }
   if (!benefit) notFound();
 
   const expense = benefit.expense;
